@@ -90,8 +90,6 @@ class Scene : public QGLWidget {
   float pitch_, yaw_, speed_;
   int walk_, strafe_, jump_;
   vec3 position_;
-  vec3 velocity_;
-  vec3 momentum_;
   QBasicTimer timer_;
   mat4 projection_;
   mat4 view_;

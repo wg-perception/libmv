@@ -465,10 +465,7 @@ void Scene::timerEvent(QTimerEvent* /*event*/) {
   mat4 view;
   view.rotateZ(yaw_);
   view.rotateX(pitch_);
-  velocity_ += view*vec3(strafe_*speed_, 0, -walk_*speed_)
-      + vec3(0, 0, jump_*speed_);
-  velocity_ *= 3.0/4;
-  position_ += velocity_;
+  position_ += view*vec3(strafe_*speed_, 0, -walk_*speed_) + vec3(0, 0, jump_*speed_);
   if ( length(velocity_) < 0.01 ) timer_.stop();
   update();
 }

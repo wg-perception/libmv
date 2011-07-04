@@ -457,8 +457,8 @@ void MainWindow::solve() {
   Q_ASSERT(keyframes_.size() >= 2);
 
   libmv::vector<libmv::Marker> keyframe_markers =
-    normalized_tracks.MarkersForTracksInBothImages(keyframes_[0],
-                                                   keyframes_[1]);
+      normalized_tracks.MarkersForTracksInBothImages(keyframes_[0],
+                                                     keyframes_[1]);
 
   libmv::ReconstructTwoFrames(keyframe_markers, reconstruction_);
   libmv::Bundle(normalized_tracks, reconstruction_);
@@ -476,4 +476,3 @@ int main(int argc, char *argv[]) {
   window.open(app.arguments().value(1));
   return app.exec();
 }
-
