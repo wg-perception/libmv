@@ -23,6 +23,7 @@
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/triangulation.h"
 #include "libmv/multiview/nviewtriangulation.h"
+#include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/levenberg_marquardt.h"
 #include "libmv/simple_pipeline/reconstruction.h"

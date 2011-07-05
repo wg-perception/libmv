@@ -448,9 +448,9 @@ void MainWindow::solve() {
   libmv::vector<libmv::Marker> markers = tracks_->AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
     intrinsics_->InvertIntrinsics(markers[i].x,
-                                markers[i].y,
-                                &(markers[i].x),
-                                &(markers[i].y));
+                                  markers[i].y,
+                                  &(markers[i].x),
+                                  &(markers[i].y));
   }
   libmv::Tracks normalized_tracks(markers);
 
