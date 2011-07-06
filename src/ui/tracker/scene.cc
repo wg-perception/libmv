@@ -342,6 +342,7 @@ void Scene::keyReleaseEvent(QKeyEvent* e) {
   if ( e->key() == Qt::Key_D ) strafe_--;
   if ( e->key() == Qt::Key_Control ) jump_++;
   if ( e->key() == Qt::Key_Space ) jump_--;
+  if (timer_.isActive()) timer_.stop();
 }
 
 void Scene::mousePressEvent(QMouseEvent* e) {
@@ -466,6 +467,5 @@ void Scene::timerEvent(QTimerEvent* /*event*/) {
   view.rotateZ(yaw_);
   view.rotateX(pitch_);
   position_ += view*vec3(strafe_*speed_, 0, -walk_*speed_) + vec3(0, 0, jump_*speed_);
-  if ( length(velocity_) < 0.01 ) timer_.stop();
   update();
 }

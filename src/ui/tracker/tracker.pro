@@ -9,7 +9,6 @@ INCLUDEPATH += /usr/include/eigen3/
 LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -limage -ltracking -lmultiview
 
 win32:CONFIG+=glew
-exists(/usr/include/GL/glew.h):CONFIG+=glew
 glew {
  DEFINES += GLEW
  win32 {
