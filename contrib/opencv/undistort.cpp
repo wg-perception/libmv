@@ -1,11 +1,12 @@
+// gcc -lopencv_highgui -lopencv_imgproc undistort.cpp -o undistort
+// ./undistort -c camera.yml example/Image*
 // Remove radial distortion from images.
 // Author: keir mierle, 2009.
 //
 // Use with the YAML calibration file created by "calibration.cpp".
 
-#include "cv.h"
-#include "highgui.h"
-
+#include "opencv2/highgui/highgui_c.h"
+#include "opencv2/imgproc/imgproc_c.h"
 #include <stdio.h>
 #include <vector>
 #include <string>
@@ -79,9 +80,9 @@ int main( int argc, char** argv )
         IplImage* undistorted = cvCloneImage( view );
         cvUndistort2( view, undistorted, camera_matrix, dist_coeffs );
 
-        fprintf(stderr, "Undistorting: %s -> %s.u.jpg\n", images[i].c_str());
-
         string new_file = images[i] + ".u.jpg";
+        fprintf(stderr, "Undistorting: %s -> %s\n", images[i].c_str(), new_file.c_str());
+
         cvSaveImage( new_file.c_str(), undistorted );
 
         cvReleaseImage( &undistorted );

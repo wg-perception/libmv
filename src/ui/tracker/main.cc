@@ -238,6 +238,7 @@ void MainWindow::open() {
     Parameter parameter = parameters[i];
     spinbox[i].setSuffix(parameter.suffix);
     spinbox[i].setRange(parameter.min, parameter.max);
+    spinbox[i].setDecimals(3);
     if (data.isEmpty()) {
       spinbox[i].setValue(parameter.value);
     } else {
