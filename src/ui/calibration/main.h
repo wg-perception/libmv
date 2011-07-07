@@ -25,6 +25,8 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QSpinBox>
+#include <QCheckBox>
+#include <QLabel>
 
 class QHBoxLayout;
 
@@ -35,13 +37,14 @@ class Image : public QWidget {
   QSize sizeHint() const;
 
   QString path;
-  QVector<QPointF> corners;
+  QVector<QPointF> distorted_corners;
+  QVector<QPointF> corrected_corners;
+  QPixmap distorted_image;
+  QPixmap corrected_image;
+  bool correct;
 
  protected:
   void paintEvent(QPaintEvent*);
-
- private:
-  QPixmap pixmap;
 };
 
 class MainWindow : public QWidget {
@@ -56,6 +59,7 @@ class MainWindow : public QWidget {
   void showImage(int);
   void calibrate();
   void process();
+  void toggleDistort();
 
  private:
   QHBoxLayout* hbox;
@@ -64,9 +68,15 @@ class MainWindow : public QWidget {
   QSpinBox width;
   QSpinBox height;
   QDoubleSpinBox size;
+  QCheckBox correct;
+  QLabel focalLength;
+  QLabel principalPoint;
+  QLabel radialDistortion[3];
   QList<Image*> images;
   Image* currentImage;
   int current;
+  double camera[9];
+  double coefficients[4];
 };
 #endif
 
