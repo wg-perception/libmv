@@ -6,5 +6,6 @@ QT4_WRAP_CPP(SOURCES main.h)
 ADD_EXECUTABLE(qt-calibration ${SOURCES})
 TARGET_LINK_LIBRARIES(qt-calibration
                       ${QT_LIBRARIES}
+                      opencv_highgui
                       opencv_calib3d)
 LIBMV_INSTALL_EXE(qt-calibration)

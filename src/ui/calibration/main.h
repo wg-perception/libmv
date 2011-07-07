@@ -34,8 +34,12 @@ class Image : public QWidget {
   Image(QString path);
   QSize sizeHint() const;
 
+  QString path;
+  QVector<QPointF> corners;
+
  protected:
   void paintEvent(QPaintEvent*);
+
  private:
   QPixmap pixmap;
 };
@@ -44,11 +48,14 @@ class MainWindow : public QWidget {
   Q_OBJECT
  public:
   MainWindow();
+  ~MainWindow();
 
  public slots:
   void open();
   void open(QString);
   void showImage(int);
+  void calibrate();
+  void process();
 
  private:
   QHBoxLayout* hbox;
@@ -58,7 +65,8 @@ class MainWindow : public QWidget {
   QSpinBox height;
   QDoubleSpinBox size;
   QList<Image*> images;
-  Image* current;
+  Image* currentImage;
+  int current;
 };
 #endif
 
