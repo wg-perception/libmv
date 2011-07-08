@@ -54,7 +54,6 @@ class MainWindow : public QWidget {
   ~MainWindow();
 
  public slots:
-  void open();
   void open(QString);
   void showImage(int);
   void calibrate();

@@ -28,6 +28,8 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QFormLayout>
+#include <QCompleter>
+#include <QFileSystemModel>
 #include <QSettings>
 #include <QPainter>
 #include <QTimer>
@@ -59,31 +61,34 @@ MainWindow::MainWindow() : currentImage(0), current(0) {
   side->setRowWrapPolicy(QFormLayout::WrapLongRows);
   hbox->addLayout(side);
   side->addRow("Source Image Folder", &source);
+  QFileSystemModel* model = new QFileSystemModel;
+  model->setRootPath(QDir::rootPath());
+  source.setCompleter(new QCompleter(model));
   source.setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed);
   source.setMinimumWidth(256);
+  connect(&source, SIGNAL(textChanged(QString)), SLOT(open(QString)));
   side->addRow("Loaded Images", &list);
   list.setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  connect(&list, SIGNAL(currentRowChanged(int)), SLOT(showImage(int)));
   side->addRow("Grid Width", &width);
   width.setRange(3, 256);
   width.setValue(QSettings().value("width", 3).toInt());
+  connect(&width, SIGNAL(valueChanged(int)), SLOT(calibrate()));
   side->addRow("Grid Height", &height);
   height.setRange(3, 256);
   height.setValue(QSettings().value("height", 3).toInt());
+  connect(&height, SIGNAL(valueChanged(int)), SLOT(calibrate()));
   side->addRow("Square Size", &size);
   size.setValue(QSettings().value("size", 1).toFloat());
+  connect(&size, SIGNAL(valueChanged(double)), SLOT(calibrate()));
   side->addRow("Undistort",&correct);
   correct.setEnabled(false);
+  connect(&correct, SIGNAL(stateChanged(int)), SLOT(toggleDistort()));
   side->addRow("Focal Length",&focalLength);
   side->addRow("Principal Point",&principalPoint);
-  side->addRow("K0",&radialDistortion[0]);
-  side->addRow("K1",&radialDistortion[1]);
-  side->addRow("K2",&radialDistortion[2]);
-
-  connect(&list, SIGNAL(currentRowChanged(int)), SLOT(showImage(int)));
-  connect(&width, SIGNAL(valueChanged(int)), SLOT(calibrate()));
-  connect(&height, SIGNAL(valueChanged(int)), SLOT(calibrate()));
-  connect(&size, SIGNAL(valueChanged(double)), SLOT(calibrate()));
-  connect(&correct, SIGNAL(stateChanged(int)), SLOT(toggleDistort()));
+  side->addRow("K1",&radialDistortion[0]);
+  side->addRow("K2",&radialDistortion[1]);
+  side->addRow("K3",&radialDistortion[2]);
 }
 MainWindow::~MainWindow() {
   QSettings().setValue("width", width.value());
@@ -91,16 +96,15 @@ MainWindow::~MainWindow() {
   QSettings().setValue("size", size.value());
 }
 
-void MainWindow::open() {
-  open(QFileDialog::getExistingDirectory(this, "Select image folder"));
-}
-
 void MainWindow::open(QString folder) {
+  list.clear();
+  currentImage=0;
   foreach (Image* image, images) {
     delete image;
   }
+  images.clear();
+  current=0;
   if (folder.isEmpty() || !QDir(folder).exists()) return;
-  source.setText(QDir(folder).canonicalPath());
   foreach (QString file, QDir(folder).entryList(QStringList("*.jpg") << "*.png",
                                                 QDir::Files, QDir::Name)) {
     list.addItem( file );
@@ -109,6 +113,8 @@ void MainWindow::open(QString folder) {
     image->hide();
     images << image;
   }
+  if(images.isEmpty()) return;
+  source.setText(QDir(folder).canonicalPath());
   list.setCurrentRow(0);
   calibrate();
 }
@@ -118,6 +124,7 @@ void MainWindow::showImage(int index) {
     currentImage->hide();
     hbox->removeWidget(currentImage);
   }
+  if(index < 0) return;
   currentImage = images[index];
   hbox->addWidget(currentImage);
   if (correct.isChecked()) {
@@ -150,7 +157,7 @@ void MainWindow::calibrate() {
 
 void MainWindow::process() {
   CvSize board = { width.value(), height.value() };
-  if (current == images.count()) {
+  if (current >= images.count()) {
     int point_count = board.width*board.height;
     int image_count = 0;
     foreach (Image* image, images) {
@@ -260,4 +267,3 @@ int main(int argc, char *argv[]) {
   window.open(app.arguments().value(1));
   return app.exec();
 }
-
