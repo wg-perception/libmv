@@ -1,3 +1,7 @@
 ADD_SUBDIRECTORY(tracker)
-# TODO(MatthiasF): only build this when OpenCV is enabled
-ADD_SUBDIRECTORY(calibration)
+
+OPTION(BUILD_CALIBRATION "Build Qt Calibration" ON)
+IF (BUILD_CALIBRATION)
+ MESSAGE(STATUS "Calibration Tool enabled. You need to install OpenCV to build Qt Calibration")
+ ADD_SUBDIRECTORY(calibration)
+ENDIF (BUILD_CALIBRATION)
