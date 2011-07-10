@@ -28,6 +28,25 @@
 #include <QCache>
 #include <QTimer>
 
+#ifdef USE_FFMPEG
+class AVFormatContext;
+class AVCodecContext;
+#endif
+
+class Clip : public QObject {
+  Q_OBJECT
+ public:
+  explicit Clip(QObject* parent = 0) : QObject(parent) {}
+
+  void Open(QString path);
+  int Count();
+  QSize Size();
+  QImage Image(int);
+
+ private:
+  QList<QImage> images_;
+};
+
 namespace libmv {
 class Tracks;
 class Reconstruction;
@@ -37,16 +56,6 @@ class CameraIntrinsics;
 class Tracker;
 class Zoom;
 class Scene;
-
-class Clip : public QObject, public QList<QString>   {
-  Q_OBJECT
- public:
-  explicit Clip(QObject* parent = 0) : QObject(parent) {}
-  void Open(QString path);
-  QImage Image(int frame);
- private:
-  QCache<int, QImage> cache_;
-};
 
 class MainWindow : public QMainWindow {
   Q_OBJECT

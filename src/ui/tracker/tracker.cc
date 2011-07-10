@@ -43,7 +43,7 @@ bool CopyRegionFromQImage(QImage image,
                           int w, int h,
                           int *x0, int *y0,
                           libmv::FloatImage *region) {
-  const unsigned char *data = image.bits();
+  const unsigned char *data = image.constBits();
   int width = image.width();
   int height = image.height();
 
@@ -93,7 +93,10 @@ void Tracker::Load(QByteArray data) {
   for (size_t i = 0; i < data.size() / sizeof(Marker); ++i) {
     Marker marker = markers[i];
     tracks_->Insert(marker.image, marker.track, marker.x, marker.y);
+    // Select all tracks with markers visible on first frame
+    if(marker.image==0) selected_tracks_ << marker.track;
   }
+  emit trackChanged(selected_tracks_);
 }
 
 QByteArray Tracker::Save() {
@@ -134,7 +137,6 @@ void Tracker::SetImage(int image, QImage new_image, bool track) {
       if (!CopyRegionFromQImage(previous_image_, size, size,
                                 &x0, &y0,
                                 &old_patch)) {
-        selected_tracks_.remove(selected_tracks_.indexOf(marker.track));
         continue;
       }
 
@@ -144,7 +146,6 @@ void Tracker::SetImage(int image, QImage new_image, bool track) {
       if (!CopyRegionFromQImage(new_image, size, size,
                                 &x1, &y1,
                                 &new_patch)) {
-        selected_tracks_.remove(selected_tracks_.indexOf(marker.track));
         continue;
       }
 
@@ -188,7 +189,7 @@ void Tracker::deleteSelectedTracks() {
 }
 
 // TODO(MatthiasF): custom pattern/search size
-static const float kSearchWindowSize = 32;
+static const float kSearchWindowSize = 31.5;
 static const float kPatternWindowSize = 5.5;
 
 void Tracker::DrawMarker(const libmv::Marker marker, QVector<vec2> *lines) {

@@ -10,6 +10,7 @@ ADD_EXECUTABLE(qt-tracker ${SOURCES})
 TARGET_LINK_LIBRARIES(qt-tracker
                       ${QT_LIBRARIES}
                       ${OPENGL_LIBRARIES}
+                      ${FFMPEG_LIBRARIES}
                       simple_pipeline
                       tracking
                       multiview

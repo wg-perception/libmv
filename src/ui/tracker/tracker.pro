@@ -21,9 +21,10 @@ glew {
  }
 }
 
-profiler {
- LIBS += -lprofiler
- DEFINES += PPROF
+exists(/usr/include/libavcodec/avcodec.h):CONFIG+=ffmpeg
+ffmpeg {
+ DEFINES += USE_FFMPEG
+ LIBS += -lavcodec -lavformat
 }
 
 OBJECTS_DIR=build

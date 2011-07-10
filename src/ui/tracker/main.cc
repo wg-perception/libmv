@@ -39,24 +39,85 @@
 #include <QMenu>
 #include <QTime>
 
+#ifdef USE_FFMPEG
+extern "C" {
+typedef uint64_t UINT64_C;
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+}
+#endif
+
 #include <float.h>
 
+#include <QDebug>
+
 void Clip::Open(QString path) {
-  clear();
-  cache_.setMaxCost(64 * 1024 * 1024);
+  images_.clear();
+#ifdef USE_FFMPEG
+  av_register_all();
+  av_log_set_level(AV_LOG_WARNING);
+  AVCodecContext* video_ = 0;
+  if (video_) {
+    avcodec_close(video_);
+    video_ = 0;
+  }
+  AVFormatContext* file_ = 0;
+  if (file_) {
+    av_close_input_file(file_);
+    file_ = 0;
+  }
+  if (QFileInfo(path).isFile()) {
+    if(avformat_open_input(&file_, path.toUtf8(), 0, 0)) return;
+    av_find_stream_info(file_);
+    int video_stream_ = 0;
+    for (int i=0; i < (int)file_->nb_streams; i++ ) {
+        if( file_->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+          video_stream_ = i;
+          video_ = file_->streams[i]->codec;
+          AVCodec* codec = avcodec_find_decoder(video_->codec_id);
+          if( codec ) avcodec_open( video_, codec );
+          break;
+        }
+    }
+    for(AVPacket packet; av_read_frame(file_, &packet) >= 0; ) {
+      if( packet.stream_index==video_stream_ ) {
+        AVFrame* frame = avcodec_alloc_frame();
+        int complete_frame=0;
+        avcodec_decode_video2(video_, frame, &complete_frame, &packet );
+        if(complete_frame) {
+          // FIXME: Assume planar format
+          QImage image(frame->width,frame->height,QImage::Format_Indexed8);
+          int w=image.width(),h=image.height(),bytesPerLine=frame->linesize[0];
+          uchar* dst = image.bits();
+          const uchar* src = frame->data[0];
+          for(int y = 0; y < h; y++) {
+              memcpy(dst, src, w);
+              dst += w; src += bytesPerLine;
+          }
+          av_free(frame);
+          images_ << image;
+        }
+      }
+      av_free_packet(&packet);
+    }
+  } else
+#endif
   foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
                                               QDir::Files, QDir::Name)) {
-    append(QDir(path).filePath(file));
+    images_ << QImage(QDir(path).filePath(file)).convertToFormat(QImage::Format_Indexed8);
   }
 }
 
-QImage Clip::Image(int frame) {
-  QImage* image = cache_[frame];
-  if (!image) {
-    image = new QImage(value(frame));
-    cache_.insert(frame, image, image->byteCount());
-  }
-  return *image;
+int Clip::Count() {
+  return images_.count();
+}
+
+QSize Clip::Size() {
+  return Image(0).size();
+}
+
+QImage Clip::Image(int i) {
+  return images_[i];
 }
 
 MainWindow::MainWindow()
@@ -181,8 +242,8 @@ MainWindow::MainWindow()
   restoreState(QSettings().value("windowState").toByteArray());
 }
 void MainWindow::Save(QString name, QByteArray data) {
-  if (data.isEmpty()) return;
-  QFile file(QDir(path_).filePath(name));
+  if (path_.isEmpty() || data.isEmpty()) return;
+  QFile file(QFileInfo(path_).isDir() ? QDir(path_).filePath(name) : path_+"."+name);
   if (file.open(QFile::WriteOnly | QIODevice::Truncate)) {
     file.write(data);
   }
@@ -191,11 +252,10 @@ MainWindow::~MainWindow() {
   QSettings().setValue("geometry", saveGeometry());
   QSettings().setValue("windowState", saveState());
   QSettings().setValue("currentFrame", current_frame_);
-  if (clip_->isEmpty()) return;
   Save("tracks", tracker_->Save());
-  Save("cameras", scene_->SaveCameras());
-  Save("bundles", scene_->SaveBundles());
-  Save("objects", scene_->SaveObjects());
+  //Save("cameras", scene_->SaveCameras());
+  //Save("bundles", scene_->SaveBundles());
+  //Save("objects", scene_->SaveObjects());
   Save("keyframes", QByteArray((char*)keyframes_.data(),
                                keyframes_.size()*sizeof(int)));
   delete reconstruction_;
@@ -203,7 +263,7 @@ MainWindow::~MainWindow() {
 }
 
 QByteArray MainWindow::Load(QString name) {
-  QFile file(QDir(path_).filePath(name));
+  QFile file(QFileInfo(path_).isDir() ? QDir(path_).filePath(name) : path_+"."+name);
   return file.open(QFile::ReadOnly) ? file.readAll() : QByteArray();
 }
 
@@ -216,9 +276,8 @@ struct Parameter {
 };
 
 void MainWindow::open() {
-  open(QFileDialog::getExistingDirectory(this, "Select sequence folder"));
-  if (clip_->isEmpty()) return;
-  QSize size = clip_->Image(0).size();
+  open(QFileDialog::getOpenFileName(this, "Select Sequence"));
+  QSize size = clip_->Size();
   QDialog dialog(this);
   dialog.setWindowTitle("Camera Parameters");
   QFormLayout layout(&dialog);
@@ -258,17 +317,16 @@ void MainWindow::open() {
 }
 
 void MainWindow::open(QString path) {
-  if (path.isEmpty() || !QDir(path).exists()) return;
-  clip_->Open(path);
-  if (clip_->isEmpty()) return;
+  if (path.isEmpty() || !QFileInfo(path).exists()) return;
   path_ = path;
   setWindowTitle(QString("Tracker - %1").arg(QDir(path).dirName()));
-  tracker_->Load(Load("tracks"));
 
-  foreach(QString path, QDir(path_).entryList(QStringList("*.dae"))) {
+  clip_->Open(path);
+  tracker_->Load(Load("tracks"));
+  /*foreach(QString path, QDir(path_).entryList(QStringList("*.dae"))) {
     QFile file(path);
     scene_->LoadCOLLADA(&file);
-  }
+  }*/
   //scene_->LoadCameras(Load("cameras"));
   //scene_->LoadBundles(Load("bundles"));
   //scene_->LoadObjects(Load("objects"));
@@ -278,10 +336,10 @@ void MainWindow::open(QString path) {
     keyframes_ << keyframes[i];
   }
   //scene_->upload();
-  spinbox_.setMaximum(clip_->size() - 1);
-  slider_.setMaximum(clip_->size() - 1);
+  spinbox_.setMaximum(clip_->Count() - 1);
+  slider_.setMaximum(clip_->Count() - 1);
   int frame = QSettings().value("currentFrame", 0).toInt();
-  if(frame < clip_->size()) {
+  if(frame >= 0 && frame < clip_->Count()) {
     seek(frame);
   } else {
     seek(0);
@@ -293,7 +351,7 @@ void MainWindow::seek(int frame) {
   if (frame == current_frame_) {
     return;
   }
-  if (frame < 0 || frame >= clip_->size()) {
+  if (frame < 0 || frame >= clip_->Count()) {
     stop();
     return;
   }
@@ -352,7 +410,7 @@ void MainWindow::next() {
 }
 
 void MainWindow::last() {
-  seek(clip_->size() - 1);
+  seek(clip_->Count() - 1);
 }
 
 void MainWindow::toggleTracking(bool track) {
