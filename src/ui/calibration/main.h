@@ -21,30 +21,37 @@
 #ifndef UI_CALIBRATION_MAIN_H_
 #define UI_CALIBRATION_MAIN_H_
 
-#include <QWidget>
-#include <QLineEdit>
+#include <QHBoxLayout>
+#include <QFormLayout>
+#include <QPushButton>
 #include <QListWidget>
-#include <QSpinBox>
 #include <QCheckBox>
+#include <QSpinBox>
+#include <QWidget>
 #include <QLabel>
 
-class QHBoxLayout;
-
-class Image : public QWidget {
-  Q_OBJECT
- public:
-  Image(QString path);
-  QSize sizeHint() const;
-
-  QString path;
+struct Image {
+  Image() {}
+  Image(QImage image) : image(image), distorted_pixmap(QPixmap::fromImage(image)) {}
+  QImage image;
   QVector<QPointF> distorted_corners;
   QVector<QPointF> corrected_corners;
-  QPixmap distorted_image;
-  QPixmap corrected_image;
-  bool correct;
+  QPixmap distorted_pixmap;
+  QPixmap corrected_pixmap;
+};
 
- protected:
+class View : public QWidget {
+public:
+  View();
+  QSize sizeHint() const;
+  void setImage(Image image,bool correct=false);
+
+protected:
   void paintEvent(QPaintEvent*);
+
+private:
+  QVector<QPointF> corners;
+  QPixmap pixmap;
 };
 
 class MainWindow : public QWidget {
@@ -54,15 +61,18 @@ class MainWindow : public QWidget {
   ~MainWindow();
 
  public slots:
+  void open();
   void open(QString);
+  void addImage();
   void showImage(int);
   void calibrate();
   void process();
   void toggleDistort();
 
  private:
-  QHBoxLayout* hbox;
-  QLineEdit source;
+  QHBoxLayout hbox;
+  QFormLayout side;
+  QPushButton source;
   QListWidget list;
   QSpinBox width;
   QSpinBox height;
@@ -71,9 +81,12 @@ class MainWindow : public QWidget {
   QLabel focalLength;
   QLabel principalPoint;
   QLabel radialDistortion[3];
-  QList<Image*> images;
-  Image* currentImage;
+  View view;
+
+  QList<Image> images;
+  Image preview;
   int current;
+
   double camera[9];
   double coefficients[4];
 };

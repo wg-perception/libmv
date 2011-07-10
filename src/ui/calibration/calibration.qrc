@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file alias="open">icons/document-open.png</file>
+        <file alias="add">icons/list-add.png</file>
     </qresource>
 </RCC>

@@ -55,39 +55,30 @@ void Clip::Open(QString path) {
   images_.clear();
 #ifdef USE_FFMPEG
   av_register_all();
-  av_log_set_level(AV_LOG_WARNING);
-  AVCodecContext* video_ = 0;
-  if (video_) {
-    avcodec_close(video_);
-    video_ = 0;
-  }
-  AVFormatContext* file_ = 0;
-  if (file_) {
-    av_close_input_file(file_);
-    file_ = 0;
-  }
   if (QFileInfo(path).isFile()) {
-    if(avformat_open_input(&file_, path.toUtf8(), 0, 0)) return;
-    av_find_stream_info(file_);
-    int video_stream_ = 0;
-    for (int i=0; i < (int)file_->nb_streams; i++ ) {
-        if( file_->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-          video_stream_ = i;
-          video_ = file_->streams[i]->codec;
-          AVCodec* codec = avcodec_find_decoder(video_->codec_id);
-          if( codec ) avcodec_open( video_, codec );
+    AVFormatContext* file = 0;
+    if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
+    av_find_stream_info(file);
+    int video_stream = 0;
+    AVCodecContext* video = 0;
+    for (int i = 0; i < (int)file->nb_streams; i++ ) {
+        if( file->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+          video_stream = i;
+          video = file->streams[i]->codec;
+          AVCodec* codec = avcodec_find_decoder(video->codec_id);
+          if( codec ) avcodec_open(video, codec);
           break;
         }
     }
-    for(AVPacket packet; av_read_frame(file_, &packet) >= 0; ) {
-      if( packet.stream_index==video_stream_ ) {
+    for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
+      if ( packet.stream_index == video_stream ) {
         AVFrame* frame = avcodec_alloc_frame();
-        int complete_frame=0;
-        avcodec_decode_video2(video_, frame, &complete_frame, &packet );
-        if(complete_frame) {
+        int complete_frame = 0;
+        avcodec_decode_video2(video, frame, &complete_frame, &packet);
+        if (complete_frame) {
           // FIXME: Assume planar format
-          QImage image(frame->width,frame->height,QImage::Format_Indexed8);
-          int w=image.width(),h=image.height(),bytesPerLine=frame->linesize[0];
+          QImage image(frame->width, frame->height, QImage::Format_Indexed8);
+          int w = image.width(), h = image.height(), bytesPerLine = frame->linesize[0];
           uchar* dst = image.bits();
           const uchar* src = frame->data[0];
           for(int y = 0; y < h; y++) {
@@ -100,6 +91,8 @@ void Clip::Open(QString path) {
       }
       av_free_packet(&packet);
     }
+    avcodec_close(video);
+    av_close_input_file(file);
   } else
 #endif
   foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
@@ -136,8 +129,7 @@ MainWindow::MainWindow()
   QToolBar* toolbar = addToolBar("Main Toolbar");
   toolbar->setObjectName("mainToolbar");
 
-  toolbar->addAction(QIcon(":/open"), "Open a new sequence...",
-                     this, SLOT(open()));
+  toolbar->addAction(QIcon(":/open"), "Load Footage", this, SLOT(open()));
 
   QAction* tracker_action_ = toolbar->addAction(QIcon(":/view-image"),
                                                 "Tracker View");
@@ -212,7 +204,7 @@ MainWindow::MainWindow()
   toolbar->addAction(QIcon(":/step-backward"), "Step to previous frame",
                      this, SLOT(previous()))->setShortcut(QKeySequence("Left"));
   backward_action_ = toolbar->addAction(QIcon(":/play-backward"),
-                                        "Play sequence backwards");
+                                        "Play backwards");
   backward_action_->setCheckable(true);
   connect(backward_action_, SIGNAL(triggered(bool)),
           SLOT(toggleBackward(bool)));
@@ -225,7 +217,7 @@ MainWindow::MainWindow()
   connect(&slider_, SIGNAL(valueChanged(int)), SLOT(seek(int)));
 
   forward_action_ = toolbar->addAction(QIcon(":/play-forward"),
-                                       "Play sequence forwards");
+                                       "Play forwards");
   forward_action_->setCheckable(true);
   connect(forward_action_, SIGNAL(triggered(bool)), SLOT(toggleForward(bool)));
   connect(&next_timer_, SIGNAL(timeout()), SLOT(next()));
@@ -276,7 +268,7 @@ struct Parameter {
 };
 
 void MainWindow::open() {
-  open(QFileDialog::getOpenFileName(this, "Select Sequence"));
+  open(QFileDialog::getOpenFileName(this, "Load Footage"));
   QSize size = clip_->Size();
   QDialog dialog(this);
   dialog.setWindowTitle("Camera Parameters");
@@ -416,11 +408,11 @@ void MainWindow::last() {
 void MainWindow::toggleTracking(bool track) {
   stop();
   if (track) {
-    backward_action_->setText("Track sequence backwards");
-    forward_action_->setText("Track sequence forwards");
+    backward_action_->setText("Track backwards");
+    forward_action_->setText("Track forwards");
   } else {
-    backward_action_->setText("Play sequence backwards");
-    forward_action_->setText("Play sequence forwards");
+    backward_action_->setText("Play backwards");
+    forward_action_->setText("Play forwards");
   }
 }
 

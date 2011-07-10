@@ -26,69 +26,89 @@
 
 #include <QApplication>
 #include <QFileDialog>
-#include <QHBoxLayout>
-#include <QFormLayout>
-#include <QCompleter>
-#include <QFileSystemModel>
 #include <QSettings>
 #include <QPainter>
 #include <QTimer>
 
-Image::Image(QString path) : path(path), distorted_image(path), correct(false) {
+#ifdef USE_FFMPEG
+extern "C" {
+typedef uint64_t UINT64_C;
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+}
+#endif
+
+View::View() {
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
-QSize Image::sizeHint() const {
-  return distorted_image.size() / (distorted_image.height()>540 ? 2 : 1);
+QSize View::sizeHint() const {
+  return pixmap.size() / (pixmap.height()>540 ? 2 : 1);
 }
 
-void Image::paintEvent(QPaintEvent*) {
+void View::setImage(Image image, bool correct) {
+  if (correct) {
+    corners = image.corrected_corners;
+    pixmap = image.corrected_pixmap;
+  } else {
+    corners = image.distorted_corners;
+    pixmap = image.distorted_pixmap;
+  }
+  updateGeometry();
+  update();
+}
+
+void View::paintEvent(QPaintEvent*) {
   QPainter p(this);
   p.setRenderHints(QPainter::Antialiasing|QPainter::SmoothPixmapTransform);
-  p.drawPixmap(rect(), correct ? corrected_image : distorted_image);
-  if (!distorted_corners.isEmpty()) {
-    p.scale((float)width()/distorted_image.width(),
-            (float)height()/distorted_image.height());
+  p.drawPixmap(rect(), pixmap);
+  if (!corners.isEmpty()) {
+    p.scale((float)width()/pixmap.width(),
+            (float)height()/pixmap.height());
     p.setPen(Qt::green);
-    p.drawPolyline( correct ? corrected_corners : distorted_corners);
+    p.drawPolyline(corners);
   }
 }
 
-MainWindow::MainWindow() : currentImage(0), current(0) {
+MainWindow::MainWindow() : current(0) {
   setWindowTitle("Camera Calibration");
-  hbox = new QHBoxLayout(this);
-  QFormLayout* side = new QFormLayout();
-  side->setRowWrapPolicy(QFormLayout::WrapLongRows);
-  hbox->addLayout(side);
-  side->addRow("Source Image Folder", &source);
-  QFileSystemModel* model = new QFileSystemModel;
-  model->setRootPath(QDir::rootPath());
-  source.setCompleter(new QCompleter(model));
-  source.setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed);
-  source.setMinimumWidth(256);
-  connect(&source, SIGNAL(textChanged(QString)), SLOT(open(QString)));
-  side->addRow("Loaded Images", &list);
+  side.setRowWrapPolicy(QFormLayout::WrapLongRows);
+  hbox.addLayout(&side);
+
+  source.setIcon(QIcon(":/open"));
+  source.setText("Load Calibration Footage");
+  connect(&source,SIGNAL(clicked()),this,SLOT(open()));
+  side.addWidget(&source);
+
   list.setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   connect(&list, SIGNAL(currentRowChanged(int)), SLOT(showImage(int)));
-  side->addRow("Grid Width", &width);
+  side.addRow("Loaded Images", &list);
+
   width.setRange(3, 256);
   width.setValue(QSettings().value("width", 3).toInt());
   connect(&width, SIGNAL(valueChanged(int)), SLOT(calibrate()));
-  side->addRow("Grid Height", &height);
+  side.addRow("Grid Width", &width);
+
   height.setRange(3, 256);
   height.setValue(QSettings().value("height", 3).toInt());
   connect(&height, SIGNAL(valueChanged(int)), SLOT(calibrate()));
-  side->addRow("Square Size", &size);
+  side.addRow("Grid Height", &height);
+
   size.setValue(QSettings().value("size", 1).toFloat());
   connect(&size, SIGNAL(valueChanged(double)), SLOT(calibrate()));
-  side->addRow("Undistort",&correct);
+  side.addRow("Square Size", &size);
+
   correct.setEnabled(false);
   connect(&correct, SIGNAL(stateChanged(int)), SLOT(toggleDistort()));
-  side->addRow("Focal Length",&focalLength);
-  side->addRow("Principal Point",&principalPoint);
-  side->addRow("K1",&radialDistortion[0]);
-  side->addRow("K2",&radialDistortion[1]);
-  side->addRow("K3",&radialDistortion[2]);
+  side.addRow("Undistort",&correct);
+  side.addRow("Focal Length",&focalLength);
+  side.addRow("Principal Point",&principalPoint);
+  side.addRow("K1",&radialDistortion[0]);
+  side.addRow("K2",&radialDistortion[1]);
+  side.addRow("K3",&radialDistortion[2]);
+
+  hbox.addWidget(&view);
+  setLayout(&hbox);
 }
 MainWindow::~MainWindow() {
   QSettings().setValue("width", width.value());
@@ -96,55 +116,109 @@ MainWindow::~MainWindow() {
   QSettings().setValue("size", size.value());
 }
 
-void MainWindow::open(QString folder) {
+void MainWindow::open() {
+  open(QFileDialog::getOpenFileName(this, "Load Calibration Footage"));
+}
+
+void MainWindow::open(QString path) {
   list.clear();
-  currentImage=0;
-  foreach (Image* image, images) {
-    delete image;
-  }
   images.clear();
   current=0;
-  if (folder.isEmpty() || !QDir(folder).exists()) return;
-  foreach (QString file, QDir(folder).entryList(QStringList("*.jpg") << "*.png",
+  if (path.isEmpty() || !QFileInfo(path).exists()) return;
+
+#ifdef USE_FFMPEG
+  av_register_all();
+  if (QFileInfo(path).isFile()) {
+    AVFormatContext* file = 0;
+    if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
+    av_find_stream_info(file);
+    int video_stream = 0;
+    AVCodecContext* video = 0;
+    for (int i = 0; i < (int)file->nb_streams; i++ ) {
+        if( file->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+          video_stream = i;
+          video = file->streams[i]->codec;
+          AVCodec* codec = avcodec_find_decoder(video->codec_id);
+          if( codec ) avcodec_open(video, codec);
+          break;
+        }
+    }
+    source.setIcon(QIcon(":/add"));
+    source.setText("Add Current Frame");
+    source.disconnect();
+    connect(&source,SIGNAL(clicked()),this,SLOT(addImage()));
+    for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
+      if ( packet.stream_index == video_stream ) {
+        AVFrame* frame = avcodec_alloc_frame();
+        int complete_frame = 0;
+        avcodec_decode_video2(video, frame, &complete_frame, &packet);
+        if (complete_frame) {
+          // FIXME: Assume planar format
+          QImage image(frame->width, frame->height, QImage::Format_Indexed8);
+          int w = image.width(), h = image.height(), bytesPerLine = frame->linesize[0];
+          uchar* dst = image.bits();
+          const uchar* src = frame->data[0];
+          for(int y = 0; y < h; y++) {
+              memcpy(dst, src, w);
+              dst += w; src += bytesPerLine;
+          }
+          av_free(frame);
+          view.setImage(preview=Image(image));
+          // Play quickly the video (50fps) while allowing user input
+          QApplication::processEvents(QEventLoop::WaitForMoreEvents,20);
+        }
+      }
+      av_free_packet(&packet);
+    }
+    avcodec_close(video);
+    av_close_input_file(file);
+    source.setIcon(QIcon(":/open"));
+    source.setText("Reset");
+    source.disconnect();
+    connect(&source,SIGNAL(clicked()),this,SLOT(open()));
+  } else
+#endif
+  foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
                                                 QDir::Files, QDir::Name)) {
     list.addItem( file );
-    QString path = QDir(folder).filePath(file);
-    Image* image = new Image( path );
-    image->hide();
-    images << image;
+    QString imagePath = QDir(path).filePath(file);
+    QVector<QRgb> colorTable; colorTable.resize(256);
+    for(int i=0;i<256;++i) colorTable[i]=qRgb(i,i,i);
+    images << Image(QImage(imagePath).convertToFormat(QImage::Format_Indexed8,colorTable));
   }
   if(images.isEmpty()) return;
-  source.setText(QDir(folder).canonicalPath());
   list.setCurrentRow(0);
   calibrate();
 }
 
+void MainWindow::addImage() {
+  list.addItem(QString::number(list.count()+1));
+  images << preview;
+}
+
 void MainWindow::showImage(int index) {
-  if (currentImage) {
-    currentImage->hide();
-    hbox->removeWidget(currentImage);
-  }
   if(index < 0) return;
-  currentImage = images[index];
-  hbox->addWidget(currentImage);
+  Image& image = images[index];
   if (correct.isChecked()) {
-    currentImage->correct=true;
-    if(currentImage->corrected_image.isNull()) {
-      IplImage* image = cvLoadImage(currentImage->path.toAscii(), 0);
-      IplImage* correct = cvCloneImage( image );
+    if(image.corrected_pixmap.isNull()) {
+      CvSize size = { image.image.width(), image.image.height() };
+      IplImage cv_image;
+      cvInitImageHeader(&cv_image, size, 8, 1);
+      cv_image.imageData = (char*)image.image.constBits();
+      cv_image.widthStep = image.image.bytesPerLine();
+      IplImage* correct = cvCloneImage( &cv_image );
       CvMat camera_matrix = cvMat( 3, 3, CV_64F, camera );
       CvMat distortion_coefficients = cvMat( 1, 4, CV_64F, coefficients );
-      cvUndistort2( image, correct, &camera_matrix, &distortion_coefficients );
-      currentImage->corrected_image = QPixmap::fromImage(
+      cvUndistort2( &cv_image, correct, &camera_matrix, &distortion_coefficients );
+      image.corrected_pixmap = QPixmap::fromImage(
             QImage((uchar*)correct->imageData, correct->width, correct->height,
                    correct->widthStep, QImage::Format_Indexed8));
-      cvReleaseImage( &image );
       cvReleaseImage( &correct );
     }
+    view.setImage(image, true);
   } else {
-    currentImage->correct=false;
+    view.setImage(image, false);
   }
-  currentImage->show();
 }
 
 void MainWindow::calibrate() {
@@ -160,11 +234,12 @@ void MainWindow::process() {
   if (current >= images.count()) {
     int point_count = board.width*board.height;
     int image_count = 0;
-    foreach (Image* image, images) {
-      if(image->distorted_corners.size() == point_count) {
+    foreach (const Image& image, images) {
+      if(image.distorted_corners.size() == point_count) {
         image_count++;
       }
     }
+    if(image_count == 0) return;
     CvMat* point_counts = cvCreateMat( 1, image_count, CV_32SC1 );
     cvSet( point_counts, cvScalar(point_count) );
 
@@ -173,11 +248,11 @@ void MainWindow::process() {
     CvPoint2D32f* image_point = ((CvPoint2D32f*)image_points->data.fl);
     CvPoint3D32f* object_point = ((CvPoint3D32f*)object_points->data.fl);
     for (int i = 0; i < image_count; i++) {
-      if (images[i]->distorted_corners.size() != point_count) continue;
+      if (images[i].distorted_corners.size() != point_count) continue;
       for (int j = 0; j < board.height; j++) {
         for (int k = 0; k < board.width; k++) {
           *object_point++ = cvPoint3D32f(j*size.value(), k*size.value(), 0);
-          QPointF point = images[i]->distorted_corners[j*board.width+k];
+          QPointF point = images[i].distorted_corners[j*board.width+k];
           *image_point++ = cvPoint2D32f(point.x(),point.y());
         }
       }
@@ -193,7 +268,7 @@ void MainWindow::process() {
     cvGetCols( extrinsics, &rotation_vectors, 0, 3 );
     cvGetCols( extrinsics, &translation_vectors, 3, 6 );
 
-    CvSize size = { images.first()->width(), images.first()->height() };
+    CvSize size = { images.first().image.width(), images.first().image.height() };
     cvCalibrateCamera2( object_points, image_points, point_counts,
                         size, &camera_matrix, &distortion_coefficients,
                         &rotation_vectors, &translation_vectors );
@@ -202,11 +277,11 @@ void MainWindow::process() {
     cvUndistortPoints(image_points, correct_points, &camera_matrix, &distortion_coefficients,0,&camera_matrix);
     CvPoint2D32f* correct_point = ((CvPoint2D32f*)correct_points->data.fl);
     for (int i = 0; i < image_count; i++) {
-      if (images[i]->distorted_corners.size() != point_count) continue;
-      images[i]->corrected_corners.clear();
+      if (images[i].distorted_corners.size() != point_count) continue;
+      images[i].corrected_corners.clear();
       for (int j = 0 ; j < board.width*board.height ; j++) {
         CvPoint2D32f point = *correct_point++;
-        images[i]->corrected_corners << QPointF(point.x,point.y);
+        images[i].corrected_corners << QPointF(point.x,point.y);
       }
     }
 
@@ -231,25 +306,28 @@ void MainWindow::process() {
     correct.setEnabled(true);
     return;
   }
-  Image* image = images[current];
-  image->distorted_corners.clear();
-  IplImage* iplImage = cvLoadImage(image->path.toAscii(), 0);
+  Image& image = images[current];
+  image.distorted_corners.clear();
+  CvSize size = { image.image.width(), image.image.height() };
+  IplImage cv_image;
+  cvInitImageHeader(&cv_image, size, 8, 1);
+  cv_image.imageData = (char*)image.image.constBits();
+  cv_image.widthStep = image.image.bytesPerLine();
   CvPoint2D32f corners[board.width*board.height];
   bool found = false;
-  if (cvCheckChessboard(iplImage, board) == 1) {
+  if (cvCheckChessboard(&cv_image, board) == 1) {
     int count = 0;
-    found = cvFindChessboardCorners(iplImage, board, corners, &count );
+    found = cvFindChessboardCorners(&cv_image, board, corners, &count );
     if (found) {
-      cvFindCornerSubPix(iplImage, corners, count, cvSize(11,11), cvSize(-1,-1),
+      cvFindCornerSubPix(&cv_image, corners, count, cvSize(11,11), cvSize(-1,-1),
                          cvTermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
       for (int i = 0 ; i < board.width*board.height ; i++) {
-        image->distorted_corners << QPointF(corners[i].x, corners[i].y);
+        image.distorted_corners << QPointF(corners[i].x, corners[i].y);
       }
-      image->update();
     }
   }
-  cvReleaseImage( &iplImage );
   list.item(current)->setForeground(QBrush(found ? Qt::green : Qt::red));
+  list.setCurrentRow(current);
   current++;
   QTimer::singleShot(50, this, SLOT(process()));  // Voluntary preemption
 }
