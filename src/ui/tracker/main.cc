@@ -185,6 +185,8 @@ MainWindow::MainWindow()
 
   toolbar->addSeparator();
 
+  toolbar->addAction(QIcon(":/detect"), "Detect features",this, SLOT(detect()));
+
   QToolButton* delete_button = new QToolButton();
   toolbar->addWidget(delete_button);
   QMenu* delete_popup = new QMenu();
@@ -521,6 +523,9 @@ void MainWindow::updateZooms(QVector<int> tracks) {
   for (int i = 0; i < tracks.size(); i++) {
     zooms_[i]->SetMarker(current_frame_, tracks[i]);
   }
+}
+
+void MainWindow::detect() {
 }
 
 void MainWindow::solve() {

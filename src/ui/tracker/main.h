@@ -80,6 +80,7 @@ class MainWindow : public QMainWindow {
   void toggleForward(bool);
   void toggleZoom(bool);
   void updateZooms(QVector<int>);
+  void detect();
   void solve();
 
  private:
