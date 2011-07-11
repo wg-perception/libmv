@@ -54,6 +54,20 @@ private:
   QPixmap pixmap;
 };
 
+#include <QDialog>
+#include <QFileSystemModel>
+#include <QTreeView>
+
+class FileDialog : public QDialog {
+    Q_OBJECT
+public:
+    FileDialog(QWidget*,QString);
+    QStringList selectedFiles();
+private:
+    QFileSystemModel fileSystem;
+    QTreeView view;
+};
+
 class MainWindow : public QWidget {
   Q_OBJECT
  public:
@@ -62,8 +76,9 @@ class MainWindow : public QWidget {
 
  public slots:
   void open();
-  void open(QString);
+  void open(QStringList);
   void addImage();
+  void stop();
   void showImage(int);
   void calibrate();
   void process();
@@ -86,6 +101,7 @@ class MainWindow : public QWidget {
   QList<Image> images;
   Image preview;
   int current;
+  bool play;
 
   double camera[9];
   double coefficients[4];

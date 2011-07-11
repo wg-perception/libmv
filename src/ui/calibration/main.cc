@@ -71,6 +71,29 @@ void View::paintEvent(QPaintEvent*) {
   }
 }
 
+FileDialog::FileDialog(QWidget* parent,QString caption) : QDialog(parent) {
+    setWindowTitle(caption);
+    view.setModel(&fileSystem);
+    view.setHeaderHidden(true);
+    view.setSelectionMode(QAbstractItemView::ExtendedSelection);
+    for(int i=1;i<fileSystem.columnCount();i++) view.setColumnHidden(i,true);
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(&view);
+    view.setRootIndex(fileSystem.setRootPath(QDir::rootPath()));
+    view.resizeColumnToContents(0); setMinimumHeight(600); setMinimumWidth(view.columnWidth(0));
+    QPushButton* openButton = new QPushButton(QIcon::fromTheme("document-open"),"Open");
+    connect(openButton,SIGNAL(clicked()),this,SLOT(accept()));
+    layout->addWidget(openButton);
+}
+
+QStringList FileDialog::selectedFiles() {
+    QStringList files;
+    foreach(QModelIndex index, view.selectionModel()->selectedRows(0) )
+        files << index.data(QFileSystemModel::FilePathRole).toString();
+    return files;
+}
+
+
 MainWindow::MainWindow() : current(0) {
   setWindowTitle("Camera Calibration");
   side.setRowWrapPolicy(QFormLayout::WrapLongRows);
@@ -124,14 +147,17 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::open() {
-  open(QFileDialog::getOpenFileName(this, "Load Calibration Footage"));
+  FileDialog dialog(this,"Load Calibration Footage");
+  dialog.exec();
+  open(dialog.selectedFiles());
 }
 
-void MainWindow::open(QString path) {
+void MainWindow::open(QStringList files) {
   list.clear();
   images.clear();
   current=0;
-  if (path.isEmpty() || !QFileInfo(path).exists()) return;
+  foreach(QString path, files) {
+    if(!QFileInfo(path).exists()) continue;
 
 #ifdef USE_FFMPEG
   av_register_all();
@@ -154,6 +180,12 @@ void MainWindow::open(QString path) {
     source.setText("Add Current Frame");
     source.disconnect();
     connect(&source,SIGNAL(clicked()),this,SLOT(addImage()));
+    QPushButton done;
+    done.setIcon(QIcon(":/stop"));
+    done.setText("Stop");
+    side.insertRow(0,&done);
+    connect(&done,SIGNAL(clicked()),SLOT(stop()));
+    play = true;
     QTime time; time.start();
     for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
       if ( packet.stream_index == video_stream ) {
@@ -179,9 +211,11 @@ void MainWindow::open(QString path) {
         }
       }
       av_free_packet(&packet);
+      if(!play) break;
     }
     avcodec_close(video);
     av_close_input_file(file);
+    hbox.removeWidget(&done);
     source.setIcon(QIcon(":/open"));
     source.setText("Reset");
     source.disconnect();
@@ -201,6 +235,7 @@ void MainWindow::open(QString path) {
     }
     images << image;
   }
+  }
   if(images.isEmpty()) return;
   list.setCurrentRow(0);
   calibrate();
@@ -209,6 +244,10 @@ void MainWindow::open(QString path) {
 void MainWindow::addImage() {
   list.addItem(QString::number(list.count()+1));
   images << preview;
+}
+
+void MainWindow::stop() {
+  play = false;
 }
 
 void MainWindow::showImage(int index) {
@@ -254,7 +293,7 @@ void MainWindow::process() {
         image_count++;
       }
     }
-    if(image_count == 0) return;
+    if(image_count <= 4) return;
     CvMat* point_counts = cvCreateMat( 1, image_count, CV_32SC1 );
     cvSet( point_counts, cvScalar(point_count) );
 
@@ -357,6 +396,6 @@ int main(int argc, char *argv[]) {
   app.setApplicationName("calibration");
   MainWindow window;
   window.show();
-  window.open(app.arguments().value(1));
+  window.open(app.arguments().mid(1));
   return app.exec();
 }
