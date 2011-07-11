@@ -25,8 +25,8 @@
 #include <QSpinBox>
 #include <QSlider>
 #include <QLabel>
-#include <QCache>
 #include <QTimer>
+#include <QFile>
 
 #ifdef USE_FFMPEG
 class AVFormatContext;
@@ -44,7 +44,9 @@ class Clip : public QObject {
   QImage Image(int);
 
  private:
-  QList<QImage> images_;
+  QSize size_;
+  QFile cache_;
+  QVector<QImage> images_;
 };
 
 namespace libmv {

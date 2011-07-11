@@ -35,7 +35,6 @@
 #include <QSettings>
 #include <QToolBar>
 #include <QAction>
-#include <QCache>
 #include <QMenu>
 #include <QTime>
 
@@ -49,10 +48,22 @@ typedef uint64_t UINT64_C;
 
 #include <float.h>
 
-#include <QDebug>
-
 void Clip::Open(QString path) {
   images_.clear();
+  QString sep = QFileInfo(path).isDir() ? "/" : ".";
+  cache_.setFileName(path+sep+"cache");
+  if (cache_.open(QFile::ReadOnly)) {
+    QFile meta(path+sep+"meta");
+    meta.open(QFile::ReadOnly);
+    meta.read((char*)&size_, sizeof(size_));
+    int image_size = size_.width()*size_.height();
+    images_.resize( cache_.size()/image_size );
+    uchar* data = cache_.map(0, cache_.size());
+    for(int i = 0; i < images_.count(); i++, data+=image_size) {
+      images_[i] = QImage(data,size_.width(),size_.height(),QImage::Format_Indexed8);
+    }
+    return;
+  }
 #ifdef USE_FFMPEG
   av_register_all();
   if (QFileInfo(path).isFile()) {
@@ -107,6 +118,16 @@ void Clip::Open(QString path) {
     }
     images_ << image;
   }
+  size_ = QSize(images_[0].size());
+  // Create raw on-disk video cache
+  if(Size().width()*Size().height()*Count() < 1024*1024*1024) {
+    cache_.open(QFile::WriteOnly|QFile::Truncate);
+    foreach(const QImage& image, images_) cache_.write((const char*)image.constBits(),image.byteCount());
+    cache_.close();
+    QFile meta(path+sep+"meta");
+    meta.open(QFile::WriteOnly|QFile::Truncate);
+    meta.write((char*)&size_,sizeof(size_));
+  }
 }
 
 int Clip::Count() {
@@ -114,7 +135,7 @@ int Clip::Count() {
 }
 
 QSize Clip::Size() {
-  return Image(0).size();
+  return size_;
 }
 
 QImage Clip::Image(int i) {
