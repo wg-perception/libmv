@@ -199,7 +199,7 @@ void MainWindow::open(QString path) {
       for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
       image = grayscale;
     }
-    images_ << image;
+    images << image;
   }
   if(images.isEmpty()) return;
   list.setCurrentRow(0);

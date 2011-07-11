@@ -1,7 +1,11 @@
 HEADERS += main.h
 SOURCES += main.cc
 RESOURCES = calibration.qrc
-LIBS += -lopencv_highgui -lopencv_calib3d
+
+#in case the user also need to compile OpenCV himself
+LIBS += -L/usr/local/lib/
+
+LIBS += -lopencv_highgui -lopencv_calib3d -lopencv_core
 
 exists(/usr/include/libavcodec/avcodec.h):CONFIG+=ffmpeg
 ffmpeg {
