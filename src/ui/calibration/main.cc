@@ -29,6 +29,7 @@
 #include <QSettings>
 #include <QPainter>
 #include <QTimer>
+#include <QTime>
 
 #ifdef USE_FFMPEG
 extern "C" {
@@ -73,6 +74,7 @@ void View::paintEvent(QPaintEvent*) {
 MainWindow::MainWindow() : current(0) {
   setWindowTitle("Camera Calibration");
   side.setRowWrapPolicy(QFormLayout::WrapLongRows);
+  side.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   hbox.addLayout(&side);
 
   source.setIcon(QIcon(":/open"));
@@ -101,10 +103,15 @@ MainWindow::MainWindow() : current(0) {
   correct.setEnabled(false);
   connect(&correct, SIGNAL(stateChanged(int)), SLOT(toggleDistort()));
   side.addRow("Undistort",&correct);
+  focalLength.setTextInteractionFlags(Qt::TextSelectableByMouse);
   side.addRow("Focal Length",&focalLength);
+  principalPoint.setTextInteractionFlags(Qt::TextSelectableByMouse);
   side.addRow("Principal Point",&principalPoint);
+  radialDistortion[0].setTextInteractionFlags(Qt::TextSelectableByMouse);
   side.addRow("K1",&radialDistortion[0]);
+  radialDistortion[1].setTextInteractionFlags(Qt::TextSelectableByMouse);
   side.addRow("K2",&radialDistortion[1]);
+  radialDistortion[2].setTextInteractionFlags(Qt::TextSelectableByMouse);
   side.addRow("K3",&radialDistortion[2]);
 
   hbox.addWidget(&view);
@@ -147,6 +154,7 @@ void MainWindow::open(QString path) {
     source.setText("Add Current Frame");
     source.disconnect();
     connect(&source,SIGNAL(clicked()),this,SLOT(addImage()));
+    QTime time; time.start();
     for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
       if ( packet.stream_index == video_stream ) {
         AVFrame* frame = avcodec_alloc_frame();
@@ -164,8 +172,10 @@ void MainWindow::open(QString path) {
           }
           av_free(frame);
           view.setImage(preview=Image(image));
-          // Play quickly the video (50fps) while allowing user input
-          QApplication::processEvents(QEventLoop::WaitForMoreEvents,20);
+          // Play quickly the video (min(50fps,decode rate)) while allowing user input
+          int wait = 20-time.restart();
+          if(wait>0) QApplication::processEvents(QEventLoop::WaitForMoreEvents,wait);
+          else QApplication::processEvents();
         }
       }
       av_free_packet(&packet);
@@ -181,10 +191,15 @@ void MainWindow::open(QString path) {
   foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
                                                 QDir::Files, QDir::Name)) {
     list.addItem( file );
-    QString imagePath = QDir(path).filePath(file);
-    QVector<QRgb> colorTable; colorTable.resize(256);
-    for(int i=0;i<256;++i) colorTable[i]=qRgb(i,i,i);
-    images << Image(QImage(imagePath).convertToFormat(QImage::Format_Indexed8,colorTable));
+    QImage image(QDir(path).filePath(file));
+    if(image.depth() != 8) {
+      QImage grayscale(image.width(),image.height(),QImage::Format_Indexed8);
+      QRgb *src = (QRgb*)image.constBits();
+      uchar *dst = grayscale.bits();
+      for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
+      image = grayscale;
+    }
+    images_ << image;
   }
   if(images.isEmpty()) return;
   list.setCurrentRow(0);

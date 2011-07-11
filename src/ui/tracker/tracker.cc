@@ -32,6 +32,12 @@
 using libmv::Marker;
 using libmv::vector;
 
+
+// TODO(MatthiasF): custom pattern/search size
+static const int kHalfPatternWindowSize = 5;
+static const int kPyramidLevelCount = 4;
+static const int kHalfSearchWindowSize = kHalfPatternWindowSize << kPyramidLevelCount;
+
 #include <QMouseEvent>
 
 // Copy the region starting at *x0, *y0 with width w, h into region. If the
@@ -43,6 +49,7 @@ bool CopyRegionFromQImage(QImage image,
                           int w, int h,
                           int *x0, int *y0,
                           libmv::FloatImage *region) {
+  Q_ASSERT(image.depth() == 8);
   const unsigned char *data = image.constBits();
   int width = image.width();
   int height = image.height();
@@ -71,11 +78,7 @@ bool CopyRegionFromQImage(QImage image,
   region->resize(h, w);
   for (int y = *y0; y < *y0 + h; ++y) {
     for (int x = *x0; x < *x0 + w; ++x) {
-      // This assumes BGR row-major ordering for the QImage's raw bytes.
-      const unsigned char *pixel = data + (y * width + x) * 4;
-      (*region)(y - *y0, x - *x0, 0) = (0.2126 * pixel[2] +
-                                        0.7152 * pixel[1] +
-                                        0.0722 * pixel[0]) / 255;
+      (*region)(y - *y0, x - *x0, 0) = data[y * width + x];
     }
   }
   return true;
@@ -114,10 +117,10 @@ void Tracker::SetImage(int image, QImage new_image, bool track) {
     // FIXME: the scoped_ptr in Tracking API require the client to heap allocate
     libmv::TrkltRegionTracker *trklt_region_tracker =
         new libmv::TrkltRegionTracker();
-    trklt_region_tracker->half_window_size = 5;
+    trklt_region_tracker->half_window_size = kHalfPatternWindowSize;
     trklt_region_tracker->max_iterations = 200;
     libmv::PyramidRegionTracker *pyramid_region_tracker =
-        new libmv::PyramidRegionTracker(trklt_region_tracker, 3);
+        new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
     libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
     vector<Marker> previous_markers = tracks_->MarkersInImage(previous_image);
     for (int i = 0; i < previous_markers.size(); i++) {
@@ -127,8 +130,8 @@ void Tracker::SetImage(int image, QImage new_image, bool track) {
       }
       // TODO(keir): For now this uses a fixed size region. What's needed is
       // an extension to use custom sized boxes around the tracked point.
-      int size = 64;
-      int half_size = size / 2;
+      int half_size = kHalfSearchWindowSize;
+      int size = kHalfSearchWindowSize * 2 + 1;
 
       // [xy][01] is the upper right box corner.
       int x0 = marker.x - half_size;
@@ -188,20 +191,16 @@ void Tracker::deleteSelectedTracks() {
   emit trackChanged(selected_tracks_);
 }
 
-// TODO(MatthiasF): custom pattern/search size
-static const float kSearchWindowSize = 31.5;
-static const float kPatternWindowSize = 5.5;
-
 void Tracker::DrawMarker(const libmv::Marker marker, QVector<vec2> *lines) {
   vec2 center = vec2(marker.x, marker.y);
   vec2 quad[] = { vec2(-1, -1), vec2(1, -1), vec2(1, 1), vec2(-1, 1) };
   for (int i = 0; i < 4; i++) {
-    *lines << center+kSearchWindowSize*quad[i];
-    *lines << center+kSearchWindowSize*quad[(i+1)%4];
+    *lines << center+(kHalfSearchWindowSize+0.5)*quad[i];
+    *lines << center+(kHalfSearchWindowSize+0.5)*quad[(i+1)%4];
   }
   for (int i = 0; i < 4; i++) {
-    *lines << center+kPatternWindowSize*quad[i];
-    *lines << center+kPatternWindowSize*quad[(i+1)%4];
+    *lines << center+(kHalfPatternWindowSize+0.5)*quad[i];
+    *lines << center+(kHalfPatternWindowSize+0.5)*quad[(i+1)%4];
   }
 }
 
@@ -251,8 +250,8 @@ void Tracker::Render(int w, int h, int image, int track) {
   if (image >= 0 && track >= 0) {
     Marker marker = tracks_->MarkerInImageForTrack(image, track);
     vec2 center(marker.x, marker.y);
-    vec2 min = (center-kSearchWindowSize) / vec2(W, H);
-    vec2 max = (center+kSearchWindowSize) / vec2(W, H);
+    vec2 min = (center-kHalfSearchWindowSize) / vec2(W, H);
+    vec2 max = (center+kHalfSearchWindowSize) / vec2(W, H);
     glQuad(vec4(-1, 1, min.x, min.y), vec4(1, -1, max.x, max.y));
   } else {
     if (W*h > H*w) {
@@ -276,8 +275,8 @@ void Tracker::Render(int w, int h, int image, int track) {
   if (image >= 0 && track >= 0) {
     Marker marker = tracks_->MarkerInImageForTrack(image, track);
     vec2 center(marker.x, marker.y);
-    vec2 min = center-kSearchWindowSize;
-    vec2 max = center+kSearchWindowSize;
+    vec2 min = center-kHalfSearchWindowSize;
+    vec2 max = center+kHalfSearchWindowSize;
     transform.translate(vec3(-1, 1, 0));
     transform.scale(vec3(2.0/(max-min).x, -2.0/(max-min).y, 1));
     transform.translate(vec3(-min.x, -min.y, 0));
@@ -305,7 +304,7 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
   for (int i = 0; i < markers.size(); i++) {
     const Marker &marker = markers[i];
     vec2 center = vec2(marker.x, marker.y);
-    if (pos > center-kSearchWindowSize && pos < center+kSearchWindowSize) {
+    if (pos > center-kHalfSearchWindowSize && pos < center+kHalfSearchWindowSize) {
       active_track_ = marker.track;
       return;
     }
@@ -350,7 +349,7 @@ void Tracker::mouseReleaseEvent(QMouseEvent */*event*/) {
 Zoom::Zoom(QWidget *parent, Tracker *tracker)
   : QGLWidget(QGLFormat(QGL::SampleBuffers), parent, tracker),
     tracker_(tracker) {
-  setMinimumSize(4*kSearchWindowSize, 4*kSearchWindowSize);
+  setMinimumSize(4*kHalfSearchWindowSize, 4*kHalfSearchWindowSize);
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 

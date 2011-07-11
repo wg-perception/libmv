@@ -97,7 +97,15 @@ void Clip::Open(QString path) {
 #endif
   foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
                                               QDir::Files, QDir::Name)) {
-    images_ << QImage(QDir(path).filePath(file)).convertToFormat(QImage::Format_Indexed8);
+    QImage image(QDir(path).filePath(file));
+    if(image.depth() != 8) {
+      QImage grayscale(image.width(),image.height(),QImage::Format_Indexed8);
+      QRgb *src = (QRgb*)image.constBits();
+      uchar *dst = grayscale.bits();
+      for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
+      image = grayscale;
+    }
+    images_ << image;
   }
 }
 
