@@ -39,6 +39,12 @@ void DetectGoodFeatures(const Array3Df &image_and_gradients,
                         double min_feature_distance,
                         std::vector<Feature> *features);
 
+// for debugging purpose only
+void ComputeGradientMatrix(const Array3Df &image_and_gradients,
+                                       int window_size,
+                                       Array3Df *gradient_matrix);
+void ComputeTrackness(const Array3Df gradient_matrix,
+                      Array3Df *trackness_pointer);
 
 }  // namespace libmv
 

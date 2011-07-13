@@ -108,64 +108,66 @@ QByteArray Tracker::Save() {
                     markers.size() * sizeof(Marker));
 }
 
-void Tracker::SetImage(int image, QImage new_image, bool track) {
+void Tracker::SetImage(QImage image) {
+  image_.upload(image);
+  update();
+}
+
+// Track active trackers from the previous image into this one.
+void Tracker::Track(int image, QImage new_image) {
   int previous_image = current_image_;
   current_image_ = image;
 
-  // Track active trackers from the previous image into this one.
-  if (track) {
-    // FIXME: the scoped_ptr in Tracking API require the client to heap allocate
-    // FIXME: we should wrap those constructors in a C ABI compatible API
-    // returning an opaque pointer to be used as first argument for Track
-    libmv::TrkltRegionTracker *trklt_region_tracker =
-        new libmv::TrkltRegionTracker();
-    trklt_region_tracker->half_window_size = kHalfPatternWindowSize;
-    trklt_region_tracker->max_iterations = 200;
-    libmv::PyramidRegionTracker *pyramid_region_tracker =
-        new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
-    libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
-    vector<Marker> previous_markers = tracks_->MarkersInImage(previous_image);
-    for (int i = 0; i < previous_markers.size(); i++) {
-      const Marker &marker = previous_markers[i];
-      if (!selected_tracks_.contains(marker.track)) {
-        continue;
-      }
-      // TODO(keir): For now this uses a fixed size region. What's needed is
-      // an extension to use custom sized boxes around the tracked point.
-      int half_size = kHalfSearchWindowSize;
-      int size = kHalfSearchWindowSize * 2 + 1;
-
-      // [xy][01] is the upper right box corner.
-      int x0 = marker.x - half_size;
-      int y0 = marker.y - half_size;
-      libmv::FloatImage old_patch;
-      if (!CopyRegionFromQImage(previous_image_, size, size,
-                                &x0, &y0,
-                                &old_patch)) {
-        continue;
-      }
-
-      int x1 = marker.x - half_size;
-      int y1 = marker.y - half_size;
-      libmv::FloatImage new_patch;
-      if (!CopyRegionFromQImage(new_image, size, size,
-                                &x1, &y1,
-                                &new_patch)) {
-        continue;
-      }
-
-      double xx0 = marker.x - x0;
-      double yy0 = marker.y - y0;
-      double xx1 = marker.x - x1;
-      double yy1 = marker.y - y1;
-      region_tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
-      tracks_->Insert(current_image_, marker.track, x1 + xx1, y1 + yy1);
+  // FIXME: the scoped_ptr in Tracking API require the client to heap allocate
+  // FIXME: we should wrap those constructors in a C ABI compatible API
+  // returning an opaque pointer to be used as first argument for Track
+  libmv::TrkltRegionTracker *trklt_region_tracker =
+      new libmv::TrkltRegionTracker();
+  trklt_region_tracker->half_window_size = kHalfPatternWindowSize;
+  trklt_region_tracker->max_iterations = 200;
+  libmv::PyramidRegionTracker *pyramid_region_tracker =
+      new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
+  libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
+  vector<Marker> previous_markers = tracks_->MarkersInImage(previous_image);
+  for (int i = 0; i < previous_markers.size(); i++) {
+    const Marker &marker = previous_markers[i];
+    if (!selected_tracks_.contains(marker.track)) {
+      continue;
     }
+    // TODO(keir): For now this uses a fixed size region. What's needed is
+    // an extension to use custom sized boxes around the tracked point.
+    int half_size = kHalfSearchWindowSize;
+    int size = kHalfSearchWindowSize * 2 + 1;
+
+    // [xy][01] is the upper right box corner.
+    int x0 = marker.x - half_size;
+    int y0 = marker.y - half_size;
+    libmv::FloatImage old_patch;
+    if (!CopyRegionFromQImage(previous_image_, size, size,
+                              &x0, &y0,
+                              &old_patch)) {
+      continue;
+    }
+
+    int x1 = marker.x - half_size;
+    int y1 = marker.y - half_size;
+    libmv::FloatImage new_patch;
+    if (!CopyRegionFromQImage(new_image, size, size,
+                              &x1, &y1,
+                              &new_patch)) {
+      continue;
+    }
+
+    double xx0 = marker.x - x0;
+    double yy0 = marker.y - y0;
+    double xx1 = marker.x - x1;
+    double yy1 = marker.y - y1;
+    region_tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
+    tracks_->Insert(current_image_, marker.track, x1 + xx1, y1 + yy1);
   }
   previous_image_ = new_image;
 
   makeCurrent();
-  image_.upload(new_image);
   upload();
   emit trackChanged(selected_tracks_);
 }

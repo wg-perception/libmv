@@ -24,6 +24,7 @@
 #include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
+#include "libmv/logging/logging.h"
 
 namespace libmv {
 
@@ -42,6 +43,7 @@ static void FindLocalMaxima(const FloatImage &trackness,
           && trackness(i,j) >= trackness(i+1, j-1)
           && trackness(i,j) >= trackness(i+1, j  )
           && trackness(i,j) >= trackness(i+1, j+1)) {
+        LG << i << " " << j << " " << trackness(i,j);
         Feature p = { i, j, trackness(i,j) };
         features->push_back(p);
       }
@@ -54,7 +56,7 @@ static void FindLocalMaxima(const FloatImage &trackness,
 //   Z = [gxx gxy; gxy gyy]
 //
 // This function computes the matrix for every pixel.
-static void ComputeGradientMatrix(const Array3Df &image_and_gradients,
+void ComputeGradientMatrix(const Array3Df &image_and_gradients,
                                        int window_size,
                                        Array3Df *gradient_matrix) {
   Array3Df gradients;
@@ -85,7 +87,7 @@ static float MinEigenValue(float gxx, float gxy, float gyy) {
 
 // Compute trackness of every pixel given the gradient matrix.
 // This is done as described in the Good Features to Track paper.
-static void ComputeTrackness(const Array3Df gradient_matrix,
+void ComputeTrackness(const Array3Df gradient_matrix,
                              Array3Df *trackness_pointer) {
   Array3Df &trackness = *trackness_pointer; // FIXME(MatthiasF)
   trackness.Resize(gradient_matrix.Height(), gradient_matrix.Width());
@@ -136,7 +138,7 @@ void DetectGoodFeatures(const Array3Df &image_and_gradients,
 
   FindLocalMaxima(trackness, min_trackness, min_feature_distance, features);
 
-  RemoveTooCloseFeatures(features, min_feature_distance * min_feature_distance);
+  //RemoveTooCloseFeatures(features, min_feature_distance * min_feature_distance);
 }
 
 }  // namespace libmv

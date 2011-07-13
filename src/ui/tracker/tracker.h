@@ -39,7 +39,8 @@ class Tracker : public QGLWidget {
   ~Tracker();
   void Load(QByteArray data);
   QByteArray Save();
-  void SetImage(int image, QImage new_image, bool track);
+  void SetImage(QImage image);
+  void Track(int image, QImage new_image);
   void Render(int w, int h, int image=-1, int track=-1);
 
  public slots:

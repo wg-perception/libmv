@@ -22,6 +22,7 @@
 #define UI_TRACKER_MAIN_H_
 
 #include <QMainWindow>
+#include <QComboBox>
 #include <QSpinBox>
 #include <QSlider>
 #include <QLabel>
@@ -77,6 +78,7 @@ class MainWindow : public QMainWindow {
   void toggleTracking(bool);
   void toggleBackward(bool);
   void toggleForward(bool);
+  void displayImage();
   void toggleZoom(bool);
   void updateZooms(QVector<int>);
   void detect();
@@ -100,9 +102,11 @@ class MainWindow : public QMainWindow {
   int current_frame_;
   QAction *zoom_action_;
   QAction *track_action_;
+  QAction *filter_action_;
   QAction *backward_action_;
   QAction *forward_action_;
   QSpinBox spinbox_;
+  QComboBox combobox_;
   QSlider slider_;
   QTimer previous_timer_;
   QTimer next_timer_;

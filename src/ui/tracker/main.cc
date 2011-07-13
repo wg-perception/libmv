@@ -52,6 +52,10 @@ typedef uint64_t UINT64_C;
 
 #include <float.h>
 
+const int kWindowSize = 9;
+const float kMinTrackness = 0.125;
+const float kMinDistance = 120;
+
 void Clip::Open(QString path) {
   images_.clear();
   QString sep = QFileInfo(path).isDir() ? "/" : ".";
@@ -231,7 +235,7 @@ MainWindow::MainWindow()
   toolbar->addAction(QIcon(":/skip-backward"), "Seek to first frame",
                      this, SLOT(first()));
   toolbar->addAction(QIcon(":/step-backward"), "Step to previous frame",
-                     this, SLOT(previous()))->setShortcut(QKeySequence("Left"));
+                     this, SLOT(previous()))->setShortcut(Qt::Key_Left);
   backward_action_ = toolbar->addAction(QIcon(":/play-backward"),
                                         "Play backwards");
   backward_action_->setCheckable(true);
@@ -251,8 +255,12 @@ MainWindow::MainWindow()
   connect(forward_action_, SIGNAL(triggered(bool)), SLOT(toggleForward(bool)));
   connect(&next_timer_, SIGNAL(timeout()), SLOT(next()));
   toolbar->addAction(QIcon(":/step-forward"), "Next Frame", this, SLOT(next()))
-      ->setShortcut(QKeySequence("Right"));
+      ->setShortcut(Qt::Key_Right);
   toolbar->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
+
+  toolbar->addWidget(&combobox_);
+  combobox_.addItems(QString("Original;Gaussian Blur;Gradient X;Gradient Y;dx.dx;dx.dy;dy.dy;Trackness").split(';'));
+  connect(&combobox_,SIGNAL(currentIndexChanged(int)),SLOT(displayImage()));
 
   restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
@@ -336,7 +344,7 @@ void MainWindow::open(QString path) {
   setWindowTitle(QString("Tracker - %1").arg(QDir(path).dirName()));
 
   clip_->Open(path);
-  tracker_->Load(Load("tracks"));
+  //tracker_->Load(Load("tracks"));
   /*foreach(QString path, QDir(path_).entryList(QStringList("*.dae"))) {
     QFile file(path);
     scene_->LoadCOLLADA(&file);
@@ -372,8 +380,10 @@ void MainWindow::seek(int frame) {
 
   slider_.setValue(current_frame_);
   spinbox_.setValue(current_frame_);
-  tracker_->SetImage(current_frame_, clip_->Image(current_frame_),
-                     track_action_->isChecked());
+  if(track_action_->isChecked()) {
+    tracker_->Track(current_frame_, clip_->Image(current_frame_));
+  }
+  displayImage();
 }
 
 void MainWindow::stop() {
@@ -442,6 +452,59 @@ void MainWindow::toggleZoom(bool zoom) {
   }
 }
 
+// TODO(MatthiasF): put filtering in a new file with proper API
+// TODO(MatthiasF): process all image filters in one pass
+// TODO(MatthiasF): it could also be useful for tracker to take filtered
+// regions (to avoid filtering overlapping regions multiple times)
+libmv::FloatImage ComputeGradientImage(QImage qimage) {
+  libmv::Array3Df image(qimage.height(), qimage.width());
+  const uchar* src = qimage.constBits();
+  float* dst = image.Data();
+  for (int i = 0; i < qimage.byteCount(); ++i) {
+    dst[i] = src[i] / 255.0;
+  }
+  libmv::FloatImage gradient;
+  libmv::BlurredImageAndDerivativesChannels(image, 0.9, &gradient);
+  return gradient;
+}
+
+QImage toQImage(libmv::FloatImage image, int channel=0) {
+  QImage qimage(image.Width(), image.Height(), QImage::Format_Indexed8);
+  const float* src = image.Data();
+  uchar* dst = qimage.bits();
+  float max = 0;
+  for (int i = 0; i < qimage.byteCount(); ++i) {
+    max = qMax(max, src[i*image.Depth()+channel] );
+  }
+  float scale = 255.0 / max;
+  for (int i = 0; i < qimage.byteCount(); ++i) {
+    dst[i] = src[i*image.Depth()+channel] * scale;
+  }
+  return qimage;
+}
+
+void MainWindow::displayImage() {
+  int index = combobox_.currentIndex();
+  QImage image = clip_->Image(current_frame_);
+  if(index >= 1) {
+    libmv::FloatImage gradient = ComputeGradientImage(image);
+    if(index <= 3) {
+      image = toQImage(gradient, index-1);
+    } else {
+      libmv::Array3Df gradient_matrix;
+      ComputeGradientMatrix(gradient, kWindowSize, &gradient_matrix);
+      if(index <= 6) {
+        image = toQImage(gradient_matrix, index-3);
+      } else {
+        libmv::Array3Df trackness;
+        ComputeTrackness(gradient_matrix, &trackness);
+        image = toQImage(trackness, 0);
+      }
+    }
+  }
+  tracker_->SetImage(image);
+}
+
 void MainWindow::updateZooms(QVector<int> tracks) {
   if (!zoom_action_->isChecked()) return;
   for (int i = tracks.size(); i < zooms_docks_.size(); i++) {
@@ -468,25 +531,13 @@ void MainWindow::updateZooms(QVector<int> tracks) {
 }
 
 void MainWindow::detect() {
-  // TODO(MatthiasF): put filtering in a new file with proper API
-  // TODO(MatthiasF): process all image filters in one pass
-  // TODO(MatthiasF): it could also be useful for tracker to take filtered
-  // regions (to avoid filtering overlapping regions multiple times)
-  QImage qimage = clip_->Image(current_frame_);
-  libmv::Array3Df image(qimage.height(), qimage.width());
-  const uchar* src = qimage.constBits();
-  float* dst = image.Data();
-  for (int i = 0; i < qimage.byteCount(); ++i) {
-    dst[i] = src[i] / 255.0;
-  }
-  libmv::FloatImage gradient;
-  libmv::BlurredImageAndDerivativesChannels(image, 0.9, &gradient);
+  libmv::FloatImage gradient = ComputeGradientImage(clip_->Image(current_frame_));
 
   // TODO(MatthiasF): Feature count would be a better parameter than min_trackness
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
   std::vector<libmv::Feature> features;
-  libmv::DetectGoodFeatures(gradient, 4, 0.125, 120, &features);
+  libmv::DetectGoodFeatures(gradient, kWindowSize, kMinTrackness, kMinDistance, &features);
   QVector<int> tracks;
   foreach (const libmv::Feature& p, features) {
     int track = tracks_->MaxTrack() + 1;
