@@ -25,77 +25,20 @@
 #include <vector>
 
 #include "libmv/image/image.h"
-#include "libmv/image/image_pyramid.h"
-#include "libmv/numeric/numeric.h"
 
 namespace libmv {
 
-struct KLTPointFeature {
-  KLTPointFeature(float x=0.0f, float y=0.0f) {
-    coords[0] = x;
-    coords[1] = y;
-    scale = 0.0;
-    orientation = 0.0;
-  }
-
-  float x() const { return coords(0); }
-  float y() const { return coords(1); }
-
-  Vec2f coords;       // (x, y), i.e. (column, row).
-  float scale;        // In pixels.
-  float orientation;  // In radians.
-
-  // (x, y) position (not row, column).
-  virtual const Vec2f &Point() const {
-    return coords;
-  }
-  int half_window_size;
-  float trackness;
+struct Feature {
+  float x, y, trackness;
 };
 
-class KLTContext {
- public:
-  typedef std::vector<KLTPointFeature> FeatureList;
+// FIXME(MatthiasF): Remove Array3Df usage
+void DetectGoodFeatures(const Array3Df &image_and_gradients,
+                        int window_size,
+                        double min_trackness,
+                        double min_feature_distance,
+                        std::vector<Feature> *features);
 
-  KLTContext()
-      : half_window_size_(3),
-        max_iterations_(10),
-        min_trackness_(0.5),
-        min_feature_distance_(10),
-        min_determinant_(1e-6),
-        min_update_squared_distance_(1e-6) {
-  }
-
-  void DetectGoodFeatures(const Array3Df &image_and_gradients,
-                          FeatureList *features);
-
-  bool TrackFeature(ImagePyramid *pyramid1,
-                    const KLTPointFeature &feature1,
-                    ImagePyramid *pyramid2,
-                    KLTPointFeature *feature2);
-
-  void TrackFeatures(ImagePyramid *pyramid1,
-                     const FeatureList &features1,
-                     ImagePyramid *pyramid2,
-                     FeatureList *features2);
-
-  bool TrackFeatureOneLevel(const FloatImage &image_and_gradient1,
-                            const Vec2 &position1,
-                            const FloatImage &image_and_gradient2,
-                            Vec2 *position2);
-
-  int HalfWindowSize() { return half_window_size_; }
-  int WindowSize() { return 2 * HalfWindowSize() + 1; }
-
- //TODO(MatthiasF): create accessor/mutator boilerplate when we are done prototyping
- //private:
-  int half_window_size_;
-  int max_iterations_;
-  double min_trackness_;
-  double min_feature_distance_;
-  double min_determinant_;
-  double min_update_squared_distance_;
-};
 
 }  // namespace libmv
 

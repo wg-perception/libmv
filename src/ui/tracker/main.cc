@@ -482,19 +482,15 @@ void MainWindow::detect() {
   libmv::FloatImage gradient;
   libmv::BlurredImageAndDerivativesChannels(image, 0.9, &gradient);
 
-  libmv::KLTContext klt;
-  // TODO(MatthiasF): Feature count would be a better parameter
-  klt.min_trackness_ = 0.125;
-  // TODO(MatthiasF): A resolution independent parameter would be better
+  // TODO(MatthiasF): Feature count would be a better parameter than min_trackness
+  // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
-  klt.min_feature_distance_ = 120; // 1920,1080 / 120 = 16,9 -> 16x9 = 144 features
-
-  libmv::KLTContext::FeatureList features;
-  klt.DetectGoodFeatures(gradient, &features);
+  std::vector<libmv::Feature> features;
+  libmv::DetectGoodFeatures(gradient, 4, 0.125, 120, &features);
   QVector<int> tracks;
-  foreach (const libmv::KLTPointFeature& p, features) {
+  foreach (const libmv::Feature& p, features) {
     int track = tracks_->MaxTrack() + 1;
-    tracks_->Insert(current_frame_, track, p.x(), p.y() );
+    tracks_->Insert(current_frame_, track, p.x, p.y );
     tracks << track;
   }
   tracker_->select(tracks);
