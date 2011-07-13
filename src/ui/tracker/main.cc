@@ -27,6 +27,10 @@
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 
+// TODO(MatthiasF): better API for blender integration
+#include "libmv/image/convolve.h"
+#include "libmv/simple_pipeline/detect.h"
+
 #include <QApplication>
 #include <QFileDialog>
 #include <QFormLayout>
@@ -209,12 +213,6 @@ MainWindow::MainWindow()
   connect(tracker_action_, SIGNAL(triggered(bool)),
           track_action_, SLOT(setVisible(bool)));
 
-  keyframe_action_ = toolbar->addAction(QIcon(":/keyframe"), "Add Keyframe");
-  keyframe_action_->setCheckable(true);
-  connect(keyframe_action_, SIGNAL(triggered(bool)), SLOT(toggleKeyframe(bool)));
-  connect(tracker_action_, SIGNAL(triggered(bool)),
-          keyframe_action_, SLOT(setVisible(bool)));
-
   toolbar->addAction(QIcon(":/solve"), "Solve reconstruction",
                      this, SLOT(solve()));
   QAction* add_action = toolbar->addAction(QIcon(":/add"), "Add object",
@@ -256,11 +254,6 @@ MainWindow::MainWindow()
       ->setShortcut(QKeySequence("Right"));
   toolbar->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
-  toolbar->addWidget(&keyframe_label_);
-  keyframe_label_.setToolTip("Shows number of frame (since previous|until next) "
-                             "keyframe and common tracks between current frame "
-                             "and (previous|next) keyframe in parenthesis");
-
   restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
 }
@@ -279,8 +272,6 @@ MainWindow::~MainWindow() {
   //Save("cameras", scene_->SaveCameras());
   //Save("bundles", scene_->SaveBundles());
   //Save("objects", scene_->SaveObjects());
-  Save("keyframes", QByteArray((char*)keyframes_.data(),
-                               keyframes_.size()*sizeof(int)));
   delete reconstruction_;
   delete tracks_;
 }
@@ -353,11 +344,6 @@ void MainWindow::open(QString path) {
   //scene_->LoadCameras(Load("cameras"));
   //scene_->LoadBundles(Load("bundles"));
   //scene_->LoadObjects(Load("objects"));
-  QByteArray data = Load("keyframes");
-  const int *keyframes = reinterpret_cast<const int*>(data.constData());
-  for (size_t i = 0; i < data.size() / sizeof(int); ++i) {
-    keyframes_ << keyframes[i];
-  }
   //scene_->upload();
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
@@ -388,29 +374,6 @@ void MainWindow::seek(int frame) {
   spinbox_.setValue(current_frame_);
   tracker_->SetImage(current_frame_, clip_->Image(current_frame_),
                      track_action_->isChecked());
-  if (keyframes_.contains(current_frame_)) {
-    keyframe_action_->setChecked(true);
-  } else {
-    keyframe_action_->setChecked(false);
-    int i = 0;
-    for(; i < keyframes_.count(); i++) {
-      if(keyframes_[i] >= current_frame_) break;
-    }
-    QString text;
-    if(i>0) {
-      int previous = keyframes_[i-1];
-      int common =
-          tracks_->MarkersForTracksInBothImages(current_frame_,previous).size()/2;
-      text += QString("%1 (%2) |").arg(current_frame_-previous).arg(common);
-    }
-    if(i<keyframes_.count()) {
-      int next = keyframes_[i];
-      int common =
-          tracks_->MarkersForTracksInBothImages(current_frame_,next).size()/2;
-      text += QString("| %1 (%2)").arg(next-current_frame_).arg(common);
-    }
-    //keyframe_label_.setText(text);
-  }
 }
 
 void MainWindow::stop() {
@@ -444,24 +407,6 @@ void MainWindow::toggleTracking(bool track) {
   } else {
     backward_action_->setText("Play backwards");
     forward_action_->setText("Play forwards");
-  }
-}
-
-void MainWindow::toggleKeyframe(bool keyframe) {
-  stop();
-  if (keyframe) {
-    int i = 0;
-    for(; i < keyframes_.count(); i++) {
-      if (keyframes_[i] >= current_frame_) {
-        Q_ASSERT(keyframes_[i] != current_frame_);
-        break;
-      }
-    }
-    keyframes_.insert(i, current_frame_);
-  } else {
-    if (keyframes_.contains(current_frame_)) {
-      keyframes_.remove(keyframes_.indexOf(current_frame_));
-    }
   }
 }
 
@@ -499,18 +444,15 @@ void MainWindow::toggleZoom(bool zoom) {
 
 void MainWindow::updateZooms(QVector<int> tracks) {
   if (!zoom_action_->isChecked()) return;
-  if (!zooms_docks_.isEmpty() &&
-      tracks.size()*zooms_docks_.first()->width() > width()) {
-    tracks.resize(width() / zooms_docks_.first()->width());
-  }
   for (int i = tracks.size(); i < zooms_docks_.size(); i++) {
     removeDockWidget(zooms_docks_[i]);
     delete zooms_docks_[i];
     // zoom widget is owned by dock ?
   }
   for (int i = zooms_docks_.size(); i < tracks.size(); i++) {
-    QDockWidget* dock = new QDockWidget(QString("Marker #%1").arg(tracks[i]));
+    QDockWidget* dock = new QDockWidget();
     dock->setObjectName(QString("zoom%1").arg(tracks[i]));
+    dock->setTitleBarWidget(new QWidget(dock));
     addDockWidget(Qt::TopDockWidgetArea, dock);
     Zoom* zoom = new Zoom(0, tracker_);
     dock->setWidget(zoom);
@@ -526,6 +468,37 @@ void MainWindow::updateZooms(QVector<int> tracks) {
 }
 
 void MainWindow::detect() {
+  // TODO(MatthiasF): put filtering in a new file with proper API
+  // TODO(MatthiasF): process all image filters in one pass
+  // TODO(MatthiasF): it could also be useful for tracker to take filtered
+  // regions (to avoid filtering overlapping regions multiple times)
+  QImage qimage = clip_->Image(current_frame_);
+  libmv::Array3Df image(qimage.height(), qimage.width());
+  const uchar* src = qimage.constBits();
+  float* dst = image.Data();
+  for (int i = 0; i < qimage.byteCount(); ++i) {
+    dst[i] = src[i] / 255.0;
+  }
+  libmv::FloatImage gradient;
+  libmv::BlurredImageAndDerivativesChannels(image, 0.9, &gradient);
+
+  libmv::KLTContext klt;
+  // TODO(MatthiasF): Feature count would be a better parameter
+  klt.min_trackness_ = 0.125;
+  // TODO(MatthiasF): A resolution independent parameter would be better
+  // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
+  klt.min_feature_distance_ = 120; // 1920,1080 / 120 = 16,9 -> 16x9 = 144 features
+
+  libmv::KLTContext::FeatureList features;
+  klt.DetectGoodFeatures(gradient, &features);
+  QVector<int> tracks;
+  foreach (const libmv::KLTPointFeature& p, features) {
+    int track = tracks_->MaxTrack() + 1;
+    tracks_->Insert(current_frame_, track, p.x(), p.y() );
+    tracks << track;
+  }
+  tracker_->select(tracks);
+  updateZooms(tracks);
 }
 
 void MainWindow::solve() {
@@ -539,11 +512,8 @@ void MainWindow::solve() {
   }
   libmv::Tracks normalized_tracks(markers);
 
-  Q_ASSERT(keyframes_.size() >= 2);
-
   libmv::vector<libmv::Marker> keyframe_markers =
-      normalized_tracks.MarkersForTracksInBothImages(keyframes_[0],
-                                                     keyframes_[1]);
+      normalized_tracks.MarkersForTracksInBothImages(0, clip_->Count()-1);
 
   libmv::ReconstructTwoFrames(keyframe_markers, reconstruction_);
   libmv::Bundle(normalized_tracks, reconstruction_);

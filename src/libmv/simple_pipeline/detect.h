@@ -24,14 +24,27 @@
 #include <cassert>
 #include <vector>
 
-#include "libmv/correspondence/feature.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_pyramid.h"
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
 
-struct KLTPointFeature : public PointFeature {
+struct KLTPointFeature {
+  KLTPointFeature(float x=0.0f, float y=0.0f) {
+    coords[0] = x;
+    coords[1] = y;
+    scale = 0.0;
+    orientation = 0.0;
+  }
+
+  float x() const { return coords(0); }
+  float y() const { return coords(1); }
+
+  Vec2f coords;       // (x, y), i.e. (column, row).
+  float scale;        // In pixels.
+  float orientation;  // In radians.
+
   // (x, y) position (not row, column).
   virtual const Vec2f &Point() const {
     return coords;

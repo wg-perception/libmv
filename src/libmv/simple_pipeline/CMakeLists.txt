@@ -1,4 +1,5 @@
 SET(SIMPLE_PIPELINE_SRC
+    detect.cc
     resect.cc
     intersect.cc
     bundle.cc

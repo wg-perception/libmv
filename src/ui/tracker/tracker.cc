@@ -34,8 +34,8 @@ using libmv::vector;
 
 
 // TODO(MatthiasF): custom pattern/search size
-static const int kHalfPatternWindowSize = 5;
-static const int kPyramidLevelCount = 4;
+static const int kHalfPatternWindowSize = 4;
+static const int kPyramidLevelCount = 2;
 static const int kHalfSearchWindowSize = kHalfPatternWindowSize << kPyramidLevelCount;
 
 #include <QMouseEvent>
@@ -115,6 +115,8 @@ void Tracker::SetImage(int image, QImage new_image, bool track) {
   // Track active trackers from the previous image into this one.
   if (track) {
     // FIXME: the scoped_ptr in Tracking API require the client to heap allocate
+    // FIXME: we should wrap those constructors in a C ABI compatible API
+    // returning an opaque pointer to be used as first argument for Track
     libmv::TrkltRegionTracker *trklt_region_tracker =
         new libmv::TrkltRegionTracker();
     trklt_region_tracker->half_window_size = kHalfPatternWindowSize;

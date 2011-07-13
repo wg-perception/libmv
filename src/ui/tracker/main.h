@@ -75,7 +75,6 @@ class MainWindow : public QMainWindow {
   void next();
   void last();
   void toggleTracking(bool);
-  void toggleKeyframe(bool);
   void toggleBackward(bool);
   void toggleForward(bool);
   void toggleZoom(bool);
@@ -90,7 +89,6 @@ class MainWindow : public QMainWindow {
   QString path_;
   Clip *clip_;
   libmv::Tracks* tracks_;
-  QVector<int> keyframes_;
   libmv::CameraIntrinsics* intrinsics_;
   libmv::Reconstruction* reconstruction_;
 
@@ -102,12 +100,10 @@ class MainWindow : public QMainWindow {
   int current_frame_;
   QAction *zoom_action_;
   QAction *track_action_;
-  QAction *keyframe_action_;
   QAction *backward_action_;
   QAction *forward_action_;
   QSpinBox spinbox_;
   QSlider slider_;
-  QLabel keyframe_label_;
   QTimer previous_timer_;
   QTimer next_timer_;
 };
