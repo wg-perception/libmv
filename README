@@ -1,18 +1,31 @@
+== Qt OpenCV calibration tool ==
+
 We need artists to test the new Qt OpenCV calibration tool.
 This tool takes calibration footage and output lens parameters.
 You'll need these parameters for accurate reconstruction.
 
-To test it:
- Install Qt and OpenCV (and the -devel packages on binary distros)
- git pull https://github.com/Matthias-Fauconneau/libmv.git
- cd libmv
+
+=== How to Build ===
+
+Install Qt, OpenCV and FFmpeg.
+git pull https://github.com/Matthias-Fauconneau/libmv.git
+cd libmv
  
 Method #1: This will also build libmv, its dependencies and Qt Tracker
  
  make && bin-opt/bin/qt-calibration
- 
+
 Or Method #2: Build only the calibration tool
 
  cd src/ui/calibration && qmake && make && build/calibration
 
+
 If you encounter problems, please mail me or ask for help on irc://irc.freenode.net/libmv
+
+
+=== Links ===
+
+Windows and OSX require you to fetch and install packages manually:
+ Qt SDK -> http://qt.nokia.com/downloads
+ OpenCV -> http://opencv.willowgarage.com/wiki/
+ FFmpeg -> http://www.ffmpeg.org/

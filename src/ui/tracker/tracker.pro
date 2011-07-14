@@ -6,7 +6,7 @@ RESOURCES = tracker.qrc
 INCLUDEPATH += ../..
 INCLUDEPATH += /usr/include/eigen3/
 #LIBS += -L../../../bin-dbg/lib/ -lsimple_pipeline_d -limage_d -ltracking_d -lmultiview_d -lglog
-LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -limage -ltracking -lmultiview
+LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -limage -ltracking -lmultiview -lfast
 
 win32:CONFIG+=glew
 glew {

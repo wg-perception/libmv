@@ -27,9 +27,7 @@
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 
-// TODO(MatthiasF): better API for blender integration
-#include "libmv/image/convolve.h"
-#include "libmv/simple_pipeline/detect.h"
+#include <third_party/fast/fast.h>
 
 #include <QApplication>
 #include <QFileDialog>
@@ -53,8 +51,8 @@ typedef uint64_t UINT64_C;
 #include <float.h>
 
 const int kWindowSize = 9;
-const float kMinTrackness = 0.125;
-const float kMinDistance = 120;
+const int kMinTrackness = 16;
+const int kMinDistance = 120;
 
 void Clip::Open(QString path) {
   images_.clear();
@@ -258,10 +256,6 @@ MainWindow::MainWindow()
       ->setShortcut(Qt::Key_Right);
   toolbar->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
-  toolbar->addWidget(&combobox_);
-  combobox_.addItems(QString("Original;Gaussian Blur;Gradient X;Gradient Y;dx.dx;dx.dy;dy.dy;Trackness").split(';'));
-  connect(&combobox_,SIGNAL(currentIndexChanged(int)),SLOT(displayImage()));
-
   restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
 }
@@ -363,27 +357,29 @@ void MainWindow::open(QString path) {
   }
 }
 
-void MainWindow::seek(int frame) {
+void MainWindow::seek(int next) {
   // Bail out if there's nothing to do.
-  if (frame == current_frame_) {
+  if (next == current_frame_) {
     return;
   }
-  if (frame < 0 || frame >= clip_->Count()) {
+  // Stop if we hit one of both clip ends.
+  if (next < 0 || next >= clip_->Count()) {
     stop();
     return;
   }
-  // Track only if the shift is between consecutive frames.
-  if ( frame > current_frame_ + 1 || frame < current_frame_ - 1 ) {
+  // Disable tracking when scrubbing
+  if ( next > current_frame_ + 1 || next < current_frame_ - 1 ) {
     track_action_->setChecked(false);
   }
-  current_frame_ = frame;
+  int previous = current_frame_;
+  current_frame_ = next;
 
-  slider_.setValue(current_frame_);
-  spinbox_.setValue(current_frame_);
+  slider_.setValue(next);
+  spinbox_.setValue(next);
   if(track_action_->isChecked()) {
-    tracker_->Track(current_frame_, clip_->Image(current_frame_));
+    tracker_->Track(previous, next, clip_->Image(previous), clip_->Image(next));
   }
-  displayImage();
+  tracker_->SetImage(next, clip_->Image(next));
 }
 
 void MainWindow::stop() {
@@ -452,61 +448,9 @@ void MainWindow::toggleZoom(bool zoom) {
   }
 }
 
-// TODO(MatthiasF): put filtering in a new file with proper API
-// TODO(MatthiasF): process all image filters in one pass
-// TODO(MatthiasF): it could also be useful for tracker to take filtered
-// regions (to avoid filtering overlapping regions multiple times)
-libmv::FloatImage ComputeGradientImage(QImage qimage) {
-  libmv::Array3Df image(qimage.height(), qimage.width());
-  const uchar* src = qimage.constBits();
-  float* dst = image.Data();
-  for (int i = 0; i < qimage.byteCount(); ++i) {
-    dst[i] = src[i] / 255.0;
-  }
-  libmv::FloatImage gradient;
-  libmv::BlurredImageAndDerivativesChannels(image, 0.9, &gradient);
-  return gradient;
-}
-
-QImage toQImage(libmv::FloatImage image, int channel=0) {
-  QImage qimage(image.Width(), image.Height(), QImage::Format_Indexed8);
-  const float* src = image.Data();
-  uchar* dst = qimage.bits();
-  float max = 0;
-  for (int i = 0; i < qimage.byteCount(); ++i) {
-    max = qMax(max, src[i*image.Depth()+channel] );
-  }
-  float scale = 255.0 / max;
-  for (int i = 0; i < qimage.byteCount(); ++i) {
-    dst[i] = src[i*image.Depth()+channel] * scale;
-  }
-  return qimage;
-}
-
-void MainWindow::displayImage() {
-  int index = combobox_.currentIndex();
-  QImage image = clip_->Image(current_frame_);
-  if(index >= 1) {
-    libmv::FloatImage gradient = ComputeGradientImage(image);
-    if(index <= 3) {
-      image = toQImage(gradient, index-1);
-    } else {
-      libmv::Array3Df gradient_matrix;
-      ComputeGradientMatrix(gradient, kWindowSize, &gradient_matrix);
-      if(index <= 6) {
-        image = toQImage(gradient_matrix, index-3);
-      } else {
-        libmv::Array3Df trackness;
-        ComputeTrackness(gradient_matrix, &trackness);
-        image = toQImage(trackness, 0);
-      }
-    }
-  }
-  tracker_->SetImage(image);
-}
-
 void MainWindow::updateZooms(QVector<int> tracks) {
   if (!zoom_action_->isChecked()) return;
+  if(tracks.size() > 16) tracks.resize(16);
   for (int i = tracks.size(); i < zooms_docks_.size(); i++) {
     removeDockWidget(zooms_docks_[i]);
     delete zooms_docks_[i];
@@ -530,26 +474,62 @@ void MainWindow::updateZooms(QVector<int> tracks) {
   }
 }
 
+// TODO(MatthiasF): proper simple C API for blender integration
+int sqr(int x) { return x*x; }
+struct Feature { int x, y, score; };
 void MainWindow::detect() {
-  libmv::FloatImage gradient = ComputeGradientImage(clip_->Image(current_frame_));
+  QImage image = clip_->Image(current_frame_);
+  int num_corners;
+  const int margin = 16;
+  const uchar* data = image.constBits()+margin*image.width()+margin;
+  // TODO(MatthiasF): Support targetting a feature count (binary search trackness)
+  xy* all = fast9_detect(data, image.width()-2*margin, image.height()-2*margin,
+                         image.bytesPerLine(), kMinTrackness, &num_corners);
+  int* scores = fast9_score(data, image.bytesPerLine(), all, num_corners, kMinTrackness);
+  // TODO: merge with close feature suppression
+  xy* nonmax = nonmax_suppression(all, scores, num_corners, &num_corners);
+  free(all);
+  free(scores);
 
-  // TODO(MatthiasF): Feature count would be a better parameter than min_trackness
+  // Remove too close features
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
-  std::vector<libmv::Feature> features;
-  libmv::DetectGoodFeatures(gradient, kWindowSize, kMinTrackness, kMinDistance, &features);
+  Feature* corners = (Feature*)malloc(num_corners*sizeof(Feature));
+  int corner_count = 0;
+  for(int i = 0 ; i < num_corners ; ++i) {
+    xy xy = nonmax[i];
+    Feature a = { xy.x+margin, xy.y+margin, scores[i] };
+    // compare each feature against filtered set
+    for(int j = 0 ; j < corner_count ; j++) {
+      Feature& b = corners[j];
+      if ( sqr(a.x-b.x)+sqr(a.y-b.y) < kMinDistance*kMinDistance ) {
+        if( a.score > b.score ) {
+          // replace close lesser feature
+          b = a;
+        }
+        goto skip;
+      }
+    }
+    // or add a new feature
+    corners[corner_count++] = a;
+    skip: ;
+  }
+
+  // Insert features
   QVector<int> tracks;
-  foreach (const libmv::Feature& p, features) {
+  for(int i = 0; i < corner_count; ++i) {
     int track = tracks_->MaxTrack() + 1;
-    tracks_->Insert(current_frame_, track, p.x, p.y );
+    tracks_->Insert(current_frame_, track, corners[i].x, corners[i].y );
     tracks << track;
   }
+  free(corners);
   tracker_->select(tracks);
   updateZooms(tracks);
 }
 
 void MainWindow::solve() {
   // Invert the camera intrinsics.
+  // TODO(MatthiasF): handle varying focal lengths
   libmv::vector<libmv::Marker> markers = tracks_->AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
     intrinsics_->InvertIntrinsics(markers[i].x,

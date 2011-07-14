@@ -78,7 +78,6 @@ class MainWindow : public QMainWindow {
   void toggleTracking(bool);
   void toggleBackward(bool);
   void toggleForward(bool);
-  void displayImage();
   void toggleZoom(bool);
   void updateZooms(QVector<int>);
   void detect();

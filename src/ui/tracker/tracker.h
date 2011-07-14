@@ -39,8 +39,8 @@ class Tracker : public QGLWidget {
   ~Tracker();
   void Load(QByteArray data);
   QByteArray Save();
-  void SetImage(QImage image);
-  void Track(int image, QImage new_image);
+  void SetImage(int id, QImage image);
+  void Track(int previous, int next, QImage old_image, QImage new_image);
   void Render(int w, int h, int image=-1, int track=-1);
 
  public slots:
@@ -62,7 +62,6 @@ class Tracker : public QGLWidget {
   void DrawMarker(const libmv::Marker marker, QVector<vec2> *lines);
 
   libmv::Tracks* tracks_;
-  QImage previous_image_;
   GLTexture image_;
   mat4 transform_;
   GLBuffer markers_;

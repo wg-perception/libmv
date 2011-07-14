@@ -244,7 +244,7 @@ bool MainWindow::SelectDetectorDescriber(eDetector *detector,
   
   // Set the descriptor
   std::map<std::string, descriptor::eDescriber> descriptorMap;
-  descriptorMap["SIMPLIEST"] = descriptor::SIMPLEST_DESCRIBER;
+  descriptorMap["SIMPLEST"] = descriptor::SIMPLEST_DESCRIBER;
   descriptorMap["SURF"]      = descriptor::SURF_DESCRIBER;
   descriptorMap["DIPOLE"]    = descriptor::DIPOLE_DESCRIBER;
   descriptorMap["DAISY"]     = descriptor::DAISY_DESCRIBER;
@@ -254,7 +254,7 @@ bool MainWindow::SelectDetectorDescriber(eDetector *detector,
                 << tr("STAR") << tr("MSER");
   
   QStringList descriptor_list;
-  descriptor_list << tr("SIMPLIEST") << tr("SURF") 
+  descriptor_list << tr("SIMPLEST") << tr("SURF") 
                   << tr("DIPOLE") << tr("DAISY");
   
   bool ok;

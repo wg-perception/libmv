@@ -324,7 +324,7 @@ struct GLTexture {
   void bind(int sampler);
 
   uint id;
-  int width, height;
+  int width, height, depth;
 };
 
 void glInitialize();

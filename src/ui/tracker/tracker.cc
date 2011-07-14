@@ -40,45 +40,27 @@ static const int kHalfSearchWindowSize = kHalfPatternWindowSize << kPyramidLevel
 
 #include <QMouseEvent>
 
-// Copy the region starting at *x0, *y0 with width w, h into region. If the
-// region asked for is outside the image border, clipping is done and the
-// returned region is smaller than requested. At return, *x0 and *y0 contain
-// the top left pixel of *region in the original image (which may not match
-// what was passed in). Returns true if any values were copied.
+// Copy the region starting at x0, y0 with width w, h into region.
+// If the region asked for is outside the image border, the marker is removed.
+// Returns false if the region leave the image.
 bool CopyRegionFromQImage(QImage image,
                           int w, int h,
-                          int *x0, int *y0,
+                          int x0, int y0,
                           libmv::FloatImage *region) {
   Q_ASSERT(image.depth() == 8);
   const unsigned char *data = image.constBits();
   int width = image.width();
   int height = image.height();
 
-  // Clip the region on the upper right.
-  if (*x0 < 0) {
-    w += *x0;
-    *x0 = 0;
-  }
+  // Return if the region leave the image.
+  if (x0 < 0 || y0 < 0 || x0+w >= width || y0+h >= height) return false;
 
-  if (*y0 < 0) {
-    h += *y0;
-    *y0 = 0;
-  }
-
-  // Clip the region on the lower left.
-  w = qMin(w, qMax(width - *x0, 0));
-  h = qMin(h, qMax(height - *y0, 0));
-
-  // The region is entirely outside the given image.
-  if (w <= 0 || h <= 0) {
-    return false;
-  }
-
-  // Now that clipping is done, do the blit.
+  // Copy the region.
   region->resize(h, w);
-  for (int y = *y0; y < *y0 + h; ++y) {
-    for (int x = *x0; x < *x0 + w; ++x) {
-      (*region)(y - *y0, x - *x0, 0) = data[y * width + x];
+  float* dst = region->Data();
+  for (int y = y0; y < y0 + h; ++y) {
+    for (int x = x0; x < x0 + w; ++x) {
+      *dst++ = data[y * width + x];
     }
   }
   return true;
@@ -87,7 +69,7 @@ bool CopyRegionFromQImage(QImage image,
 Tracker::Tracker(libmv::Tracks *tracks, Scene *scene, QGLWidget *shareWidget)
   : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, shareWidget),
     tracks_(tracks), scene_(scene),
-    current_image_(-1), active_track_(-1), dragged_(false) {}
+    current_image_(0), active_track_(-1), dragged_(false) {}
 
 Tracker::~Tracker() {}
 
@@ -108,16 +90,15 @@ QByteArray Tracker::Save() {
                     markers.size() * sizeof(Marker));
 }
 
-void Tracker::SetImage(QImage image) {
+void Tracker::SetImage(int id, QImage image) {
+  current_image_ = id;
   image_.upload(image);
-  update();
+  upload();
+  emit trackChanged(selected_tracks_);
 }
 
-// Track active trackers from the previous image into this one.
-void Tracker::Track(int image, QImage new_image) {
-  int previous_image = current_image_;
-  current_image_ = image;
-
+// Track active trackers from the previous image into next one.
+void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
   // FIXME: the scoped_ptr in Tracking API require the client to heap allocate
   // FIXME: we should wrap those constructors in a C ABI compatible API
   // returning an opaque pointer to be used as first argument for Track
@@ -128,7 +109,7 @@ void Tracker::Track(int image, QImage new_image) {
   libmv::PyramidRegionTracker *pyramid_region_tracker =
       new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
   libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
-  vector<Marker> previous_markers = tracks_->MarkersInImage(previous_image);
+  vector<Marker> previous_markers = tracks_->MarkersInImage(previous);
   for (int i = 0; i < previous_markers.size(); i++) {
     const Marker &marker = previous_markers[i];
     if (!selected_tracks_.contains(marker.track)) {
@@ -139,22 +120,19 @@ void Tracker::Track(int image, QImage new_image) {
     int half_size = kHalfSearchWindowSize;
     int size = kHalfSearchWindowSize * 2 + 1;
 
+    // TODO(MatthiasF): avoid filtering image tiles twice
     // [xy][01] is the upper right box corner.
     int x0 = marker.x - half_size;
     int y0 = marker.y - half_size;
     libmv::FloatImage old_patch;
-    if (!CopyRegionFromQImage(previous_image_, size, size,
-                              &x0, &y0,
-                              &old_patch)) {
+    if (!CopyRegionFromQImage(old_image, size, size, x0, y0, &old_patch)) {
       continue;
     }
 
     int x1 = marker.x - half_size;
     int y1 = marker.y - half_size;
     libmv::FloatImage new_patch;
-    if (!CopyRegionFromQImage(new_image, size, size,
-                              &x1, &y1,
-                              &new_patch)) {
+    if (!CopyRegionFromQImage(new_image, size, size, x1, y1, &new_patch)) {
       continue;
     }
 
@@ -163,13 +141,8 @@ void Tracker::Track(int image, QImage new_image) {
     double xx1 = marker.x - x1;
     double yy1 = marker.y - y1;
     region_tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
-    tracks_->Insert(current_image_, marker.track, x1 + xx1, y1 + yy1);
+    tracks_->Insert(next, marker.track, x1 + xx1, y1 + yy1);
   }
-  previous_image_ = new_image;
-
-  makeCurrent();
-  upload();
-  emit trackChanged(selected_tracks_);
 }
 
 void Tracker::select(QVector<int> tracks) {
@@ -213,6 +186,7 @@ bool compare_image(const Marker &a, const Marker &b) {
 }
 
 void Tracker::upload() {
+  makeCurrent();
   vector<Marker> markers = tracks_->MarkersInImage(current_image_);
   QVector<vec2> lines;
   lines.reserve(markers.size()*8);

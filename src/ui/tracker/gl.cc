@@ -200,27 +200,40 @@ void GLBuffer::draw() {
 }
 
 void GLTexture::upload(QImage image) {
-  int w=image.width(),h=image.height(),bytesPerLine=image.bytesPerLine();
+  width = image.width();
+  height = image.height();
+  depth = image.depth();
+  int stride = image.bytesPerLine();
+#ifdef USE_PBO
   GLuint pbo; glGenBuffers(1,&pbo);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo );
-  glBufferData(GL_PIXEL_UNPACK_BUFFER, w*h, 0, GL_STREAM_DRAW);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER, width*height, 0, GL_STREAM_DRAW);
   uchar* dst = (uchar*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER,GL_WRITE_ONLY);
+  Q_ASSERT(dst);
   const uchar* src = image.constBits();
-  for(int y = 0; y < h; y++) {
-      memcpy(dst, src, w);
-      dst += w; src += bytesPerLine;
+  for(int y = 0; y < height; y++) {
+      memcpy(dst, src, width);
+      dst += width; src += stride;
   }
   glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-
+#else
+  if (stride != width*image.depth()) {
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
+  }
+#endif
   if (!id) glGenTextures(1, &id);
   glBindTexture(GL_TEXTURE_2D, id);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, image.depth()/8, width = image.width(),
-               height = image.height(), 0,
-               image.depth()==8 ? GL_LUMINANCE : GL_BGRA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, depth/8, width, height, 0,
+               depth == 8 ? GL_LUMINANCE : GL_BGRA, GL_UNSIGNED_BYTE,
+#ifdef USE_PBO
+               0);
   glDeleteBuffers(1, &pbo);
+#else
+               image.constBits());
+#endif
 }
 
 void GLTexture::bind(int sampler) {
