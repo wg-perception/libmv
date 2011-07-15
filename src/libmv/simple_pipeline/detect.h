@@ -29,16 +29,48 @@
 
 namespace libmv {
 
+/*!
+    A Corner is the 2D location of a detected feature in an image.
+
+    \a x, \a y is the position of the corner in pixels from the top left corner.
+    \a score is an estimate of how well the feature will be tracked.
+    \a size can be used as an initial pattern size to track the feature.
+
+    \sa Detect
+*/
 struct Corner {
-  // Position in pixels (from top-left corner)
+  /// Position in pixels (from top-left corner)
+  /// \note libmv might eventually support subpixel precision.
   float x, y;
-  // Trackness of the feature
+  /// Trackness of the feature
   float score;
-  // Size of the feature in pixels
+  /// Size of the feature in pixels
   float size;
 };
 
-std::vector<Corner> Detect(const unsigned char* data, int width, int height, int stride, int margin = 16, int min_trackness = 16, int min_distance = 120);
+/*!
+    Detect features in an image.
+
+    You need to input a single channel 8-bit image using pointer to image \a data,
+    \a width, \a height and \a stride (i.e bytes per line).
+
+    To avoid detecting tracks which will quickly go out of frame, only corners
+    further than \a margin pixels from the image edges are considered.
+
+    You can tweak the count of detected corners using \a min_trackness, which is
+    the minimum score to add a corner, and \a min_distance which is the minimal
+    distance accepted between two corners.
+
+    \note You can binary search over \a min_trackness to get a given corner count.
+
+    \note a way to get an uniform distribution of a given corner count is:
+          \a min_distance = \a width * \a height / desired_corner_count ^ 2
+
+    \return All detected corners matching given parameters
+*/
+std::vector<Corner> Detect(const unsigned char* data, int width, int height,
+                           int stride, int margin = 16, int min_trackness = 16,
+                           int min_distance = 120);
 
 }
 
