@@ -22,64 +22,32 @@
 **
 ****************************************************************************/
 
-#ifndef UI_TRACKER_MAIN_H_
-#define UI_TRACKER_MAIN_H_
+#ifndef UI_TRACKER_CALIBRATION_H_
+#define UI_TRACKER_CALIBRATION_H_
 
-#include <QMainWindow>
-#include <QGridLayout>
-#include <QSpinBox>
-#include <QSlider>
-#include <QTimer>
+#include "libmv/simple_pipeline/camera_intrinsics.h"
 
-class Clip;
-class Calibration;
-class Tracker;
-class Zoom;
-class Scene;
+#include <QWidget>
+#include <QFormLayout>
+#include <QDoubleSpinBox>
 
-class MainWindow : public QMainWindow {
+class Calibration : public QWidget, public libmv::CameraIntrinsics {
   Q_OBJECT
  public:
-  MainWindow();
-  ~MainWindow();
+  Calibration(QString path, QSize size);
+  double Value(int i) { return spinbox_[i].value(); }
 
  public slots:
-  void open();
-  void open(QString);
-  void seek(int);
-  void stop();
-  void first();
-  void previous();
-  void next();
-  void last();
-  void toggleTracking(bool);
-  void toggleBackward(bool);
-  void toggleForward(bool);
-  void detect();
-  void solve();
+  void updateSettings();
+
+ signals:
+  void settingsChanged();
 
  private:
   QString path_;
-  Clip *clip_;
-  Calibration* calibration_;
-  Tracker *tracker_;
-  Zoom *zoom_;
-  Scene *scene_;
-
-  QToolBar* toolbar_;
-
-  //-> Player : Clip
-  QAction *backward_action_;
-  QAction *forward_action_;
-  QSpinBox spinbox_;
-  QSlider slider_;
-  QTimer previous_timer_;
-  QTimer next_timer_;
-  int current_frame_;
-
-  QAction *track_action_;
-  QAction *zoom_action_;
+  QFormLayout layout_;
+  QDoubleSpinBox spinbox_[8];
 
 };
-#endif
 
+#endif

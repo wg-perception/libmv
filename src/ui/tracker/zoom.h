@@ -22,64 +22,30 @@
 **
 ****************************************************************************/
 
-#ifndef UI_TRACKER_MAIN_H_
-#define UI_TRACKER_MAIN_H_
+#ifndef UI_TRACKER_ZOOM_H_
+#define UI_TRACKER_ZOOM_H_
 
-#include <QMainWindow>
-#include <QGridLayout>
-#include <QSpinBox>
-#include <QSlider>
-#include <QTimer>
+#include <QGLWidget>
+#include "ui/tracker/gl.h"
 
-class Clip;
-class Calibration;
 class Tracker;
-class Zoom;
-class Scene;
 
-class MainWindow : public QMainWindow {
+class Zoom : public QGLWidget {
   Q_OBJECT
  public:
-  MainWindow();
-  ~MainWindow();
+  Zoom(Tracker *tracker);
+  void SetImage(int image);
 
  public slots:
-  void open();
-  void open(QString);
-  void seek(int);
-  void stop();
-  void first();
-  void previous();
-  void next();
-  void last();
-  void toggleTracking(bool);
-  void toggleBackward(bool);
-  void toggleForward(bool);
-  void detect();
-  void solve();
+  void select(QVector<int>);
+
+ protected:
+  void paintGL();
 
  private:
-  QString path_;
-  Clip *clip_;
-  Calibration* calibration_;
-  Tracker *tracker_;
-  Zoom *zoom_;
-  Scene *scene_;
-
-  QToolBar* toolbar_;
-
-  //-> Player : Clip
-  QAction *backward_action_;
-  QAction *forward_action_;
-  QSpinBox spinbox_;
-  QSlider slider_;
-  QTimer previous_timer_;
-  QTimer next_timer_;
-  int current_frame_;
-
-  QAction *track_action_;
-  QAction *zoom_action_;
-
+  Tracker* tracker_;
+  QVector<int> tracks_;
+  int current_image_;
 };
-#endif
 
+#endif

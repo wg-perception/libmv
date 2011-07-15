@@ -22,64 +22,35 @@
 **
 ****************************************************************************/
 
-#ifndef UI_TRACKER_MAIN_H_
-#define UI_TRACKER_MAIN_H_
+#include "ui/tracker/tracker.h"
+#include "ui/tracker/zoom.h"
+#include "ui/tracker/gl.h"
 
-#include <QMainWindow>
-#include <QGridLayout>
-#include <QSpinBox>
-#include <QSlider>
-#include <QTimer>
+Zoom::Zoom(Tracker *tracker) : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, tracker),
+    tracker_(tracker) {}
 
-class Clip;
-class Calibration;
-class Tracker;
-class Zoom;
-class Scene;
+void Zoom::SetImage(int image) {
+  current_image_ = image;
+  update();
+}
 
-class MainWindow : public QMainWindow {
-  Q_OBJECT
- public:
-  MainWindow();
-  ~MainWindow();
+void Zoom::select(QVector<int> tracks) {
+  tracks_ = tracks;
+  update();
+}
 
- public slots:
-  void open();
-  void open(QString);
-  void seek(int);
-  void stop();
-  void first();
-  void previous();
-  void next();
-  void last();
-  void toggleTracking(bool);
-  void toggleBackward(bool);
-  void toggleForward(bool);
-  void detect();
-  void solve();
-
- private:
-  QString path_;
-  Clip *clip_;
-  Calibration* calibration_;
-  Tracker *tracker_;
-  Zoom *zoom_;
-  Scene *scene_;
-
-  QToolBar* toolbar_;
-
-  //-> Player : Clip
-  QAction *backward_action_;
-  QAction *forward_action_;
-  QSpinBox spinbox_;
-  QSlider slider_;
-  QTimer previous_timer_;
-  QTimer next_timer_;
-  int current_frame_;
-
-  QAction *track_action_;
-  QAction *zoom_action_;
-
-};
-#endif
-
+void Zoom::paintGL() {
+  if (tracks_.count() == 0) return;
+  /*//FIXME: this code only works for square grid
+  int ratio = ceil(sqrt(tracks_.count()));
+  int w = width()/ratio;
+  int h = height()/ratio;
+  for (int i = 0; i < tracks_.count(); i++) {
+    int y = i/ratio, x = i%ratio;
+    tracker_->Render(x*w, y*w, w, h, current_image_, tracks_[i]);
+  }*/
+  int w = width()/tracks_.count();
+  for (int i = 0; i < tracks_.count(); i++) {
+    tracker_->Render(i*w, 0, w, height(), current_image_, tracks_[i]);
+  }
+}

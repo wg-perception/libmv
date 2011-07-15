@@ -22,64 +22,24 @@
 **
 ****************************************************************************/
 
-#ifndef UI_TRACKER_MAIN_H_
-#define UI_TRACKER_MAIN_H_
+#ifndef LIBMV_SIMPLE_PIPELINE_DETECT_H_
+#define LIBMV_SIMPLE_PIPELINE_DETECT_H_
 
-#include <QMainWindow>
-#include <QGridLayout>
-#include <QSpinBox>
-#include <QSlider>
-#include <QTimer>
+#include <vector>
 
-class Clip;
-class Calibration;
-class Tracker;
-class Zoom;
-class Scene;
+namespace libmv {
 
-class MainWindow : public QMainWindow {
-  Q_OBJECT
- public:
-  MainWindow();
-  ~MainWindow();
-
- public slots:
-  void open();
-  void open(QString);
-  void seek(int);
-  void stop();
-  void first();
-  void previous();
-  void next();
-  void last();
-  void toggleTracking(bool);
-  void toggleBackward(bool);
-  void toggleForward(bool);
-  void detect();
-  void solve();
-
- private:
-  QString path_;
-  Clip *clip_;
-  Calibration* calibration_;
-  Tracker *tracker_;
-  Zoom *zoom_;
-  Scene *scene_;
-
-  QToolBar* toolbar_;
-
-  //-> Player : Clip
-  QAction *backward_action_;
-  QAction *forward_action_;
-  QSpinBox spinbox_;
-  QSlider slider_;
-  QTimer previous_timer_;
-  QTimer next_timer_;
-  int current_frame_;
-
-  QAction *track_action_;
-  QAction *zoom_action_;
-
+struct Corner {
+  // Position in pixels (from top-left corner)
+  float x, y;
+  // Trackness of the feature
+  float score;
+  // Size of the feature in pixels
+  float size;
 };
-#endif
 
+std::vector<Corner> Detect(const unsigned char* data, int width, int height, int stride, int margin = 16, int min_trackness = 16, int min_distance = 120);
+
+}
+
+#endif

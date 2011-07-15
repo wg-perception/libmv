@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>shader.glsl</file>
         <file alias="open">icons/document-open.png</file>
+        <file alias="view-calibration">icons/digikam.png</file>
         <file alias="view-image">icons/view-preview.png</file>
         <file alias="view-zoom">icons/document-preview.png</file>
         <file alias="view-scene">icons/view-scene.png</file>

@@ -1,0 +1,131 @@
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
+
+#include "ui/tracker/clip.h"
+
+#ifdef USE_FFMPEG
+extern "C" {
+#include <stdint.h>
+typedef uint64_t UINT64_C;
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+}
+#endif
+
+#include <QFileInfo>
+#include <QDir>
+
+Clip::Clip(QString path) {
+  images_.clear();
+  QString sep = QFileInfo(path).isDir() ? "/" : ".";
+  cache_.setFileName(path+sep+"cache");
+  if (cache_.open(QFile::ReadOnly)) {
+    QFile meta(path+sep+"meta");
+    meta.open(QFile::ReadOnly);
+    meta.read((char*)&size_, sizeof(size_));
+    int image_size = size_.width()*size_.height();
+    images_.resize( cache_.size()/image_size );
+    uchar* data = cache_.map(0, cache_.size());
+    for(int i = 0; i < images_.count(); i++, data+=image_size) {
+      images_[i] = QImage(data,size_.width(),size_.height(),QImage::Format_Indexed8);
+    }
+    return;
+  }
+#ifdef USE_FFMPEG
+  av_register_all();
+  if (QFileInfo(path).isFile()) {
+    AVFormatContext* file = 0;
+    if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
+    av_find_stream_info(file);
+    int video_stream = 0;
+    AVCodecContext* video = 0;
+    for (int i = 0; i < (int)file->nb_streams; i++ ) {
+        if( file->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+          video_stream = i;
+          video = file->streams[i]->codec;
+          AVCodec* codec = avcodec_find_decoder(video->codec_id);
+          if( codec ) avcodec_open(video, codec);
+          break;
+        }
+    }
+    for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
+      if ( packet.stream_index == video_stream ) {
+        AVFrame* frame = avcodec_alloc_frame();
+        int complete_frame = 0;
+        avcodec_decode_video2(video, frame, &complete_frame, &packet);
+        if (complete_frame) {
+          // FIXME: Assume planar format
+          QImage image(frame->width, frame->height, QImage::Format_Indexed8);
+          int w = image.width(), h = image.height(), bytesPerLine = frame->linesize[0];
+          uchar* dst = image.bits();
+          const uchar* src = frame->data[0];
+          for(int y = 0; y < h; y++) {
+              memcpy(dst, src, w);
+              dst += w; src += bytesPerLine;
+          }
+          av_free(frame);
+          images_ << image;
+        }
+      }
+      av_free_packet(&packet);
+    }
+    avcodec_close(video);
+    av_close_input_file(file);
+  } else
+#endif
+  foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
+                                              QDir::Files, QDir::Name)) {
+    QImage image(QDir(path).filePath(file));
+    if(image.depth() != 8) {
+      QImage grayscale(image.width(),image.height(),QImage::Format_Indexed8);
+      QRgb *src = (QRgb*)image.constBits();
+      uchar *dst = grayscale.bits();
+      for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
+      image = grayscale;
+    }
+    images_ << image;
+  }
+  size_ = QSize(images_[0].size());
+  // Create raw on-disk video cache
+  if(Size().width()*Size().height()*Count() < 1024*1024*1024) {
+    cache_.open(QFile::WriteOnly|QFile::Truncate);
+    foreach(const QImage& image, images_) cache_.write((const char*)image.constBits(),image.byteCount());
+    cache_.close();
+    QFile meta(path+sep+"meta");
+    meta.open(QFile::WriteOnly|QFile::Truncate);
+    meta.write((char*)&size_,sizeof(size_));
+  }
+}
+
+int Clip::Count() {
+  return images_.count();
+}
+
+QSize Clip::Size() {
+  return size_;
+}
+
+QImage Clip::Image(int i) {
+  return images_[i];
+}

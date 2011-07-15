@@ -1,30 +1,34 @@
-// Copyright (c) 2011 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
 
 #include "ui/tracker/tracker.h"
 #include "ui/tracker/scene.h"
 #include "ui/tracker/gl.h"
 
+// TODO(MatthiasF): develop and use simple C API
 #include "libmv/image/image.h"
 #include "libmv/base/vector.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/tracking/trklt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
@@ -32,13 +36,8 @@
 using libmv::Marker;
 using libmv::vector;
 
-
-// TODO(MatthiasF): custom pattern/search size
-static const int kHalfPatternWindowSize = 4;
-static const int kPyramidLevelCount = 2;
-static const int kHalfSearchWindowSize = kHalfPatternWindowSize << kPyramidLevelCount;
-
 #include <QMouseEvent>
+#include <QFileInfo>
 
 // Copy the region starting at x0, y0 with width w, h into region.
 // If the region asked for is outside the image border, the marker is removed.
@@ -66,28 +65,31 @@ bool CopyRegionFromQImage(QImage image,
   return true;
 }
 
-Tracker::Tracker(libmv::Tracks *tracks, Scene *scene, QGLWidget *shareWidget)
-  : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, shareWidget),
-    tracks_(tracks), scene_(scene),
+Tracker::Tracker(libmv::CameraIntrinsics* intrinsics)
+  : QGLWidget(QGLFormat(QGL::SampleBuffers)),
+    intrinsics_(intrinsics), scene_(0),
     current_image_(0), active_track_(-1), dragged_(false) {}
 
-Tracker::~Tracker() {}
-
-void Tracker::Load(QByteArray data) {
-  const Marker *markers = reinterpret_cast<const Marker *>(data.constData());
-  for (size_t i = 0; i < data.size() / sizeof(Marker); ++i) {
-    Marker marker = markers[i];
-    tracks_->Insert(marker.image, marker.track, marker.x, marker.y);
-    // Select all tracks with markers visible on first frame
-    if(marker.image==0) selected_tracks_ << marker.track;
+void Tracker::Load(QString path) {
+  QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
+  if( file.open(QFile::ReadOnly) ) {
+    Marker marker;
+    while(file.read((char*)&marker,sizeof(Marker))>0) {
+      Insert(marker.image, marker.track, marker.x, marker.y);
+      // Select all tracks with markers visible on first frame
+      if(marker.image==0) selected_tracks_ << marker.track;
+    }
   }
   emit trackChanged(selected_tracks_);
 }
 
-QByteArray Tracker::Save() {
-  vector<Marker> markers = tracks_->AllMarkers();
-  return QByteArray(reinterpret_cast<char *>(markers.data()),
-                    markers.size() * sizeof(Marker));
+void Tracker::Save(QString path) {
+  QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
+  if (file.open(QFile::WriteOnly | QIODevice::Truncate)) {
+    vector<Marker> markers = AllMarkers();
+    file.write(reinterpret_cast<char *>(markers.data()),
+               markers.size() * sizeof(Marker));
+  }
 }
 
 void Tracker::SetImage(int id, QImage image) {
@@ -95,6 +97,10 @@ void Tracker::SetImage(int id, QImage image) {
   image_.upload(image);
   upload();
   emit trackChanged(selected_tracks_);
+}
+
+void Tracker::SetOverlay(Scene* scene) {
+  scene_ = scene;
 }
 
 // Track active trackers from the previous image into next one.
@@ -109,7 +115,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
   libmv::PyramidRegionTracker *pyramid_region_tracker =
       new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
   libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
-  vector<Marker> previous_markers = tracks_->MarkersInImage(previous);
+  vector<Marker> previous_markers = MarkersInImage(previous);
   for (int i = 0; i < previous_markers.size(); i++) {
     const Marker &marker = previous_markers[i];
     if (!selected_tracks_.contains(marker.track)) {
@@ -141,7 +147,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     double xx1 = marker.x - x1;
     double yy1 = marker.y - y1;
     region_tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
-    tracks_->Insert(next, marker.track, x1 + xx1, y1 + yy1);
+    Insert(next, marker.track, x1 + xx1, y1 + yy1);
   }
 }
 
@@ -152,7 +158,7 @@ void Tracker::select(QVector<int> tracks) {
 
 void Tracker::deleteSelectedMarkers() {
   foreach (int track, selected_tracks_) {
-    tracks_->RemoveMarker(current_image_, track);
+    RemoveMarker(current_image_, track);
   }
   selected_tracks_.clear();
   upload();
@@ -161,7 +167,7 @@ void Tracker::deleteSelectedMarkers() {
 
 void Tracker::deleteSelectedTracks() {
   foreach (int track, selected_tracks_) {
-    tracks_->RemoveMarkersForTrack(track);
+    RemoveMarkersForTrack(track);
   }
   selected_tracks_.clear();
   upload();
@@ -187,20 +193,20 @@ bool compare_image(const Marker &a, const Marker &b) {
 
 void Tracker::upload() {
   makeCurrent();
-  vector<Marker> markers = tracks_->MarkersInImage(current_image_);
+  vector<Marker> markers = MarkersInImage(current_image_);
   QVector<vec2> lines;
   lines.reserve(markers.size()*8);
   for (int i = 0; i < markers.size(); i++) {
     const Marker &marker = markers[i];
     DrawMarker(marker, &lines);
-    vector<Marker> track = tracks_->MarkersForTrack(marker.track);
+    vector<Marker> track = MarkersForTrack(marker.track);
     qSort(track.begin(), track.end(), compare_image);
     for (int i = 0; i < track.size()-1; i++) {
       lines << vec2(track[i].x, track[i].y) << vec2(track[i+1].x, track[i+1].y);
     }
   }
   foreach (int track, selected_tracks_) {
-    Marker marker = tracks_->MarkerInImageForTrack(current_image_, track);
+    Marker marker = MarkerInImageForTrack(current_image_, track);
     if (marker.image < 0) {
       selected_tracks_.remove(selected_tracks_.indexOf(track));
       continue;
@@ -214,8 +220,9 @@ void Tracker::upload() {
   update();
 }
 
-void Tracker::Render(int w, int h, int image, int track) {
-  glBindWindow(w, h);
+void Tracker::Render(int x, int y, int w, int h, int image, int track) {
+  glBindWindow(x, y, w, h, false);
+  glDisableBlend();
   static GLShader image_shader;
   if (!image_shader.id) {
     image_shader.compile(glsl("vertex image"), glsl("fragment image"));
@@ -223,15 +230,16 @@ void Tracker::Render(int w, int h, int image, int track) {
   image_shader.bind();
   image_shader["image"] = 0;
   image_.bind(0);
-  int W = image_.width, H = image_.height;
   float width = 0, height = 0;
   if (image >= 0 && track >= 0) {
-    Marker marker = tracks_->MarkerInImageForTrack(image, track);
+    int W = image_.width, H = image_.height;
+    Marker marker = MarkerInImageForTrack(image, track);
     vec2 center(marker.x, marker.y);
     vec2 min = (center-kHalfSearchWindowSize) / vec2(W, H);
     vec2 max = (center+kHalfSearchWindowSize) / vec2(W, H);
     glQuad(vec4(-1, 1, min.x, min.y), vec4(1, -1, max.x, max.y));
   } else {
+    int W = intrinsics_->image_width(), H = intrinsics_->image_height();
     if (W*h > H*w) {
       width = 1;
       height = static_cast<float>(H*w)/(W*h);
@@ -240,7 +248,7 @@ void Tracker::Render(int w, int h, int image, int track) {
       width = static_cast<float>(W*h)/(H*w);
     }
     glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
-    if (scene_->isVisible()) scene_->Render(w, h, current_image_);
+    if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_image_);
   }
 
   static GLShader marker_shader;
@@ -251,7 +259,7 @@ void Tracker::Render(int w, int h, int image, int track) {
   marker_shader.bind();
   mat4 transform;
   if (image >= 0 && track >= 0) {
-    Marker marker = tracks_->MarkerInImageForTrack(image, track);
+    Marker marker = MarkerInImageForTrack(image, track);
     vec2 center(marker.x, marker.y);
     vec2 min = center-kHalfSearchWindowSize;
     vec2 max = center+kHalfSearchWindowSize;
@@ -259,6 +267,7 @@ void Tracker::Render(int w, int h, int image, int track) {
     transform.scale(vec3(2.0/(max-min).x, -2.0/(max-min).y, 1));
     transform.translate(vec3(-min.x, -min.y, 0));
   } else {
+    int W = image_.width, H = image_.height;
     transform.scale(vec3(2*width/W, -2*height/H, 1));
     transform.translate(vec3(-W/2, -H/2, 0));
     transform_ = transform;
@@ -271,14 +280,14 @@ void Tracker::Render(int w, int h, int image, int track) {
 }
 
 void Tracker::paintGL() {
-  Render(width(), height());
+  Render(0, 0, width(), height());
 }
 
 void Tracker::mousePressEvent(QMouseEvent* e) {
   vec2 pos = transform_.inverse()*vec2(2.0*e->x()/width()-1,
                                        1-2.0*e->y()/height());
   last_position_ = pos;
-  vector<Marker> markers = tracks_->MarkersInImage(current_image_);
+  vector<Marker> markers = MarkersInImage(current_image_);
   for (int i = 0; i < markers.size(); i++) {
     const Marker &marker = markers[i];
     vec2 center = vec2(marker.x, marker.y);
@@ -287,8 +296,8 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
       return;
     }
   }
-  int new_track = tracks_->MaxTrack() + 1;
-  tracks_->Insert(current_image_, new_track, pos.x, pos.y);
+  int new_track = MaxTrack() + 1;
+  Insert(current_image_, new_track, pos.x, pos.y);
   selected_tracks_ << new_track;
   active_track_ = new_track;
   emit trackChanged(selected_tracks_);
@@ -300,10 +309,10 @@ void Tracker::mouseMoveEvent(QMouseEvent* e) {
                                        1-2.0*e->y()/height());
   vec2 delta = pos-last_position_;
   // FIXME: a reference would avoid duplicate lookup
-  Marker marker = tracks_->MarkerInImageForTrack(current_image_, active_track_);
+  Marker marker = MarkerInImageForTrack(current_image_, active_track_);
   marker.x += delta.x;
   marker.y += delta.y;
-  tracks_->Insert(current_image_, active_track_, marker.x, marker.y);
+  Insert(current_image_, active_track_, marker.x, marker.y);
   upload();
   last_position_ = pos;
   dragged_ = true;
@@ -324,19 +333,3 @@ void Tracker::mouseReleaseEvent(QMouseEvent */*event*/) {
   upload();
 }
 
-Zoom::Zoom(QWidget *parent, Tracker *tracker)
-  : QGLWidget(QGLFormat(QGL::SampleBuffers), parent, tracker),
-    tracker_(tracker) {
-  setMinimumSize(4*kHalfSearchWindowSize, 4*kHalfSearchWindowSize);
-  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-}
-
-void Zoom::SetMarker(int image, int track) {
-  image_ = image;
-  track_ = track;
-  update();
-}
-
-void Zoom::paintGL() {
-  tracker_->Render(width(), height(), image_, track_);
-}

@@ -350,7 +350,7 @@ void MainWindow::process() {
     radialDistortion[2].setText(QString::number(coefficients[2]));
 
     QFile target(QDir(source.text()).filePath("camera.xml"));
-    target.open(QFile::WriteOnly);
+    target.open(QFile::WriteOnly | QFile::Truncate);
     target.write(QString("<lens FocalLengthX='%1' FocalLengthY='%2'"
                          " PrincipalPointX='%3' PrincipalPointY='%4'"
                          " k1='%5' k2='%6' k3='%7' />").arg(camera[0])
