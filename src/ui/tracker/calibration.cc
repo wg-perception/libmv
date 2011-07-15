@@ -38,6 +38,8 @@ struct Parameter {
 };
 
 Calibration::Calibration(QString path, QSize size) : path_(path) {
+  setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
+
   const int kCount = 8;
   const Parameter parameters[kCount] = {
     {"ImageWidth",      "Real Image Width",      "",   0,  size.width()*2,  size.width()    },

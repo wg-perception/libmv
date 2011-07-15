@@ -40,60 +40,32 @@ Clip::Clip(QString path) {
   images_.clear();
   QString sep = QFileInfo(path).isDir() ? "/" : ".";
   cache_.setFileName(path+sep+"cache");
-  if (cache_.open(QFile::ReadOnly)) {
+  if(!cache_.exists()) {
+    // Decode to raw on-disk video cache
+    cache_.open(QFile::WriteOnly|QFile::Truncate);
+    if (QFileInfo(path).isFile()) {
+      DecodeVideo(path);
+    } else {
+      DecodeSequence(path);
+    }
+    cache_.close();
     QFile meta(path+sep+"meta");
-    meta.open(QFile::ReadOnly);
-    meta.read((char*)&size_, sizeof(size_));
-    int image_size = size_.width()*size_.height();
-    images_.resize( cache_.size()/image_size );
-    uchar* data = cache_.map(0, cache_.size());
-    for(int i = 0; i < images_.count(); i++, data+=image_size) {
-      images_[i] = QImage(data,size_.width(),size_.height(),QImage::Format_Indexed8);
-    }
-    return;
+    meta.open(QFile::WriteOnly|QFile::Truncate);
+    meta.write((char*)&size_,sizeof(size_));
   }
-#ifdef USE_FFMPEG
-  av_register_all();
-  if (QFileInfo(path).isFile()) {
-    AVFormatContext* file = 0;
-    if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
-    av_find_stream_info(file);
-    int video_stream = 0;
-    AVCodecContext* video = 0;
-    for (int i = 0; i < (int)file->nb_streams; i++ ) {
-        if( file->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-          video_stream = i;
-          video = file->streams[i]->codec;
-          AVCodec* codec = avcodec_find_decoder(video->codec_id);
-          if( codec ) avcodec_open(video, codec);
-          break;
-        }
-    }
-    for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
-      if ( packet.stream_index == video_stream ) {
-        AVFrame* frame = avcodec_alloc_frame();
-        int complete_frame = 0;
-        avcodec_decode_video2(video, frame, &complete_frame, &packet);
-        if (complete_frame) {
-          // FIXME: Assume planar format
-          QImage image(frame->width, frame->height, QImage::Format_Indexed8);
-          int w = image.width(), h = image.height(), bytesPerLine = frame->linesize[0];
-          uchar* dst = image.bits();
-          const uchar* src = frame->data[0];
-          for(int y = 0; y < h; y++) {
-              memcpy(dst, src, w);
-              dst += w; src += bytesPerLine;
-          }
-          av_free(frame);
-          images_ << image;
-        }
-      }
-      av_free_packet(&packet);
-    }
-    avcodec_close(video);
-    av_close_input_file(file);
-  } else
-#endif
+  QFile meta(path+sep+"meta");
+  meta.open(QFile::ReadOnly);
+  meta.read((char*)&size_, sizeof(size_));
+  cache_.open(QFile::ReadOnly);
+  int image_size = size_.width()*size_.height();
+  images_.resize( cache_.size()/image_size );
+  uchar* data = cache_.map(0, cache_.size());
+  for(int i = 0; i < images_.count(); i++, data+=image_size) {
+    images_[i] = QImage(data,size_.width(),size_.height(),QImage::Format_Indexed8);
+  }
+}
+
+void Clip::DecodeSequence(QString path) {
   foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
                                               QDir::Files, QDir::Name)) {
     QImage image(QDir(path).filePath(file));
@@ -103,19 +75,53 @@ Clip::Clip(QString path) {
       uchar *dst = grayscale.bits();
       for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
       image = grayscale;
+      cache_.write((const char*)image.constBits(),image.byteCount());
     }
-    images_ << image;
   }
-  size_ = QSize(images_[0].size());
-  // Create raw on-disk video cache
-  if(Size().width()*Size().height()*Count() < 1024*1024*1024) {
-    cache_.open(QFile::WriteOnly|QFile::Truncate);
-    foreach(const QImage& image, images_) cache_.write((const char*)image.constBits(),image.byteCount());
-    cache_.close();
-    QFile meta(path+sep+"meta");
-    meta.open(QFile::WriteOnly|QFile::Truncate);
-    meta.write((char*)&size_,sizeof(size_));
+}
+
+void Clip::DecodeVideo(QString path) {
+#ifdef USE_FFMPEG
+  av_register_all();
+  AVFormatContext* file = 0;
+  if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
+  av_find_stream_info(file);
+  int video_stream = 0;
+  AVCodecContext* video = 0;
+  for (int i = 0; i < (int)file->nb_streams; i++ ) {
+    if( file->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+      video_stream = i;
+      video = file->streams[i]->codec;
+      AVCodec* codec = avcodec_find_decoder(video->codec_id);
+      if( codec ) avcodec_open(video, codec);
+      break;
+    }
   }
+  for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
+    if ( packet.stream_index == video_stream ) {
+      AVFrame* frame = avcodec_alloc_frame();
+      int complete_frame = 0;
+      avcodec_decode_video2(video, frame, &complete_frame, &packet);
+      if (complete_frame) {
+        size_ = QSize(frame->width,frame->height);
+        // FIXME: Assume planar format
+        const uchar* data = frame->data[0];
+        if( frame->linesize[0] != frame->width ) {
+          for(int y = 0; y < frame->height; y++) {
+            cache_.write((const char*)data,frame->width);
+            data += frame->linesize[0];
+          }
+        } else {
+          cache_.write((const char*)data,frame->width*frame->height);
+        }
+        av_free(frame);
+      }
+    }
+    av_free_packet(&packet);
+  }
+  avcodec_close(video);
+  av_close_input_file(file);
+#endif
 }
 
 int Clip::Count() {

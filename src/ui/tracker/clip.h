@@ -34,6 +34,9 @@ class Clip {
  public:
   Clip(QString path);
 
+  void DecodeSequence(QString path);
+  void DecodeVideo(QString path);
+
   int Count();
   QSize Size();
   QImage Image(int);
