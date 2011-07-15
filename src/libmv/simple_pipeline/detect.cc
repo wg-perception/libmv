@@ -70,6 +70,7 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
     }
     // or add a new feature
     corners.push_back( a );
+    skip: ;
   }
   free(nonmax);
   return corners;
