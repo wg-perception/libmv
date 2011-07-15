@@ -40,17 +40,24 @@ void Zoom::select(QVector<int> tracks) {
 }
 
 void Zoom::paintGL() {
+  glBindWindow(0, 0, width(), height(), true);
   if (tracks_.count() == 0) return;
-  /*//FIXME: this code only works for square grid
-  int ratio = ceil(sqrt(tracks_.count()));
-  int w = width()/ratio;
-  int h = height()/ratio;
+  // FIXME: There are probably better way to do this.
+  // Initial estimate using available area
+  int size = ceil(sqrt(width()*height()/tracks_.count()));
+  int columns = width()/size, rows = height()/size;
+  // Tweak size to fit to widget
+  if (columns*rows < tracks_.count()) {
+    size = qMax( width()/(columns+1), height()/(rows+1) );
+    columns = width()/size, rows = height()/size;
+    if (columns*rows < tracks_.count()) {
+      size = qMin( width()/(columns+1), height()/(rows+1) );
+      columns = width()/size, rows = height()/size;
+      Q_ASSERT(columns*rows >= tracks_.count());
+    }
+  }
   for (int i = 0; i < tracks_.count(); i++) {
-    int y = i/ratio, x = i%ratio;
-    tracker_->Render(x*w, y*w, w, h, current_image_, tracks_[i]);
-  }*/
-  int w = width()/tracks_.count();
-  for (int i = 0; i < tracks_.count(); i++) {
-    tracker_->Render(i*w, 0, w, height(), current_image_, tracks_[i]);
+    int y = i/columns, x = i%columns;
+    tracker_->Render(x*size, y*size, size, size, current_image_, tracks_[i]);
   }
 }

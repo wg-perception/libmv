@@ -280,6 +280,7 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
 }
 
 void Tracker::paintGL() {
+  glBindWindow(0, 0, width(), height(),  true);
   Render(0, 0, width(), height());
 }
 
