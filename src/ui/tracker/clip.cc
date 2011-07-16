@@ -76,6 +76,7 @@ Clip::Clip(QStringList files) {
   } else {
     cache_.setFileName(QFileInfo(files.first()).dir().path()+"/cache");
   }
+  QFile meta(cache_.fileName()+".meta");
   if(!cache_.exists()) {
     // Decode to raw on-disk video cache
     cache_.open(QFile::WriteOnly|QFile::Truncate);
@@ -85,11 +86,10 @@ Clip::Clip(QStringList files) {
       DecodeSequence(files);
     }
     cache_.close();
-    QFile meta(cache_.fileName()+".meta");
     meta.open(QFile::WriteOnly|QFile::Truncate);
     meta.write((char*)&size_,sizeof(size_));
+    meta.close();
   }
-  QFile meta(cache_.fileName()+".meta");
   meta.open(QFile::ReadOnly);
   meta.read((char*)&size_, sizeof(size_));
   cache_.open(QFile::ReadOnly);
