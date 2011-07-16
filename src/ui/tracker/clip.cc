@@ -35,25 +35,61 @@ typedef uint64_t UINT64_C;
 
 #include <QFileInfo>
 #include <QDir>
+#include <QVBoxLayout>
+#include <QPushButton>
 
-Clip::Clip(QString path) {
+FileDialog::FileDialog(QWidget* parent,QString caption) : QDialog(parent) {
+    setWindowTitle(caption);
+    view.setModel(&fileSystem);
+    view.setHeaderHidden(true);
+    view.setSelectionMode(QAbstractItemView::ExtendedSelection);
+    for(int i=1;i<fileSystem.columnCount();i++) view.setColumnHidden(i,true);
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(&view);
+    view.setRootIndex(fileSystem.setRootPath(QDir::rootPath()));
+    view.resizeColumnToContents(0); setMinimumHeight(600); setMinimumWidth(view.columnWidth(0));
+    QPushButton* openButton = new QPushButton(QIcon::fromTheme("document-open"),"Open");
+    connect(openButton,SIGNAL(clicked()),this,SLOT(accept()));
+    layout->addWidget(openButton);
+}
+
+QStringList FileDialog::selectedFiles() {
+    QStringList files;
+    foreach(QModelIndex index, view.selectionModel()->selectedRows(0) )
+        files << index.data(QFileSystemModel::FilePathRole).toString();
+    return files;
+}
+
+Clip::Clip(QStringList files) {
   images_.clear();
-  QString sep = QFileInfo(path).isDir() ? "/" : ".";
-  cache_.setFileName(path+sep+"cache");
+  if ( files.count() == 1 ) {
+    if (QFileInfo(files.first()).isDir()) {
+      QString folder = files.takeFirst();
+      cache_.setFileName(folder+"/cache");
+      foreach (QString file, QDir(folder,"*.jpg *.png")
+               .entryList(QDir::Files, QDir::Name)) {
+        files << QDir(folder).filePath(file);
+      }
+    } else {
+      cache_.setFileName(files.first()+".cache");
+    }
+  } else {
+    cache_.setFileName(QFileInfo(files.first()).dir().path()+"/cache");
+  }
   if(!cache_.exists()) {
     // Decode to raw on-disk video cache
     cache_.open(QFile::WriteOnly|QFile::Truncate);
-    if (QFileInfo(path).isFile()) {
-      DecodeVideo(path);
+    if (files.count() == 1) {
+      DecodeVideo(files.first());
     } else {
-      DecodeSequence(path);
+      DecodeSequence(files);
     }
     cache_.close();
-    QFile meta(path+sep+"meta");
+    QFile meta(cache_.fileName()+".meta");
     meta.open(QFile::WriteOnly|QFile::Truncate);
     meta.write((char*)&size_,sizeof(size_));
   }
-  QFile meta(path+sep+"meta");
+  QFile meta(cache_.fileName()+".meta");
   meta.open(QFile::ReadOnly);
   meta.read((char*)&size_, sizeof(size_));
   cache_.open(QFile::ReadOnly);
@@ -65,10 +101,9 @@ Clip::Clip(QString path) {
   }
 }
 
-void Clip::DecodeSequence(QString path) {
-  foreach (QString file, QDir(path).entryList(QStringList("*.jpg") << "*.png",
-                                              QDir::Files, QDir::Name)) {
-    QImage image(QDir(path).filePath(file));
+void Clip::DecodeSequence(QStringList files) {
+  foreach (QString file, files) {
+    QImage image(file);
     if(image.depth() != 8) {
       QImage grayscale(image.width(),image.height(),QImage::Format_Indexed8);
       QRgb *src = (QRgb*)image.constBits();

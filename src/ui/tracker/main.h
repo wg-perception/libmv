@@ -45,7 +45,7 @@ class MainWindow : public QMainWindow {
 
  public slots:
   void open();
-  void open(QString);
+  void open(QStringList);
   void seek(int);
   void stop();
   void first();

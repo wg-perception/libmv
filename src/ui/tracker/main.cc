@@ -62,16 +62,18 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::open() {
-  //TODO: use FileDialog
-  open(QFileDialog::getOpenFileName(this, "Load Footage"));
+  FileDialog dialog(this,"Load Footage");
+  dialog.exec();
+  open(dialog.selectedFiles());
 }
 
-void MainWindow::open(QString path) {
+void MainWindow::open(QStringList files) {
 // Clip
-  if (path.isEmpty() || !QFileInfo(path).exists()) return;
-  clip_ = new Clip(path);
+  if (files.isEmpty()) return;
+  clip_ = new Clip(files);
   if (clip_->Count() == 0) return;
-  setWindowTitle(QString("Tracker - %1").arg(QDir(path_ = path).dirName()));
+  path_ = files.count() == 1 ? files.first() : QFileInfo(files.first()).dir().path();
+  setWindowTitle(QString("Tracker - %1").arg(QDir(path_).dirName()));
   current_frame_ = -1;
 
 // Calibration
@@ -330,6 +332,6 @@ int main(int argc, char *argv[]) {
   app.setApplicationName("tracker");
   MainWindow window;
   window.show();
-  window.open(app.arguments().value(1));
+  window.open(app.arguments().mid(1));
   return app.exec();
 }

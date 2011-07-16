@@ -1,5 +1,5 @@
 QT += opengl
-HEADERS +=         calibration.h  tracker.h  zoom.h  scene.h  main.h
+HEADERS += clip.h  calibration.h  tracker.h  zoom.h  scene.h  main.h
 SOURCES += clip.cc calibration.cc gl.cc tracker.cc zoom.cc scene.cc main.cc
 OTHER_FILES += shader.glsl
 RESOURCES = tracker.qrc

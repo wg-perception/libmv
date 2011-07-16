@@ -23,6 +23,19 @@
 
 #include <QImage>
 #include <QFile>
+#include <QDialog>
+#include <QFileSystemModel>
+#include <QTreeView>
+
+class FileDialog : public QDialog {
+    Q_OBJECT
+public:
+    FileDialog(QWidget*,QString);
+    QStringList selectedFiles();
+private:
+    QFileSystemModel fileSystem;
+    QTreeView view;
+};
 
 #ifdef USE_FFMPEG
 class AVFormatContext;
@@ -32,9 +45,9 @@ class AVCodecContext;
 // -> image/clip.cc
 class Clip {
  public:
-  Clip(QString path);
+  Clip(QStringList files);
 
-  void DecodeSequence(QString path);
+  void DecodeSequence(QStringList files);
   void DecodeVideo(QString path);
 
   int Count();
