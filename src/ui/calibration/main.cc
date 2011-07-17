@@ -163,7 +163,11 @@ void MainWindow::open(QStringList files) {
   av_register_all();
   if (QFileInfo(path).isFile()) {
     AVFormatContext* file = 0;
+#if LIBAVFORMAT_VERSION_MAJOR >= 53
     if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
+#else
+    if(av_open_input_file(&file, path.toUtf8(), 0, 0, 0)) return;
+#endif
     av_find_stream_info(file);
     int video_stream = 0;
     AVCodecContext* video = 0;
@@ -194,7 +198,7 @@ void MainWindow::open(QStringList files) {
         avcodec_decode_video2(video, frame, &complete_frame, &packet);
         if (complete_frame) {
           // FIXME: Assume planar format
-          QImage image(frame->width, frame->height, QImage::Format_Indexed8);
+          QImage image(video->width, video->height, QImage::Format_Indexed8);
           int w = image.width(), h = image.height(), bytesPerLine = frame->linesize[0];
           uchar* dst = image.bits();
           const uchar* src = frame->data[0];

@@ -119,7 +119,11 @@ void Clip::DecodeVideo(QString path) {
 #ifdef USE_FFMPEG
   av_register_all();
   AVFormatContext* file = 0;
+#if LIBAVFORMAT_VERSION_MAJOR >= 53
   if(avformat_open_input(&file, path.toUtf8(), 0, 0)) return;
+#else
+  if(av_open_input_file(&file, path.toUtf8(), 0, 0, 0)) return;
+#endif
   av_find_stream_info(file);
   int video_stream = 0;
   AVCodecContext* video = 0;
@@ -138,16 +142,16 @@ void Clip::DecodeVideo(QString path) {
       int complete_frame = 0;
       avcodec_decode_video2(video, frame, &complete_frame, &packet);
       if (complete_frame) {
-        size_ = QSize(frame->width,frame->height);
+        size_ = QSize(video->width,video->height);
         // FIXME: Assume planar format
         const uchar* data = frame->data[0];
-        if( frame->linesize[0] != frame->width ) {
-          for(int y = 0; y < frame->height; y++) {
-            cache_.write((const char*)data,frame->width);
+        if( frame->linesize[0] != video->width ) {
+          for(int y = 0; y < video->height; y++) {
+            cache_.write((const char*)data,video->width);
             data += frame->linesize[0];
           }
         } else {
-          cache_.write((const char*)data,frame->width*frame->height);
+          cache_.write((const char*)data,video->width*video->height);
         }
         av_free(frame);
       }

@@ -31,7 +31,7 @@ namespace libmv {
 std::vector<Corner> Detect(const unsigned char* data, int width, int height, int stride,
                            int margin, int min_trackness, int min_distance) {
   std::vector<Corner> corners;
-  data += margin*width+margin;
+  data += margin*width + margin;
   // TODO(MatthiasF): Support targetting a feature count (binary search trackness)
   int num_corners;
   xy* all = fast9_detect(data, width-2*margin, height-2*margin,
@@ -69,7 +69,7 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
       }
     }
     // or add a new feature
-    corners.push_back( a );
+    corners.push_back(a);
     skip: ;
   }
   free(nonmax);
