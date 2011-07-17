@@ -39,6 +39,10 @@ typedef uint64_t UINT64_C;
 }
 #endif
 
+#if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
+#define constBits bits
+#endif
+
 View::View() {
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }

@@ -203,6 +203,10 @@ void GLBuffer::draw() {
   }
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
+#define constBits bits
+#endif
+
 void GLTexture::upload(QImage image) {
   width = image.width();
   height = image.height();

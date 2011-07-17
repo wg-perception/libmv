@@ -39,6 +39,10 @@ using libmv::vector;
 #include <QMouseEvent>
 #include <QFileInfo>
 
+#if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
+#define constBits bits
+#endif
+
 // Copy the region starting at x0, y0 with width w, h into region.
 // If the region asked for is outside the image border, the marker is removed.
 // Returns false if the region leave the image.

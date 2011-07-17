@@ -288,6 +288,10 @@ void MainWindow::toggleForward(bool play) {
   }
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
+#define constBits bits
+#endif
+
 void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   std::vector<libmv::Corner> corners = libmv::Detect(image.constBits(), image.width(),

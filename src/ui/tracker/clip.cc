@@ -39,6 +39,10 @@ typedef uint64_t UINT64_C;
 #include <QPushButton>
 #include <QProgressDialog>
 
+#if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
+#define constBits bits
+#endif
+
 FileDialog::FileDialog(QWidget* parent,QString caption) : QDialog(parent) {
     setWindowTitle(caption);
     view.setModel(&fileSystem);
