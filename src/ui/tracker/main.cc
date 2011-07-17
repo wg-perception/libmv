@@ -46,7 +46,7 @@
 #include <QMenu>
 #include <QTime>
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow() : clip_(0), calibration_(0), tracker_(0), zoom_(0), scene_(0) {
   setWindowTitle("Tracker");
   toolbar_ = addToolBar("Main Toolbar");
   toolbar_->setObjectName("mainToolbar");
@@ -57,8 +57,8 @@ MainWindow::~MainWindow() {
   QSettings().setValue("geometry", saveGeometry());
   QSettings().setValue("windowState", saveState());
   QSettings().setValue("currentFrame", current_frame_);
-  tracker_->Save(path_);
-  //scene_->Save(path_);
+  if(tracker_) tracker_->Save(path_);
+  //if(scene_) scene_->Save(path_);
 }
 
 void MainWindow::open() {

@@ -37,6 +37,7 @@ typedef uint64_t UINT64_C;
 #include <QDir>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QProgressDialog>
 
 FileDialog::FileDialog(QWidget* parent,QString caption) : QDialog(parent) {
     setWindowTitle(caption);
@@ -77,7 +78,7 @@ Clip::Clip(QStringList files) {
     cache_.setFileName(QFileInfo(files.first()).dir().path()+"/cache");
   }
   QFile meta(cache_.fileName()+".meta");
-  if(!cache_.exists()) {
+  if(!cache_.exists() || !meta.exists()) {
     // Decode to raw on-disk video cache
     cache_.open(QFile::WriteOnly|QFile::Truncate);
     if (files.count() == 1) {
@@ -102,15 +103,25 @@ Clip::Clip(QStringList files) {
 }
 
 void Clip::DecodeSequence(QStringList files) {
+  QProgressDialog progress("Caching "+QFileInfo(files.first()).dir().path(),
+                           "Abort",0,files.count());
+  progress.setWindowModality(Qt::WindowModal);
+  int i=0;
   foreach (QString file, files) {
     QImage image(file);
+    if(i==0) size_ = image.size();
+    if(image.size() != size_) image.scaled(size_,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     if(image.depth() != 8) {
       QImage grayscale(image.width(),image.height(),QImage::Format_Indexed8);
       QRgb *src = (QRgb*)image.constBits();
       uchar *dst = grayscale.bits();
       for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
       image = grayscale;
-      cache_.write((const char*)image.constBits(),image.byteCount());
+    }
+    cache_.write((const char*)image.constBits(),image.byteCount());
+    progress.setValue(i++);
+    if (progress.wasCanceled()) {
+      break;
     }
   }
 }
@@ -136,6 +147,9 @@ void Clip::DecodeVideo(QString path) {
       break;
     }
   }
+  QProgressDialog progress("Caching "+path,"Abort",0,video->frame_number);
+  progress.setWindowModality(Qt::WindowModal);
+  int i=0;
   for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
     if ( packet.stream_index == video_stream ) {
       AVFrame* frame = avcodec_alloc_frame();
@@ -157,6 +171,10 @@ void Clip::DecodeVideo(QString path) {
       }
     }
     av_free_packet(&packet);
+    progress.setValue(i++);
+    if (progress.wasCanceled()) {
+        break;
+    }
   }
   avcodec_close(video);
   av_close_input_file(file);
