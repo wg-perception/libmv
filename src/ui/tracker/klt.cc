@@ -42,12 +42,16 @@ Tracker::Tracker(int half_pattern_size, int search_size, int num_levels) :
   sigma(0.9),
   lambda(0.05) {}
 
-static void MakePyramid(const FloatImage &image, int num_levels,
-                        std::vector<FloatImage> *pyramid) {
+void Tracker::MakePyramid(const FloatImage &image, int num_levels,
+                        std::vector<FloatImage> *pyramid) const {
   pyramid->resize(num_levels);
-  (*pyramid)[0] = image;
+  BlurredImageAndDerivativesChannels(image, sigma, &(*pyramid)[0]);
+  FloatImage mipmap1,mipmap2;
+  mipmap1 = image;
   for (int i = 1; i < num_levels; ++i) {
-    DownsampleChannelsBy2((*pyramid)[i - 1], &(*pyramid)[i]);
+    DownsampleChannelsBy2(mipmap1, &mipmap2);
+    mipmap1 = mipmap2;
+    BlurredImageAndDerivativesChannels(mipmap1, sigma, &(*pyramid)[i]);
   }
 }
 
@@ -177,19 +181,14 @@ bool Tracker::TrackImage(const FloatImage &image1,
                          const FloatImage &image2,
                          float  x1, float  y1,
                          float *x2, float *y2) const {
-  Array3Df image_and_gradient1;
-  Array3Df image_and_gradient2;
-  BlurredImageAndDerivativesChannels(image1, sigma, &image_and_gradient1);
-  BlurredImageAndDerivativesChannels(image2, sigma, &image_and_gradient2);
-
   int i;
   Vec2f d = Vec2f::Zero();
   for (i = 0; i < max_iterations; ++i) {
     // Compute gradient matrix and error vector.
     Mat2f U;
     Vec2f e;
-    ComputeTrackingEquation(image_and_gradient1,
-                            image_and_gradient2,
+    ComputeTrackingEquation(image1,
+                            image2,
                             x1, y1,
                             *x2, *y2,
                             half_pattern_size,
