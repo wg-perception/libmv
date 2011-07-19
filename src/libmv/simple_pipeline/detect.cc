@@ -44,10 +44,6 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
   // TODO: merge with close feature suppression
   xy* nonmax = nonmax_suppression(all, scores, num_corners, &num_corners);
   free(all);
-  if(num_corners == 0) {
-    free(nonmax);
-    return corners;
-  }
   // Remove too close features
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
@@ -72,5 +68,4 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
   free(nonmax);
   return corners;
 }
-
 }
