@@ -21,20 +21,41 @@
 ** IN THE SOFTWARE.
 **
 ****************************************************************************/
+#include <libmv/image/image_pyramid.h>
+
 #include <QDebug>
 #include <QImage>
 #include <QDialog>
 #include <QHBoxLayout>
 #include <QLabel>
 
-#include "klt.h"
-
 #include <Eigen/Core>
 #include <Eigen/LU>
 typedef Eigen::Vector2f Vec2f;
 typedef Eigen::Matrix<float, 2, 2> Mat2f;
 
+#include "klt.h"
+
 namespace libmv {
+
+void Debug(const T** images, int size, int count, QString text) {
+  QDialog dialog;
+  dialog.setWindowTitle(text);
+  QHBoxLayout layout(&dialog);
+  QLabel labels[count];
+  for (int i = 0; i < count; i++) {
+    QImage image(size,size,QImage::Format_Indexed8);
+    ubyte* dst = image.bits();
+    for(int y = 0; y < size; y++) for(int x = 0; x < size; x++) {
+      dst[y*size+x] = abs(images[i][(y*size+x)*4]);
+    }
+    labels[i].setPixmap(QPixmap::fromImage(image));
+    labels[i].setScaledContents(true);
+    labels[i].setMinimumSize(size*4,size*4);
+    layout.addWidget(&labels[i]);
+  }
+  dialog.exec();
+}
 
 Tracker::Tracker(ubyte* image, int half_pattern_size, int search_size, int pyramid_count)
   : half_pattern_size_(half_pattern_size), search_size_(search_size),
@@ -54,7 +75,7 @@ Tracker::~Tracker() {
   }
 }
 
-static void ConvolveAndDownsample(ubyte* src, T* dst, ubyte* down, int size) {
+/*static void ConvolveAndDownsample(ubyte* src, T* dst, ubyte* down, int size) {
   memset(dst,0,sizeof(T)*4*size*size); //DEBUG
   for(int y = 1; y < size-1; y++) {
     for(int x = 1; x < size-1; x++) {
@@ -65,37 +86,58 @@ static void ConvolveAndDownsample(ubyte* src, T* dst, ubyte* down, int size) {
       // 3x3 Integer Gaussian
       d[0] = ( 1  * S(-1,-1) + 2  * S(0,-1) + 1  * S(1,-1) +
                2  * S(-1, 0) + 4  * S(0, 0) + 2  * S(1, 0) +
-               1  * S(-1, 1) + 2  * S(0, 1) + 1  * S(1, 1) ) / 16;
+               1  * S(-1, 1) + 2  * S(0, 1) + 1  * S(1, 1) ) / 16 / 256;
       // 3x3 Sharr Horizontal
-      d[1] = ( 3  * S(-1,-1) + 10 * S(0,-1) + 3  * S(1,-1) -
+      d[2] = -( 3  * S(-1,-1) + 10 * S(0,-1) + 3  * S(1,-1) -
 
-               3  * S(-1, 1) - 10 * S(0, 1) - 3  * S(1, 1) ) / 16;
+               3  * S(-1, 1) - 10 * S(0, 1) - 3  * S(1, 1) ) / 16 / 256;
       // 3x3 Sharr Vertical
-      d[2] = ( 3  * S(-1,-1)                - 3  * S(1,-1) +
+      d[1] = -( 3  * S(-1,-1)                - 3  * S(1,-1) +
                10 * S(-1, 0)                - 10 * S(1, 0) +
-               3  * S(-1, 1)                - 3  * S(1, 1) ) / 16;
-      // 2x2 Box Downsample
+               3  * S(-1, 1)                - 3  * S(1, 1) ) / 16 / 256;
+      // 2x2 Box Downsample //FIXME: once every 4 pixel
       down[(y/2)*(size/2)+(x/2)] = ( S(0,0) + S(1,0) +
                                      S(0,1) + S(1,1) ) / 4;
       #undef S
     }
   }
-}
+}*/
 
-void Tracker::NextImage(ubyte* image) {
+void Tracker::NextImage(ubyte* src /*image*/) {
   // Swap buffers
   for (int i = 0; i < kMaxPyramidCount; i++) {
     T* swap    = pyramid_[0][i];
     pyramid_[0][i] = pyramid_[1][i];
     pyramid_[1][i] = swap;
   }
-  // Filter next image
+  /*// Filter next image
   ConvolveAndDownsample(image, pyramid_[1][0], image, search_size_);
   int size = search_size_ / 2;
   for (int i = 1; i < pyramid_count_; i++, size /= 2) {
     ConvolveAndDownsample(image, pyramid_[1][i], image, size);
+  }*/
+  libmv::FloatImage image;
+  int size = search_size_;
+  image.resize(size,size);
+  for (int y = 0; y < size; y++) {
+    for (int x = 0; x < size; x++) {
+      image(y, x, 0) = *src++;
+    }
   }
-  delete image;
+  ImagePyramid* pyramid = MakeImagePyramid(image,pyramid_count_,0.9);
+  for (int i = 0; i < pyramid_count_; i++, size /= 2) {
+    FloatImage image = pyramid->Level(i);
+    for (int y = 0; y < size; y++) {
+      for (int x = 0; x < size; x++) {
+        pyramid_[1][i][(y*size+x)*4+0] = image(y, x, 0);
+        pyramid_[1][i][(y*size+x)*4+1] = image(y, x, 1);
+        pyramid_[1][i][(y*size+x)*4+2] = image(y, x, 2);
+        pyramid_[1][i][(y*size+x)*4+3] = 0;
+      }
+    }
+  }
+  delete pyramid;
+  //delete image;
 }
 
 #define PYRAMID 0
@@ -159,32 +201,13 @@ bool Tracker::TrackPyramid(T** pyramid1, T** pyramid2,
 }
 #endif
 
-void Debug(const T** images, int size, int count, QString text) {
-  QDialog dialog;
-  dialog.setWindowTitle(text);
-  QHBoxLayout layout(&dialog);
-  QLabel labels[count];
-  for (int i = 0; i < count; i++) {
-    QImage image(size,size,QImage::Format_Indexed8);
-    ubyte* dst = image.bits();
-    for(int y = 0; y < size; y++) for(int x = 0; x < size; x++) {
-      dst[y*size+x] = abs(images[i][(y*size+x)*4]);
-    }
-    labels[i].setPixmap(QPixmap::fromImage(image));
-    labels[i].setScaledContents(true);
-    labels[i].setMinimumSize(size*4,size*4);
-    layout.addWidget(&labels[i]);
-  }
-  dialog.exec();
-}
-
 bool Tracker::TrackImage(const T* image0, const T* image1, int size,
                          float x0, float y0, float *x1, float *y1) const {
-  const int kMaxIterations = 1; //16;
+  const int kMaxIterations = 16;
   for (int i = 0; i < kMaxIterations; i++) {
     // Check if search size is big enough
-    if(*x1 < half_pattern_size_ || *x1 >= size-half_pattern_size_-1 ||
-       *y1 < half_pattern_size_ || *y1 >= size-half_pattern_size_-1) {
+    if(*x1 <= half_pattern_size_ || *x1 >= size-half_pattern_size_-1 ||
+       *y1 <= half_pattern_size_ || *y1 >= size-half_pattern_size_-1) {
       return false;
     }
 
@@ -195,7 +218,7 @@ bool Tracker::TrackImage(const T* image0, const T* image1, int size,
     R = S = V = W = Vec2f::Zero();
 
     // Compute 8bit interpolation weights.
-    /*int fx0 = (int)(x0*256), fy0 = (int)(y0*256);
+    int fx0 = (int)(x0*256), fy0 = (int)(y0*256);
     int ix0 = fx0 >> 8, iy0 = fy0 >> 8;
     int u0 = fx0 & 0xFF, v0 = fy0 & 0xFF;
     const T* pattern0 = &image0[(iy0*size+ix0)*4];
@@ -203,29 +226,29 @@ bool Tracker::TrackImage(const T* image0, const T* image1, int size,
     int fx1 = (int)(*x1*256), fy1 = (int)(*y1*256);
     int ix1 = fx1 >> 8, iy1 = fy1 >> 8;
     int u1 = fx1 & 0xFF, v1 = fy1 & 0xFF;
-    const T* pattern1 = &image1[(iy1*size+ix1)*4];*/
+    const T* pattern1 = &image1[(iy1*size+ix1)*4];
 
-    const T* pattern0 = &image0[(int(y0)*size+int(x0))*4];
-    const T* pattern1 = &image1[(int(*y1)*size+int(*x1))*4];
+    /*const T* pattern0 = &image0[(int(y0)*size+int(x0))*4];
+    const T* pattern1 = &image1[(int(*y1)*size+int(*x1))*4];*/
 
     for (int y = -half_pattern_size_; y <= half_pattern_size_; y++) {
       for (int x = -half_pattern_size_; x <= half_pattern_size_; x++) {
         // TODO(MatthiasF): SIMD
         // fixed point bilinear sampling
-/*#define sample(n,i) (float)((s##n[       i] * (256-u##n)  + s##n[       4+i] * u##n) * (256-v##n) \
-                          + (s##n[size*4+i] * (256-u##n)  + s##n[size*4+4+i] * u##n) * v##n ) / (256*256*256)
+#define sample(n,i) (float)((s##n[       i] * (256-u##n)  + s##n[       4+i] * u##n) * (256-v##n) \
+                          + (s##n[size*4+i] * (256-u##n)  + s##n[size*4+4+i] * u##n) * v##n ) / (256*256)
 
         const T* s0 = &pattern0[(y*size+x)*4];
         const T* s1 = &pattern1[(y*size+x)*4];
         float I = sample(0,0), J = sample(1,0);
         Vec2f gI,gJ;
         gI << sample(0,1), sample(0,2);
-        gJ << sample(1,1), sample(1,2);*/
+        gJ << sample(1,1), sample(1,2);
 
-        float I = pattern0[(y*size+x)*4+0], J = pattern1[(y*size+x)*4+0];
+        /*float I = pattern0[(y*size+x)*4+0], J = pattern1[(y*size+x)*4+0];
         Vec2f gI,gJ;
         gI << pattern0[(y*size+x)*4+1], pattern0[(y*size+x)*4+2];
-        gJ << pattern1[(y*size+x)*4+1], pattern1[(y*size+x)*4+2];
+        gJ << pattern1[(y*size+x)*4+1], pattern1[(y*size+x)*4+2];*/
 
         // Equation 15 from the paper.
         A += gI * gI.transpose();
@@ -255,9 +278,9 @@ bool Tracker::TrackImage(const T* image0, const T* image1, int size,
     }
     Vec2f d = U.lu().solve(e);
 
-    //const T* images[6] = { image0, image0+1, image0+2, image1, image1+1, image1+2 };
-    //Debug(images,size,6,QString("det %1 dX %2 dY %3").arg(det).arg(d[0]).arg(d[1]));
-    Q_ASSERT( !isnan(det) );
+    /*const T* images[6] = { image0, image0+1, image0+2, image1, image1+1, image1+2 };
+    Debug(images,size,6,QString("det %1 dX %2 dY %3").arg(det).arg(d[0]).arg(d[1]));*/
+    //Q_ASSERT( !isnan(det) );
 
     // Update the position with the solved displacement.
     *x1 += d[0];

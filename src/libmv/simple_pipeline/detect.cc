@@ -44,7 +44,6 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
   // TODO: merge with close feature suppression
   xy* nonmax = nonmax_suppression(all, scores, num_corners, &num_corners);
   free(all);
-  free(scores);
   if(num_corners == 0) {
     free(nonmax);
     return corners;
@@ -69,6 +68,7 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
     corners.push_back(a);
     skip: ;
   }
+  free(scores);
   free(nonmax);
   return corners;
 }
