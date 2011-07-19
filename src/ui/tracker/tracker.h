@@ -31,8 +31,7 @@
 
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/tracks.h"
-// FIXME(MatthiasF) -> tracking
-#include "ui/tracker/klt.h"
+#include "libmv/tracking/klt.h"
 
 // TODO(MatthiasF): custom pattern/search size
 static const double kSigma = 0.9;

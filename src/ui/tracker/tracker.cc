@@ -26,13 +26,9 @@
 #include "ui/tracker/scene.h"
 #include "ui/tracker/gl.h"
 
-// TODO(MatthiasF): develop and use simple C API
 #include "libmv/image/image.h"
 #include "libmv/base/vector.h"
-#include "libmv/tracking/klt_region_tracker.h"
-#include "libmv/tracking/trklt_region_tracker.h"
-#include "libmv/tracking/pyramid_region_tracker.h"
-#include "libmv/tracking/retrack_region_tracker.h"
+
 using libmv::Marker;
 using libmv::vector;
 
