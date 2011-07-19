@@ -43,6 +43,32 @@ using libmv::vector;
 #define constBits bits
 #endif
 
+// Copy the region starting at x0, y0 with width w, h into region.
+// If the region asked for is outside the image border, the marker is removed.
+// Returns false if the region leave the image.
+bool CopyRegionFromQImage(QImage image,
+                          int w, int h,
+                          int x0, int y0,
+                          libmv::FloatImage *region) {
+  Q_ASSERT(image.depth() == 8);
+  const unsigned char *data = image.constBits();
+  int width = image.width();
+  int height = image.height();
+
+  // Return if the region leave the image.
+  if (x0 < 0 || y0 < 0 || x0+w >= width || y0+h >= height) return false;
+
+  // Copy the region.
+  region->resize(h, w);
+  float* dst = region->Data();
+  for (int y = y0; y < y0 + h; ++y) {
+    for (int x = x0; x < x0 + w; ++x) {
+      *dst++ = data[y * width + x];
+    }
+  }
+  return true;
+}
+
 Tracker::Tracker(libmv::CameraIntrinsics* intrinsics)
   : QGLWidget(QGLFormat(QGL::SampleBuffers)),
     intrinsics_(intrinsics), scene_(0),
@@ -95,7 +121,7 @@ static uchar* NewRegion(QImage image, int x, int y, int size) {
 
 // Track active trackers from the previous image into next one.
 void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
-  Q_ASSERT( old_image.size() == new_image.size() );
+  /*Q_ASSERT( old_image.size() == new_image.size() );
   int width = new_image.width(), height = new_image.height();
   // Reset trackers when seeking
   if (last_frame != previous) {
@@ -125,7 +151,48 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     tracker.Track(NewRegion(new_image,x,y,size), &fx, &fy);
     Insert(next, marker.track, x + fx, y + fy);
   }
-  last_frame = next;
+  last_frame = next;*/
+   libmv::TrkltRegionTracker *trklt_region_tracker =
+       new libmv::TrkltRegionTracker();
+   trklt_region_tracker->half_window_size = kHalfPatternSize;
+   trklt_region_tracker->max_iterations = 200;
+   libmv::PyramidRegionTracker *pyramid_region_tracker =
+       new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
+   libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
+   vector<Marker> previous_markers = MarkersInImage(previous);
+   for (int i = 0; i < previous_markers.size(); i++) {
+     const Marker &marker = previous_markers[i];
+     if (!selected_tracks_.contains(marker.track)) {
+       continue;
+     }
+     // TODO(keir): For now this uses a fixed size region. What's needed is
+     // an extension to use custom sized boxes around the tracked point.
+     int half_size = kHalfSearchSize;
+     int size = kHalfSearchSize * 2 + 1;
+
+     // TODO(MatthiasF): avoid filtering image tiles twice
+     // [xy][01] is the upper right box corner.
+     int x0 = marker.x - half_size;
+     int y0 = marker.y - half_size;
+     libmv::FloatImage old_patch;
+     if (!CopyRegionFromQImage(old_image, size, size, x0, y0, &old_patch)) {
+       continue;
+     }
+
+     int x1 = marker.x - half_size;
+     int y1 = marker.y - half_size;
+     libmv::FloatImage new_patch;
+     if (!CopyRegionFromQImage(new_image, size, size, x1, y1, &new_patch)) {
+       continue;
+     }
+
+     double xx0 = marker.x - x0;
+     double yy0 = marker.y - y0;
+     double xx1 = marker.x - x1;
+     double yy1 = marker.y - y1;
+     region_tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
+     Insert(next, marker.track, x1 + xx1, y1 + yy1);
+   }
 }
 
 void Tracker::select(QVector<int> tracks) {

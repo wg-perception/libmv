@@ -48,7 +48,7 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
   // FIXME(MatthiasF): this method will not necessarily give all maximum markers
-  corners.reserve(num_corners);
+  if(num_corners) corners.reserve(num_corners);
   for(int i = 0; i < num_corners; ++i) {
     xy xy = nonmax[i];
     Corner a = { xy.x+margin, xy.y+margin, scores[i], 7 };
