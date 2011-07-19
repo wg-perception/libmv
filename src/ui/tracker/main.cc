@@ -147,7 +147,7 @@ void MainWindow::open(QStringList files) {
 
   track_action_ = toolbar_->addAction(QIcon(":/record"), "Track selected markers");
   track_action_->setCheckable(true);
-  //track_action_->setChecked(true);
+  track_action_->setChecked(true);
   connect(track_action_, SIGNAL(triggered(bool)), SLOT(toggleTracking(bool)));
   connect(tracker_action_, SIGNAL(triggered(bool)),
           track_action_, SLOT(setVisible(bool)));
@@ -205,7 +205,7 @@ void MainWindow::open(QStringList files) {
     seek(0);
   }
 
-  //detect();
+  detect();
 
   restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
@@ -298,7 +298,7 @@ void MainWindow::toggleForward(bool play) {
 void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   std::vector<libmv::Corner> corners = libmv::Detect(image.constBits(), image.width(),
-                                                     image.height(), image.bytesPerLine(),16,128,120);
+                                                     image.height(), image.bytesPerLine());
 
   // Insert features
   QVector<int> tracks;

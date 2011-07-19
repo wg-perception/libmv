@@ -38,16 +38,15 @@ public:
 
       \note the tracker takes ownership of \a image
   */
-  Tracker(int half_pattern_size, int search_size, int num_levels);
+  Tracker(const FloatImage &image1, int half_pattern_size, int search_size, int num_levels);
   /*!
       Track pattern from last image to \a image.
 
       \note the tracker takes ownership of \a image
   */
-  bool Track(const FloatImage &image1,
-             const FloatImage &image2,
+  bool Track(const FloatImage &image2,
              float  x1, float  y1,
-             float *x2, float *y2) const;
+             float *x2, float *y2);
 
 private:
   void MakePyramid(const FloatImage &image, int num_levels,
@@ -66,6 +65,7 @@ private:
   float min_update_squared_distance;
   float sigma;
   float lambda;
+  std::vector<FloatImage> pyramid1;
 };
 
 }  // namespace libmv

@@ -31,7 +31,7 @@
 
 namespace libmv {
 
-Tracker::Tracker(int half_pattern_size, int search_size, int num_levels) :
+Tracker::Tracker(const FloatImage &image1, int half_pattern_size, int search_size, int num_levels) :
   half_pattern_size(half_pattern_size),
   search_size(search_size),
   num_levels(num_levels),
@@ -40,7 +40,10 @@ Tracker::Tracker(int half_pattern_size, int search_size, int num_levels) :
   min_determinant(1e-6),
   min_update_squared_distance(1e-6),
   sigma(0.9),
-  lambda(0.05) {}
+  lambda(0.05),
+  pyramid1(num_levels) {
+  MakePyramid(image1, num_levels, &pyramid1);
+}
 
 void Tracker::MakePyramid(const FloatImage &image, int num_levels,
                         std::vector<FloatImage> *pyramid) const {
@@ -55,16 +58,13 @@ void Tracker::MakePyramid(const FloatImage &image, int num_levels,
   }
 }
 
-bool Tracker::Track(const FloatImage &image1,
-                    const FloatImage &image2,
+bool Tracker::Track(const FloatImage &image2,
                     float  x1, float  y1,
-                    float *x2, float *y2) const {
+                    float *x2, float *y2) {
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
-  std::vector<FloatImage> pyramid1(num_levels);
   std::vector<FloatImage> pyramid2(num_levels);
-  MakePyramid(image1, num_levels, &pyramid1);
   MakePyramid(image2, num_levels, &pyramid2);
 
   // Track forward, getting x2 and y2.
@@ -77,6 +77,10 @@ bool Tracker::Track(const FloatImage &image1,
   if (!TrackPyramid(pyramid2, pyramid1, *x2, *y2, &xx1, &yy1)) {
     return false;
   }
+
+  // Adapt marker to new image
+  pyramid1 = pyramid2;
+
   float dx = xx1 - x1;
   float dy = yy1 - y1;
   return sqrt(dx * dx + dy * dy) < tolerance;
