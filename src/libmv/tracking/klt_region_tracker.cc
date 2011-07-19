@@ -84,15 +84,10 @@ static bool SolveTrackingEquation(float gxx, float gxy, float gyy,
   return true;
 }
 
-bool KltRegionTracker::Track(const FloatImage &image1,
-                             const FloatImage &image2,
+bool KltRegionTracker::Track(const FloatImage &image_and_gradient1,
+                             const FloatImage &image_and_gradient2,
                              double  x1, double  y1,
                              double *x2, double *y2) const {
-  Array3Df image_and_gradient1;
-  Array3Df image_and_gradient2;
-  BlurredImageAndDerivativesChannels(image1, sigma, &image_and_gradient1);
-  BlurredImageAndDerivativesChannels(image2, sigma, &image_and_gradient2);
-
   int i;
   float dx = 0, dy = 0;
   for (i = 0; i < max_iterations; ++i) {

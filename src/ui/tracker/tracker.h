@@ -25,16 +25,21 @@
 #ifndef UI_TRACKER_TRACKER_H_
 #define UI_TRACKER_TRACKER_H_
 
+#include <QMap>
 #include <QGLWidget>
 #include "ui/tracker/gl.h"
 
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/tracks.h"
+// FIXME(MatthiasF) -> tracking
+#include "ui/tracker/klt.h"
 
 // TODO(MatthiasF): custom pattern/search size
-static const int kHalfPatternWindowSize = 4;
+static const double kSigma = 0.9;
+static const int kHalfPatternSize = 4;
 static const int kPyramidLevelCount = 2;
-static const int kHalfSearchWindowSize = kHalfPatternWindowSize << kPyramidLevelCount;
+static const int kHalfSearchSize = kHalfPatternSize << kPyramidLevelCount;
+static const int kSearchSize = kHalfSearchSize * 2;
 
 class Scene;
 
@@ -70,6 +75,8 @@ class Tracker : public QGLWidget, public libmv::Tracks {
 
   libmv::CameraIntrinsics* intrinsics_;
   Scene* scene_;
+  int last_frame;
+  QMap<int,libmv::Tracker> trackers;
 
   GLTexture image_;
   mat4 transform_;

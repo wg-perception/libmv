@@ -1,5 +1,4 @@
 SET(TRACKING_SRC
-    klt_region_tracker.cc 
     pyramid_region_tracker.cc 
     retrack_region_tracker.cc 
     trklt_region_tracker.cc)

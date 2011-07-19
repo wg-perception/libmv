@@ -52,7 +52,7 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
   // Remove too close features
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
-  // FIXME(MatthiasF): this method is both incorrect and inefficent
+  // FIXME(MatthiasF): this method will not necessarily give all maximum markers
   corners.reserve(num_corners);
   for(int i = 0; i < num_corners; ++i) {
     xy xy = nonmax[i];
@@ -61,14 +61,11 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
     for(int j = 0; j < corners.size(); j++) {
       Corner& b = corners[j];
       if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
-        if( a.score > b.score ) {
-          // replace close lesser feature
-          b = a;
-        }
+        // already a nearby feature
         goto skip;
       }
     }
-    // or add a new feature
+    // otherwise add the new feature
     corners.push_back(a);
     skip: ;
   }

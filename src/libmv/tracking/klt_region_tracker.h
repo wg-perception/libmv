@@ -31,8 +31,7 @@ struct KltRegionTracker : public RegionTracker {
       : half_window_size(4),
         max_iterations(16),
         min_determinant(1e-6),
-        min_update_squared_distance(1e-6),
-        sigma(0.9) {}
+        min_update_squared_distance(1e-6) {}
   
   virtual ~KltRegionTracker() {}
 
@@ -47,7 +46,6 @@ struct KltRegionTracker : public RegionTracker {
   int max_iterations;
   double min_determinant;
   double min_update_squared_distance;
-  double sigma;
 };
 
 }  // namespace libmv

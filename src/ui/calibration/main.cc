@@ -33,6 +33,7 @@
 
 #ifdef USE_FFMPEG
 extern "C" {
+#include <stdint.h>
 typedef uint64_t UINT64_C;
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>

@@ -147,6 +147,7 @@ void MainWindow::open(QStringList files) {
 
   track_action_ = toolbar_->addAction(QIcon(":/record"), "Track selected markers");
   track_action_->setCheckable(true);
+  track_action_->setChecked(true);
   connect(track_action_, SIGNAL(triggered(bool)), SLOT(toggleTracking(bool)));
   connect(tracker_action_, SIGNAL(triggered(bool)),
           track_action_, SLOT(setVisible(bool)));
@@ -192,17 +193,19 @@ void MainWindow::open(QStringList files) {
       ->setShortcut(Qt::Key_Right);
   toolbar_->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
-  tracker_->Load(path_);
+  //tracker_->Load(path_);
   scene_->Load(path_);
 
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
-  int frame = QSettings().value("currentFrame", 0).toInt();
+  int frame = 0; //QSettings().value("currentFrame", 0).toInt();
   if(frame >= 0 && frame < clip_->Count()) {
     seek(frame);
   } else {
     seek(0);
   }
+
+  detect();
 
   restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
@@ -227,7 +230,7 @@ void MainWindow::seek(int next) {
 
   slider_.setValue(next);
   spinbox_.setValue(next);
-  if(track_action_->isChecked()) {
+  if(previous >= 0 && track_action_->isChecked()) {
     tracker_->Track(previous, next, clip_->Image(previous), clip_->Image(next));
   }
   tracker_->SetImage(next, clip_->Image(next));
@@ -295,7 +298,7 @@ void MainWindow::toggleForward(bool play) {
 void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   std::vector<libmv::Corner> corners = libmv::Detect(image.constBits(), image.width(),
-                                                     image.height(), image.bytesPerLine());
+                                                     image.height(), image.bytesPerLine(),16,128,120);
 
   // Insert features
   QVector<int> tracks;
