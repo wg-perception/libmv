@@ -25,11 +25,9 @@
 #ifndef LIBMV_TRACKING_KLT_H_
 #define LIBMV_TRACKING_KLT_H_
 
-namespace libmv {
+#include "libmv/image/image.h"
 
-typedef char byte;
-typedef unsigned char ubyte;
-typedef float T; //for debugging only, code is optimized for integers
+namespace libmv {
 
 class Tracker {
 public:
@@ -39,28 +37,32 @@ public:
 
       \note the tracker takes ownership of \a image
   */
-  Tracker(ubyte* image, int half_pattern_size, int search_size, int pyramid_count);
-  ~Tracker();
+  Tracker(int half_pattern_size, int search_size, int num_levels);
   /*!
       Track pattern from last image to \a image.
 
       \note the tracker takes ownership of \a image
   */
-  bool Track(ubyte* image, float *x, float *y);
+  bool Track(const FloatImage &image1,
+             const FloatImage &image2,
+             float  x1, float  y1,
+             float *x2, float *y2) const;
 
 private:
-  void NextImage(ubyte* image);
-  bool TrackPyramid(T** pyramid1, T** pyramid2,
+  bool TrackPyramid(const FloatImage& image1, const FloatImage& image2,
                     float x1, float y1, float *x2, float *y2) const;
-  bool TrackImage(const T* image1, const T* image2, int size,
+  bool TrackImage(const FloatImage& image1, const FloatImage& image2,
                   float x1, float y1, float *x2, float *y2) const;
 
-  int half_pattern_size_;
-  int search_size_;
-  int pyramid_count_;
-  float x_, y_;
-  static const int kMaxPyramidCount = 4;
-  T* pyramid_[2][kMaxPyramidCount];
+  int half_pattern_size;
+  int search_size;
+  int num_levels;
+  int max_iterations;
+  float tolerance;
+  float min_determinant;
+  float min_update_squared_distance;
+  float sigma;
+  float lambda;
 };
 
 }  // namespace libmv

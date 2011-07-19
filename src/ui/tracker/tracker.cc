@@ -107,7 +107,7 @@ void Tracker::SetOverlay(Scene* scene) {
   scene_ = scene;
 }
 
-static uchar* NewRegion(QImage image, int x, int y, int size) {
+/*static uchar* NewRegion(QImage image, int x, int y, int size) {
   const uchar* src = image.constBits();
   const int stride = image.bytesPerLine();
   src += y*stride+x;
@@ -117,7 +117,7 @@ static uchar* NewRegion(QImage image, int x, int y, int size) {
     memcpy(dst,src,size);
   }
   return region;
-}
+}*/
 
 // Track active trackers from the previous image into next one.
 void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
@@ -152,13 +152,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     Insert(next, marker.track, x + fx, y + fy);
   }
   last_frame = next;*/
-   libmv::TrkltRegionTracker *trklt_region_tracker =
-       new libmv::TrkltRegionTracker();
-   trklt_region_tracker->half_window_size = kHalfPatternSize;
-   trklt_region_tracker->max_iterations = 200;
-   libmv::PyramidRegionTracker *pyramid_region_tracker =
-       new libmv::PyramidRegionTracker(trklt_region_tracker, kPyramidLevelCount);
-   libmv::RetrackRegionTracker region_tracker(pyramid_region_tracker, 0.2);
+   libmv::Tracker tracker(kHalfPatternSize,kSearchSize,kPyramidLevelCount);
    vector<Marker> previous_markers = MarkersInImage(previous);
    for (int i = 0; i < previous_markers.size(); i++) {
      const Marker &marker = previous_markers[i];
@@ -186,11 +180,11 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
        continue;
      }
 
-     double xx0 = marker.x - x0;
-     double yy0 = marker.y - y0;
-     double xx1 = marker.x - x1;
-     double yy1 = marker.y - y1;
-     region_tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
+     float xx0 = marker.x - x0;
+     float yy0 = marker.y - y0;
+     float xx1 = marker.x - x1;
+     float yy1 = marker.y - y1;
+     tracker.Track(old_patch, new_patch, xx0, yy0, &xx1, &yy1);
      Insert(next, marker.track, x1 + xx1, y1 + yy1);
    }
 }
