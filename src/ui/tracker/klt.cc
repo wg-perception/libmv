@@ -24,8 +24,6 @@
 
 #include "klt.h"
 
-#include <cmath>
-#include <vector>
 #include "libmv/numeric/numeric.h"
 #include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
@@ -44,25 +42,6 @@ Tracker::Tracker(int half_pattern_size, int search_size, int num_levels) :
   sigma(0.9),
   lambda(0.05) {}
 
-bool Tracker::Track(const FloatImage &image1,
-                    const FloatImage &image2,
-                    float  x1, float  y1,
-                    float *x2, float *y2) const {
-  // Track forward, getting x2 and y2.
-  if (!TrackPyramid(image1, image2, x1, y1, x2, y2)) {
-    return false;
-  }
-  // Now track x2 and y2 backward, to get xx1 and yy1 which, if the track is
-  // good, should match x1 and y1 (but may not if the track is bad).
-  float xx1 = *x2, yy1 = *x2;
-  if (!TrackPyramid(image2, image1, *x2, *y2, &xx1, &yy1)) {
-    return false;
-  }
-  float dx = xx1 - x1;
-  float dy = yy1 - y1;
-  return sqrt(dx * dx + dy * dy) < tolerance;
-}
-
 static void MakePyramid(const FloatImage &image, int num_levels,
                         std::vector<FloatImage> *pyramid) {
   pyramid->resize(num_levels);
@@ -72,15 +51,10 @@ static void MakePyramid(const FloatImage &image, int num_levels,
   }
 }
 
-bool Tracker::TrackPyramid(const FloatImage &image1,
+bool Tracker::Track(const FloatImage &image1,
                     const FloatImage &image2,
                     float  x1, float  y1,
                     float *x2, float *y2) const {
-  // Shrink the guessed x and y location to match the coarsest level + 1 (which
-  // when gets corrected in the loop).
-  *x2 /= pow(2., num_levels);
-  *y2 /= pow(2., num_levels);
-
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
@@ -88,6 +62,30 @@ bool Tracker::TrackPyramid(const FloatImage &image1,
   std::vector<FloatImage> pyramid2(num_levels);
   MakePyramid(image1, num_levels, &pyramid1);
   MakePyramid(image2, num_levels, &pyramid2);
+
+  // Track forward, getting x2 and y2.
+  if (!TrackPyramid(pyramid1, pyramid2, x1, y1, x2, y2)) {
+    return false;
+  }
+  // Now track x2 and y2 backward, to get xx1 and yy1 which, if the track is
+  // good, should match x1 and y1 (but may not if the track is bad).
+  float xx1 = *x2, yy1 = *x2;
+  if (!TrackPyramid(pyramid2, pyramid1, *x2, *y2, &xx1, &yy1)) {
+    return false;
+  }
+  float dx = xx1 - x1;
+  float dy = yy1 - y1;
+  return sqrt(dx * dx + dy * dy) < tolerance;
+}
+
+bool Tracker::TrackPyramid(std::vector<FloatImage> pyramid1,
+                           std::vector<FloatImage> pyramid2,
+                    float  x1, float  y1,
+                    float *x2, float *y2) const {
+  // Shrink the guessed x and y location to match the coarsest level + 1 (which
+  // when gets corrected in the loop).
+  *x2 /= pow(2., num_levels);
+  *y2 /= pow(2., num_levels);
 
   for (int i = num_levels - 1; i >= 0; --i) {
     // Position in the first image at pyramid level i.

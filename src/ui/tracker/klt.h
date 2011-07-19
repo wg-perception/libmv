@@ -26,6 +26,7 @@
 #define LIBMV_TRACKING_KLT_H_
 
 #include "libmv/image/image.h"
+#include <vector>
 
 namespace libmv {
 
@@ -49,7 +50,7 @@ public:
              float *x2, float *y2) const;
 
 private:
-  bool TrackPyramid(const FloatImage& image1, const FloatImage& image2,
+  bool TrackPyramid(std::vector<FloatImage> pyramid1, std::vector<FloatImage> pyramid2,
                     float x1, float y1, float *x2, float *y2) const;
   bool TrackImage(const FloatImage& image1, const FloatImage& image2,
                   float x1, float y1, float *x2, float *y2) const;
