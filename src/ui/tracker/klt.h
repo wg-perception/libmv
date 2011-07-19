@@ -34,15 +34,21 @@ class Tracker {
 public:
   Tracker() {}
   /*!
-      Construct a tracker to track the pattern centered in \a image.
+      Construct a tracker to track the pattern centered in \a image1.
 
-      \note the tracker takes ownership of \a image
+      The tracked pattern is a \a half_pattern_size * 2 + 1 patch in the center of image1
+      \a image1 should be a square patch of size \a search_size
+      This tracker will use pyramid tracking using \a num_levels levels.
   */
   Tracker(const FloatImage &image1, int half_pattern_size, int search_size, int num_levels);
   /*!
-      Track pattern from last image to \a image.
+      Track a point from last image to \a image2.
 
-      \note the tracker takes ownership of \a image
+      \a x2, \a y2 should start out as a best guess for the position in \a
+      image2. If no guess is available, (\a x1, \a y1) is a good start. Returns
+      true on success, false otherwise
+
+      \a image2 become the "last image" of this tracker.
   */
   bool Track(const FloatImage &image2,
              float  x1, float  y1,
@@ -53,6 +59,7 @@ private:
                    std::vector<FloatImage> *pyramid) const;
   bool TrackPyramid(std::vector<FloatImage> pyramid1, std::vector<FloatImage> pyramid2,
                     float x1, float y1, float *x2, float *y2) const;
+
   bool TrackImage(const FloatImage& image1, const FloatImage& image2,
                   float x1, float y1, float *x2, float *y2) const;
 

@@ -58,6 +58,8 @@ void Tracker::MakePyramid(const FloatImage &image, int num_levels,
   }
 }
 
+// A region tracker that tries tracking backwards and forwards, rejecting a
+// track that doesn't track backwards to the starting point.
 bool Tracker::Track(const FloatImage &image2,
                     float  x1, float  y1,
                     float *x2, float *y2) {
@@ -181,6 +183,13 @@ static bool SolveTrackingEquation(const Mat2f &U,
   return true;
 }
 
+// An improved KLT algorithm that enforces that the tracking is time-reversible
+// [1]. This is not the same as the "symmetric" KLT that is sometimes used.
+// Anecdotally, this tracks much more consistently than vanilla KLT.
+//
+// [1] H. Wu, R. Chellappa, and A. Sankaranarayanan and S. Kevin Zhou. Robust
+//     visual tracking using the time-reversibility constraint. International
+//     Conference on Computer Vision (ICCV), Rio de Janeiro, October 2007.
 bool Tracker::TrackImage(const FloatImage &image1,
                          const FloatImage &image2,
                          float  x1, float  y1,
