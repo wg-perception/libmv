@@ -40,9 +40,9 @@ Tracker::Tracker(const FloatImage &image1, int half_pattern_size, int search_siz
   min_determinant(1e-6),
   min_update_squared_distance(1e-6),
   sigma(0.9),
-  lambda(0.05),
-  pyramid1(num_levels) {
-  MakePyramid(image1, num_levels, &pyramid1);
+  lambda(0.05) {
+  pyramid1 = new std::vector<FloatImage>;
+  MakePyramid(image1, num_levels, pyramid1);
 }
 
 void Tracker::MakePyramid(const FloatImage &image, int num_levels,
@@ -66,8 +66,8 @@ bool Tracker::Track(const FloatImage &image2,
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
-  std::vector<FloatImage> pyramid2(num_levels);
-  MakePyramid(image2, num_levels, &pyramid2);
+  std::vector<FloatImage>* pyramid2 = new std::vector<FloatImage>;
+  MakePyramid(image2, num_levels, pyramid2);
 
   // Shrink the guessed x and y location to match the coarsest level + 1 (which
   // when gets corrected in the loop).
@@ -84,7 +84,7 @@ bool Tracker::Track(const FloatImage &image2,
     *y2 *= 2;
 
     // Track the point on this level with the base tracker.
-    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], xx, yy, x2, y2);
+    bool succeeded = TrackImage(pyramid1->at(i), pyramid2->at(i), xx, yy, x2, y2);
 
     if (i == 0 && !succeeded) {
       // Only fail on the highest-resolution level, because a failure on a
@@ -95,6 +95,7 @@ bool Tracker::Track(const FloatImage &image2,
   }
 
   // Adapt marker to new image
+  delete pyramid1;
   pyramid1 = pyramid2;
 
   return true;

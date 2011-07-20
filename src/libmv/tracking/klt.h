@@ -72,7 +72,7 @@ private:
   float min_update_squared_distance;
   float sigma;
   float lambda;
-  std::vector<FloatImage> pyramid1;
+  std::vector<FloatImage> *pyramid1;
 };
 
 }  // namespace libmv
