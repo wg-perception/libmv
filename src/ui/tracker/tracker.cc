@@ -126,7 +126,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
       if (!CopyRegionFromQImage(old_image, kSearchSize, kSearchSize, x0, y0, &old_patch)) {
         continue;
       }
-      trackers[marker.track] = libmv::Tracker(old_patch.Data(), marker.x - x0, marker.y - y0,
+      trackers[marker.track] = libmv::Tracker(old_patch, marker.x - x0, marker.y - y0,
                                               kHalfPatternSize,kSearchSize,kPyramidLevelCount);
     }
     libmv::Tracker& tracker = trackers[marker.track];
@@ -139,7 +139,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     }
 
     float x = marker.x - x1, y = marker.y - y1;
-    tracker.Track(new_patch.Data(), &x, &y);
+    tracker.Track(new_patch, &x, &y);
     Insert(next, marker.track, x1 + x, y1 + y);
   }
   last_frame = next;

@@ -31,7 +31,7 @@
 
 namespace libmv {
 
-Tracker::Tracker(float *image1, float x, float y, int half_pattern_size, int search_size, int num_levels) :
+Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_size, int num_levels) :
   half_pattern_size(half_pattern_size),
   search_size(search_size),
   num_levels(num_levels),
@@ -46,11 +46,7 @@ Tracker::Tracker(float *image1, float x, float y, int half_pattern_size, int sea
   MakePyramid(image1, pyramid1);
 }
 
-void Tracker::MakePyramid(float* data, float **pyramid) const {
-  FloatImage image;
-  int size = search_size;
-  image.Resize(size,size);
-  memcpy(image.Data(),data,sizeof(float)*size*size);
+void Tracker::MakePyramid(const FloatImage &image, float **pyramid) const {
   FloatImage pyramids[8];
   BlurredImageAndDerivativesChannels(image, sigma, &pyramids[0]);
   FloatImage mipmap1,mipmap2;
@@ -60,13 +56,14 @@ void Tracker::MakePyramid(float* data, float **pyramid) const {
     mipmap1 = mipmap2;
     BlurredImageAndDerivativesChannels(mipmap1, sigma, &pyramids[i]);
   }
+  int size = search_size;
   for (int i = 0; i < num_levels; i++, size /= 2) {
     pyramid[i] = (float*)malloc(sizeof(float)*size*size*3);
     memcpy(pyramid[i],pyramids[i].Data(),sizeof(float)*size*size*3);
   }
 }
 
-bool Tracker::Track(float *image2, float *x2, float *y2) {
+bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
