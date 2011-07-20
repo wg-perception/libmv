@@ -1,6 +1,6 @@
 QT += opengl
-HEADERS += clip.h  calibration.h        tracker.h  zoom.h  scene.h  main.h ../../libmv/tracking/klt.h
-SOURCES += clip.cc calibration.cc gl.cc tracker.cc zoom.cc scene.cc main.cc ../../libmv/tracking/klt.cc
+HEADERS += ../../libmv/tracking/klt.h clip.h  calibration.h        tracker.h  zoom.h  scene.h  main.h
+SOURCES += ../../libmv/tracking/klt.cc clip.cc calibration.cc gl.cc tracker.cc zoom.cc scene.cc main.cc
 OTHER_FILES += shader.glsl
 RESOURCES = tracker.qrc
 INCLUDEPATH += ../..
