@@ -31,9 +31,10 @@
 
 namespace libmv {
 
-Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_size, int num_levels) :
+Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_width, int search_height, int num_levels) :
   half_pattern_size(half_pattern_size),
-  search_size(search_size),
+  search_width(search_width),
+  search_height(search_height),
   num_levels(num_levels),
   max_iterations(16),
   tolerance(0.2),
@@ -56,10 +57,10 @@ void Tracker::MakePyramid(const FloatImage &image, float **pyramid) const {
     mipmap1 = mipmap2;
     BlurredImageAndDerivativesChannels(mipmap1, sigma, &pyramids[i]);
   }
-  int size = search_size;
-  for (int i = 0; i < num_levels; i++, size /= 2) {
-    pyramid[i] = (float*)malloc(sizeof(float)*size*size*3);
-    memcpy(pyramid[i],pyramids[i].Data(),sizeof(float)*size*size*3);
+  int width = search_width, height = search_height;
+  for (int i = 0; i < num_levels; i++, width /= 2, height /= 2) {
+    pyramid[i] = (float*)malloc(sizeof(float)*width*height*3);
+    memcpy(pyramid[i],pyramids[i].Data(),sizeof(float)*width*height*3);
   }
 }
 
@@ -85,7 +86,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
     *y2 *= 2;
 
     // Track the point on this level with the base tracker.
-    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], search_size >> i, xx, yy, x2, y2);
+    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], search_width >> i, xx, yy, x2, y2);
 
     if (i == 0 && !succeeded) {
       // Only fail on the highest-resolution level, because a failure on a

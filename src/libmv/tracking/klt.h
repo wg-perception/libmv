@@ -25,6 +25,8 @@
 #ifndef LIBMV_TRACKING_KLT_H_
 #define LIBMV_TRACKING_KLT_H_
 
+#ifdef __cplusplus
+
 #include "libmv/image/image.h"
 
 namespace libmv {
@@ -39,7 +41,8 @@ public:
       \a image1 should be a square patch of size \a search_size
       This tracker will use pyramid tracking using \a num_levels levels.
   */
-  Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_size, int num_levels);
+  Tracker(const FloatImage &image1, float x, float y, int half_pattern_size,
+          int search_width, int search_height, int num_levels);
   /*!
       Track a point from last image to \a image2.
 
@@ -57,7 +60,8 @@ private:
                   float x1, float y1, float *x2, float *y2) const;
 
   int half_pattern_size;
-  int search_size;
+  int search_width;
+  int search_height;
   int num_levels;
   int max_iterations;
   float tolerance;
@@ -70,5 +74,13 @@ private:
 };
 
 }  // namespace libmv
+
+#else
+
+class Tracker;
+Tracker* NewTracker(const float *image1, float x, float y, int half_pattern_size, int search_size, int num_levels);
+bool Track(const float *image2, float *x2, float *y2);
+
+#endif
 
 #endif  // LIBMV_TRACKING_KLT_H_

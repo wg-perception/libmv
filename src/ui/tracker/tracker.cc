@@ -127,7 +127,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
         continue;
       }
       trackers[marker.track] = libmv::Tracker(old_patch, marker.x - x0, marker.y - y0,
-                                              kHalfPatternSize,kSearchSize,kPyramidLevelCount);
+                                              kHalfPatternSize,kSearchSize,kSearchSize,kPyramidLevelCount);
     }
     libmv::Tracker& tracker = trackers[marker.track];
 
