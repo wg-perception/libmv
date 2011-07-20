@@ -105,18 +105,6 @@ void Tracker::SetOverlay(Scene* scene) {
   scene_ = scene;
 }
 
-/*static uchar* NewRegion(QImage image, int x, int y, int size) {
-  const uchar* src = image.constBits();
-  const int stride = image.bytesPerLine();
-  src += y*stride+x;
-  uchar* region = new uchar[size*size];
-  uchar* dst = region;
-  for(int i = 0; i < size; i++, dst+=size, src+=stride) {
-    memcpy(dst,src,size);
-  }
-  return region;
-}*/
-
 // Track active trackers from the previous image into next one.
 void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
   QTime time; time.start();
