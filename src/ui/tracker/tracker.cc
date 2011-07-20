@@ -119,50 +119,42 @@ void Tracker::SetOverlay(Scene* scene) {
 
 // Track active trackers from the previous image into next one.
 void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
+  QTime time; time.start();
   Q_ASSERT( old_image.size() == new_image.size() );
   // Reset trackers when seeking
   if (last_frame != previous) {
     trackers.clear();
   }
-  QTime time; time.start();
   vector<Marker> previous_markers = MarkersInImage(previous);
   for (int i = 0; i < previous_markers.size(); i++) {
     const Marker &marker = previous_markers[i];
     if (!selected_tracks_.contains(marker.track)) {
       continue;
     }
-    // TODO(keir): For now this uses a fixed size region. What's needed is
-    // an extension to use custom sized boxes around the tracked point.
-    int half_size = kHalfSearchSize;
-    int size = kHalfSearchSize * 2 + 1;
-
-    // [xy][01] is the upper right box corner.
-    int x0 = marker.x - half_size;
-    int y0 = marker.y - half_size;
-    int x1 = marker.x - half_size;
-    int y1 = marker.y - half_size;
-
     if (!trackers.contains(marker.track)) {
+      int x0 = marker.x - kHalfSearchSize;
+      int y0 = marker.y - kHalfSearchSize;
       libmv::FloatImage old_patch;
-      if (!CopyRegionFromQImage(old_image, size, size, x0, y0, &old_patch)) {
+      if (!CopyRegionFromQImage(old_image, kSearchSize, kSearchSize, x0, y0, &old_patch)) {
         continue;
       }
-      trackers[marker.track] = libmv::Tracker(old_patch,kHalfPatternSize,kSearchSize,kPyramidLevelCount);
+      trackers[marker.track] = libmv::Tracker(old_patch, marker.x - x0, marker.y - y0,
+                                              kHalfPatternSize,kSearchSize,kPyramidLevelCount);
     }
     libmv::Tracker& tracker = trackers[marker.track];
 
+    int x1 = marker.x - kHalfSearchSize;
+    int y1 = marker.y - kHalfSearchSize;
     libmv::FloatImage new_patch;
-    if (!CopyRegionFromQImage(new_image, size, size, x1, y1, &new_patch)) {
+    if (!CopyRegionFromQImage(new_image, kSearchSize, kSearchSize, x1, y1, &new_patch)) {
       continue;
     }
 
-    float xx0 = marker.x - x0;
-    float yy0 = marker.y - y0;
-    float xx1 = marker.x - x1;
-    float yy1 = marker.y - y1;
-    tracker.Track(new_patch, xx0, yy0, &xx1, &yy1);
-    Insert(next, marker.track, x1 + xx1, y1 + yy1);
+    float x = marker.x - x1, y = marker.y - y1;
+    tracker.Track(new_patch, &x, &y);
+    Insert(next, marker.track, x1 + x, y1 + y);
   }
+  last_frame = next;
   qDebug() << previous_markers.size() <<"markers in" << time.elapsed() << "ms";
 }
 

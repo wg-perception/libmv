@@ -31,7 +31,7 @@
 
 namespace libmv {
 
-Tracker::Tracker(const FloatImage &image1, int half_pattern_size, int search_size, int num_levels) :
+Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_size, int num_levels) :
   half_pattern_size(half_pattern_size),
   search_size(search_size),
   num_levels(num_levels),
@@ -40,7 +40,9 @@ Tracker::Tracker(const FloatImage &image1, int half_pattern_size, int search_siz
   min_determinant(1e-6),
   min_update_squared_distance(1e-6),
   sigma(0.9),
-  lambda(0.05) {
+  lambda(0.05),
+  x1(x),
+  y1(y) {
   pyramid1 = new std::vector<FloatImage>;
   MakePyramid(image1, num_levels, pyramid1);
 }
@@ -48,21 +50,17 @@ Tracker::Tracker(const FloatImage &image1, int half_pattern_size, int search_siz
 void Tracker::MakePyramid(const FloatImage &image, int num_levels,
                         std::vector<FloatImage> *pyramid) const {
   pyramid->resize(num_levels);
-  BlurredImageAndDerivativesChannels(image, sigma, &(*pyramid)[0]);
+  BlurredImageAndDerivativesChannels(image, sigma, &pyramid->at(0));
   FloatImage mipmap1,mipmap2;
   mipmap1 = image;
   for (int i = 1; i < num_levels; ++i) {
     DownsampleChannelsBy2(mipmap1, &mipmap2);
     mipmap1 = mipmap2;
-    BlurredImageAndDerivativesChannels(mipmap1, sigma, &(*pyramid)[i]);
+    BlurredImageAndDerivativesChannels(mipmap1, sigma, &pyramid->at(i));
   }
 }
 
-// A region tracker that tries tracking backwards and forwards, rejecting a
-// track that doesn't track backwards to the starting point.
-bool Tracker::Track(const FloatImage &image2,
-                    float  x1, float  y1,
-                    float *x2, float *y2) {
+bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
@@ -90,6 +88,11 @@ bool Tracker::Track(const FloatImage &image2,
       // Only fail on the highest-resolution level, because a failure on a
       // coarse level does not mean failure at a lower level (consider
       // out-of-bounds conditions).
+      // Adapt marker to new image
+      delete pyramid1;
+      pyramid1 = pyramid2;
+      x1 = *x2;
+      y1 = *y2;
       return false;
     }
   }
@@ -97,6 +100,8 @@ bool Tracker::Track(const FloatImage &image2,
   // Adapt marker to new image
   delete pyramid1;
   pyramid1 = pyramid2;
+  x1 = *x2;
+  y1 = *y2;
 
   return true;
 }

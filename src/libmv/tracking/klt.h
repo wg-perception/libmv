@@ -40,7 +40,7 @@ public:
       \a image1 should be a square patch of size \a search_size
       This tracker will use pyramid tracking using \a num_levels levels.
   */
-  Tracker(const FloatImage &image1, int half_pattern_size, int search_size, int num_levels);
+  Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_size, int num_levels);
   /*!
       Track a point from last image to \a image2.
 
@@ -50,9 +50,7 @@ public:
 
       \a image2 become the "last image" of this tracker.
   */
-  bool Track(const FloatImage &image2,
-             float  x1, float  y1,
-             float *x2, float *y2);
+  bool Track(const FloatImage &image2, float *x2, float *y2);
 
 private:
   void MakePyramid(const FloatImage &image, int num_levels,
@@ -73,6 +71,7 @@ private:
   float sigma;
   float lambda;
   std::vector<FloatImage> *pyramid1;
+  float x1,y1;
 };
 
 }  // namespace libmv

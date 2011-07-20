@@ -38,7 +38,7 @@ static const double kSigma = 0.9;
 static const int kHalfPatternSize = 4;
 static const int kPyramidLevelCount = 2;
 static const int kHalfSearchSize = kHalfPatternSize << kPyramidLevelCount;
-static const int kSearchSize = kHalfSearchSize * 2 + 1;
+static const int kSearchSize = kHalfSearchSize * 2;
 
 class Scene;
 
