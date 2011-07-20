@@ -46,14 +46,20 @@ Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_si
   MakePyramid(image1, pyramid1);
 }
 
-void Tracker::MakePyramid(const FloatImage &image, FloatImage *pyramid) const {
-  BlurredImageAndDerivativesChannels(image, sigma, &pyramid[0]);
+void Tracker::MakePyramid(const FloatImage &image, float **pyramid) const {
+  FloatImage pyramids[8];
+  BlurredImageAndDerivativesChannels(image, sigma, &pyramids[0]);
   FloatImage mipmap1,mipmap2;
   mipmap1 = image;
   for (int i = 1; i < num_levels; ++i) {
     DownsampleChannelsBy2(mipmap1, &mipmap2);
     mipmap1 = mipmap2;
-    BlurredImageAndDerivativesChannels(mipmap1, sigma, &pyramid[i]);
+    BlurredImageAndDerivativesChannels(mipmap1, sigma, &pyramids[i]);
+  }
+  int size = search_size;
+  for (int i = 0; i < num_levels; i++, size /= 2) {
+    pyramid[i] = (float*)malloc(sizeof(float)*size*size*3);
+    memcpy(pyramid[i],pyramids[i].Data(),sizeof(float)*size*size*3);
   }
 }
 
@@ -61,7 +67,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
-  FloatImage pyramid2[8];
+  float* pyramid2[8];
   MakePyramid(image2, pyramid2);
 
   // Shrink the guessed x and y location to match the coarsest level + 1 (which
@@ -79,7 +85,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
     *y2 *= 2;
 
     // Track the point on this level with the base tracker.
-    bool succeeded = TrackImage(pyramid1[i].Data(), pyramid2[i].Data(), search_size >> i, xx, yy, x2, y2);
+    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], search_size >> i, xx, yy, x2, y2);
 
     if (i == 0 && !succeeded) {
       // Only fail on the highest-resolution level, because a failure on a
@@ -87,7 +93,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
       // out-of-bounds conditions).
       // Adapt marker to new image
       for(int i = 0; i < num_levels; i++) {
-        //free(pyramid1[i]); // Free old image
+        free(pyramid1[i]); // Free old image
         pyramid1[i] = pyramid2[i]; //Use new image
       }
       x1 = *x2;
@@ -98,7 +104,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
 
   // Adapt marker to new image
   for(int i = 0; i < num_levels; i++) {
-    //free(pyramid1[i]); // Free old image
+    free(pyramid1[i]); // Free old image
     pyramid1[i] = pyramid2[i]; //Use new image
   }
   x1 = *x2;

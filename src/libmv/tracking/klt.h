@@ -52,7 +52,7 @@ public:
   bool Track(const FloatImage &image2, float *x2, float *y2);
 
 private:
-  void MakePyramid(const FloatImage &image, FloatImage* pyramid) const;
+  void MakePyramid(const FloatImage &image, float** pyramid) const;
   bool TrackImage(const float* image1, const float* image2, int size,
                   float x1, float y1, float *x2, float *y2) const;
 
@@ -65,7 +65,7 @@ private:
   float min_update_squared_distance;
   float sigma;
   float lambda;
-  FloatImage pyramid1[8];
+  float* pyramid1[8];
   float x1,y1;
 };
 
