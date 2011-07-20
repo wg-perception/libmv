@@ -34,6 +34,8 @@ using libmv::vector;
 
 #include <QMouseEvent>
 #include <QFileInfo>
+#include <QDebug>
+#include <QTime>
 
 #if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
 #define constBits bits
@@ -122,6 +124,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
   if (last_frame != previous) {
     trackers.clear();
   }
+  QTime time; time.start();
   vector<Marker> previous_markers = MarkersInImage(previous);
   for (int i = 0; i < previous_markers.size(); i++) {
     const Marker &marker = previous_markers[i];
@@ -133,26 +136,25 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     int half_size = kHalfSearchSize;
     int size = kHalfSearchSize * 2 + 1;
 
-    // TODO(MatthiasF): avoid filtering image tiles twice
     // [xy][01] is the upper right box corner.
     int x0 = marker.x - half_size;
     int y0 = marker.y - half_size;
-    libmv::FloatImage old_patch;
-    if (!CopyRegionFromQImage(old_image, size, size, x0, y0, &old_patch)) {
-      continue;
-    }
-
     int x1 = marker.x - half_size;
     int y1 = marker.y - half_size;
+
+    if (!trackers.contains(marker.track)) {
+      libmv::FloatImage old_patch;
+      if (!CopyRegionFromQImage(old_image, size, size, x0, y0, &old_patch)) {
+        continue;
+      }
+      trackers[marker.track] = libmv::Tracker(old_patch,kHalfPatternSize,kSearchSize,kPyramidLevelCount);
+    }
+    libmv::Tracker& tracker = trackers[marker.track];
+
     libmv::FloatImage new_patch;
     if (!CopyRegionFromQImage(new_image, size, size, x1, y1, &new_patch)) {
       continue;
     }
-
-    if (!trackers.contains(marker.track)) {
-      trackers[marker.track] = libmv::Tracker(old_patch,kHalfPatternSize,kSearchSize,kPyramidLevelCount);
-    }
-    libmv::Tracker& tracker = trackers[marker.track];
 
     float xx0 = marker.x - x0;
     float yy0 = marker.y - y0;
@@ -161,6 +163,7 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     tracker.Track(new_patch, xx0, yy0, &xx1, &yy1);
     Insert(next, marker.track, x1 + xx1, y1 + yy1);
   }
+  qDebug() << previous_markers.size() <<"markers in" << time.elapsed() << "ms";
 }
 
 void Tracker::select(QVector<int> tracks) {

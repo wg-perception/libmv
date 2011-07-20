@@ -69,29 +69,6 @@ bool Tracker::Track(const FloatImage &image2,
   std::vector<FloatImage> pyramid2(num_levels);
   MakePyramid(image2, num_levels, &pyramid2);
 
-  // Track forward, getting x2 and y2.
-  if (!TrackPyramid(pyramid1, pyramid2, x1, y1, x2, y2)) {
-    return false;
-  }
-  // Now track x2 and y2 backward, to get xx1 and yy1 which, if the track is
-  // good, should match x1 and y1 (but may not if the track is bad).
-  float xx1 = *x2, yy1 = *x2;
-  if (!TrackPyramid(pyramid2, pyramid1, *x2, *y2, &xx1, &yy1)) {
-    return false;
-  }
-
-  // Adapt marker to new image
-  pyramid1 = pyramid2;
-
-  float dx = xx1 - x1;
-  float dy = yy1 - y1;
-  return sqrt(dx * dx + dy * dy) < tolerance;
-}
-
-bool Tracker::TrackPyramid(std::vector<FloatImage> pyramid1,
-                           std::vector<FloatImage> pyramid2,
-                    float  x1, float  y1,
-                    float *x2, float *y2) const {
   // Shrink the guessed x and y location to match the coarsest level + 1 (which
   // when gets corrected in the loop).
   *x2 /= pow(2., num_levels);
@@ -116,12 +93,16 @@ bool Tracker::TrackPyramid(std::vector<FloatImage> pyramid1,
       return false;
     }
   }
+
+  // Adapt marker to new image
+  pyramid1 = pyramid2;
+
   return true;
 }
 
 // Computes U and e from the Ud = e equation (number 14) from the paper.
-static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
-                                    const Array3Df &image_and_gradient2,
+static void ComputeTrackingEquation(const Array3Df &image1,
+                                    const Array3Df &image2,
                                     float x1, float y1,
                                     float x2, float y2,
                                     int half_width,
@@ -134,21 +115,28 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   Vec2f R, S, V, W;
   R = S = V = W = Vec2f::Zero();
 
-  for (int r = -half_width; r <= half_width; ++r) {
-    for (int c = -half_width; c <= half_width; ++c) {
-      float xx1 = x1 + c;
-      float yy1 = y1 + r;
-      float xx2 = x2 + c;
-      float yy2 = y2 + r;
+  int size = image1.Width();
+  int depth = image1.Depth();
+  int stride = size*depth;
+  const float* pattern1 = &image1.Data()[(int(y1)*size+int(x1))*depth];
+  const float* pattern2 = &image2.Data()[(int(y2)*size+int(x2))*depth];
+  float u1 = x1-int(x1), v1 = y1-int(y1);
+  float u2 = x2-int(x2), v2 = y2-int(y2);
 
-      float I = SampleLinear(image_and_gradient1, yy1, xx1, 0);
-      float J = SampleLinear(image_and_gradient2, yy2, xx2, 0);
+  for (int y = -half_width; y <= half_width; ++y) {
+    for (int x = -half_width; x <= half_width; ++x) {
+      const float* s1 = &pattern1[(y*size+x)*depth];
+      const float* s2 = &pattern2[(y*size+x)*depth];
+
+#define sample(n,i) ((s##n[       i] * (1-u##n)  + s##n[       depth+i] * u##n) * (1-v##n) \
+                   + (s##n[stride+i] * (1-u##n)  + s##n[stride+depth+i] * u##n) * v##n)
+
+      float I = sample(1,0);
+      float J = sample(2,0);
 
       Vec2f gI, gJ;
-      gI << SampleLinear(image_and_gradient1, yy1, xx1, 1),
-          SampleLinear(image_and_gradient1, yy1, xx1, 2);
-      gJ << SampleLinear(image_and_gradient2, yy2, xx2, 1),
-          SampleLinear(image_and_gradient2, yy2, xx2, 2);
+      gI << sample(1,1), sample(1,2);
+      gJ << sample(2,1), sample(2,2);
 
       // Equation 15 from the paper.
       A += gI * gI.transpose();
