@@ -82,7 +82,8 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
     *y2 *= 2;
 
     // Track the point on this level with the base tracker.
-    bool succeeded = TrackImage(pyramid1->at(i), pyramid2->at(i), xx, yy, x2, y2);
+    bool succeeded = TrackImage(pyramid1->at(i).Data(), pyramid2->at(i).Data(),
+                                search_size >> i, xx, yy, x2, y2);
 
     if (i == 0 && !succeeded) {
       // Only fail on the highest-resolution level, because a failure on a
@@ -106,77 +107,6 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
   return true;
 }
 
-// Computes U and e from the Ud = e equation (number 14) from the paper.
-static void ComputeTrackingEquation(const Array3Df &image1,
-                                    const Array3Df &image2,
-                                    float x1, float y1,
-                                    float x2, float y2,
-                                    int half_width,
-                                    float lambda,
-                                    Mat2f *U,
-                                    Vec2f *e) {
-  Mat2f A, B, C, D;
-  A = B = C = D  = Mat2f::Zero();
-
-  Vec2f R, S, V, W;
-  R = S = V = W = Vec2f::Zero();
-
-  int size = image1.Width();
-  int depth = image1.Depth();
-  int stride = size*depth;
-  const float* pattern1 = &image1.Data()[(int(y1)*size+int(x1))*depth];
-  const float* pattern2 = &image2.Data()[(int(y2)*size+int(x2))*depth];
-  float u1 = x1-int(x1), v1 = y1-int(y1);
-  float u2 = x2-int(x2), v2 = y2-int(y2);
-
-  for (int y = -half_width; y <= half_width; ++y) {
-    for (int x = -half_width; x <= half_width; ++x) {
-      const float* s1 = &pattern1[(y*size+x)*depth];
-      const float* s2 = &pattern2[(y*size+x)*depth];
-
-#define sample(n,i) ((s##n[       i] * (1-u##n)  + s##n[       depth+i] * u##n) * (1-v##n) \
-                   + (s##n[stride+i] * (1-u##n)  + s##n[stride+depth+i] * u##n) * v##n)
-
-      float I = sample(1,0);
-      float J = sample(2,0);
-
-      Vec2f gI, gJ;
-      gI << sample(1,1), sample(1,2);
-      gJ << sample(2,1), sample(2,2);
-
-      // Equation 15 from the paper.
-      A += gI * gI.transpose();
-      B += gI * gJ.transpose();
-      C += gJ * gJ.transpose();
-      R += I * gI;
-      S += J * gI;
-      V += I * gJ;
-      W += J * gJ;
-    }
-  }
-
-  // In the paper they show a D matrix, but it is just B transpose, so use that
-  // instead of explicitly computing D.
-  Mat2f Di = B.transpose().inverse();
-
-  // Equation 14 from the paper.
-  *U = A*Di*C + lambda*Di*C - 0.5*B;
-  *e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
-}
-
-static bool SolveTrackingEquation(const Mat2f &U,
-                                  const Vec2f &e,
-                                  float min_determinant,
-                                  Vec2f *d) {
-  float det = U.determinant();
-  if (det < min_determinant) {
-    d->setZero();
-    return false;
-  }
-  *d = U.lu().solve(e);
-  return true;
-}
-
 // An improved KLT algorithm that enforces that the tracking is time-reversible
 // [1]. This is not the same as the "symmetric" KLT that is sometimes used.
 // Anecdotally, this tracks much more consistently than vanilla KLT.
@@ -184,30 +114,66 @@ static bool SolveTrackingEquation(const Mat2f &U,
 // [1] H. Wu, R. Chellappa, and A. Sankaranarayanan and S. Kevin Zhou. Robust
 //     visual tracking using the time-reversibility constraint. International
 //     Conference on Computer Vision (ICCV), Rio de Janeiro, October 2007.
-bool Tracker::TrackImage(const FloatImage &image1,
-                         const FloatImage &image2,
+bool Tracker::TrackImage(const float* image1,
+                         const float* image2,
+                         int size,
                          float  x1, float  y1,
                          float *x2, float *y2) const {
-  int i;
-  Vec2f d = Vec2f::Zero();
-  for (i = 0; i < max_iterations; ++i) {
+  for (int i = 0; i < max_iterations; ++i) {
     // Compute gradient matrix and error vector.
-    Mat2f U;
-    Vec2f e;
-    ComputeTrackingEquation(image1,
-                            image2,
-                            x1, y1,
-                            *x2, *y2,
-                            half_pattern_size,
-                            lambda,
-                            &U, &e);
+    Mat2f A, B, C;
+    A = B = C = Mat2f::Zero();
+
+    Vec2f R, S, V, W;
+    R = S = V = W = Vec2f::Zero();
+
+    const float* pattern1 = &image1[(int(y1)*size+int(x1))*3];
+    const float* pattern2 = &image2[(int(*y2)*size+int(*x2))*3];
+    float u1 = x1-int(x1), v1 = y1-int(y1);
+    float u2 = *x2-int(*x2), v2 = *y2-int(*y2);
+
+    for (int y = -half_pattern_size; y <= half_pattern_size; ++y) {
+      for (int x = -half_pattern_size; x <= half_pattern_size; ++x) {
+        const float* s1 = &pattern1[(y*size+x)*3];
+        const float* s2 = &pattern2[(y*size+x)*3];
+
+    #define sample(n,i) ((s##n[       i] * (1-u##n)  + s##n[       3+i] * u##n) * (1-v##n) \
+                       + (s##n[size*3+i] * (1-u##n)  + s##n[size*3+3+i] * u##n) * v##n)
+
+        float I = sample(1,0);
+        float J = sample(2,0);
+
+        Vec2f gI, gJ;
+        gI << sample(1,1), sample(1,2);
+        gJ << sample(2,1), sample(2,2);
+
+        // Equation 15 from the paper.
+        A += gI * gI.transpose();
+        B += gI * gJ.transpose();
+        C += gJ * gJ.transpose();
+        R += I * gI;
+        S += J * gI;
+        V += I * gJ;
+        W += J * gJ;
+      }
+    }
+
+    // In the paper they show a D matrix, but it is just B transpose, so use that
+    // instead of explicitly computing D.
+    Mat2f Di = B.transpose().inverse();
+
+    // Computes U and e from the Ud = e equation (number 14) from the paper.
+    Mat2f U = A*Di*C + lambda*Di*C - 0.5*B;
+    Vec2f e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
 
     // Solve the linear system for the best update to x2 and y2.
-    if (!SolveTrackingEquation(U, e, min_determinant, &d)) {
+    float det = U.determinant();
+    if (det < min_determinant) {
       // The determinant, which indicates the trackiness of the point, is too
       // small, so fail out.
       return false;
     }
+    Vec2f d = U.lu().solve(e);
 
     // Update the position with the solved displacement.
     *x2 += d[0];

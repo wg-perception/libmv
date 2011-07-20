@@ -55,10 +55,7 @@ public:
 private:
   void MakePyramid(const FloatImage &image, int num_levels,
                    std::vector<FloatImage> *pyramid) const;
-  bool TrackPyramid(std::vector<FloatImage> pyramid1, std::vector<FloatImage> pyramid2,
-                    float x1, float y1, float *x2, float *y2) const;
-
-  bool TrackImage(const FloatImage& image1, const FloatImage& image2,
+  bool TrackImage(const float* image1, const float* image2, int size,
                   float x1, float y1, float *x2, float *y2) const;
 
   int half_pattern_size;
