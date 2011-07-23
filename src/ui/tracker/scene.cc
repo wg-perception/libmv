@@ -36,18 +36,18 @@
 #include <QKeyEvent>
 
 using libmv::vector;
-using libmv::Camera;
-using libmv::Point;
+using libmv::EuclideanCamera;
+using libmv::EuclideanPoint;
 using libmv::Vec3;
 using libmv::Mat3;
 using libmv::Mat34;
 
-void Object::position(libmv::Reconstruction* reconstruction,
+void Object::position(libmv::EuclideanReconstruction* reconstruction,
                       vec3* min, vec3* max) const {
   vec3 mean;
   if (!tracks.isEmpty()) {
     foreach (int track, tracks) {
-      Point point = *reconstruction->PointForTrack(track);
+      EuclideanPoint point = *reconstruction->PointForTrack(track);
       mean += vec3(point.X.x(), point.X.y(), point.X.z());
     }
     mean /= tracks.count();
@@ -110,11 +110,11 @@ void Scene::link() {
   }
 }
 
-void Scene::DrawPoint(const Point& point, QVector<vec3>* points) {
+void Scene::DrawPoint(const EuclideanPoint& point, QVector<vec3>* points) {
   *points << vec3(point.X.x(), point.X.y(), point.X.z());
 }
 
-void Scene::DrawCamera(const Camera& camera, QVector<vec3>* lines) {
+void Scene::DrawCamera(const EuclideanCamera& camera, QVector<vec3>* lines) {
   mat4 rotation;
   for (int i = 0 ; i < 3 ; i++) for (int j = 0 ; j < 3 ; j++) {
     rotation(i, j) = camera.R(i, j);
@@ -148,15 +148,15 @@ void Scene::DrawObject(const Object& object, QVector<vec3> *quads) {
 }
 
 void Scene::upload() {
-  vector<Point> all_points = AllPoints();
+  vector<EuclideanPoint> all_points = AllPoints();
   QVector<vec3> points;
   points.reserve(all_points.size());
   for (int i = 0; i < all_points.size(); i++) {
-    const Point &point = all_points[i];
+    const EuclideanPoint &point = all_points[i];
     DrawPoint(point, &points);
   }
   foreach (int track, selected_tracks_) {
-    Point point = *PointForTrack(track);
+    EuclideanPoint point = *PointForTrack(track);
     DrawPoint(point, &points);
     DrawPoint(point, &points);
     DrawPoint(point, &points);
@@ -164,11 +164,11 @@ void Scene::upload() {
   bundles_.primitiveType = 1;
   bundles_.upload(points.constData(), points.count(), sizeof(vec3));
 
-  vector<Camera> all_cameras = AllCameras();
+  vector<EuclideanCamera> all_cameras = AllCameras();
   QVector<vec3> lines;
   lines.reserve(all_cameras.size()*16);
   for (int i = 0; i < all_cameras.size(); i++) {
-    const Camera &camera = all_cameras[i];
+    const EuclideanCamera &camera = all_cameras[i];
     DrawCamera(camera, &lines);
   }
   if (current_image_ >= 0) {
@@ -198,7 +198,7 @@ void Scene::upload() {
 void Scene::Render(int w, int h, int image) {
   /// Compute camera projection
   mat4 transform;
-  Camera* camera = CameraForImage(image);
+  EuclideanCamera *camera = CameraForImage(image);
   if (camera) {
     Mat34 P;
     libmv::P_From_KRt(intrinsics_->K(), camera->R, camera->t, &P);
@@ -358,9 +358,9 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
                                                   1-2.0*e->y()/height(), 1));
     float min_distance = 1;
     int hit_track = -1, hit_image = -1, hit_object = -1;
-    vector<Point> points = AllPoints();
+    vector<EuclideanPoint> points = AllPoints();
     for (int i = 0; i < points.size(); i++) {
-      const Point &point = points[i];
+      const EuclideanPoint &point = points[i];
       vec3 o = vec3(point.X.x(), point.X.y(), point.X.z())-position_;
       double t = dot(d, o) / dot(d, d);
       if (t < 0) continue;
@@ -370,9 +370,9 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
         hit_track = point.track;
       }
     }
-    vector<Camera> cameras = AllCameras();
+    vector<EuclideanCamera> cameras = AllCameras();
     for (int i = 0; i < cameras.size(); i++) {
-      const Camera &camera = cameras[i];
+      const EuclideanCamera &camera = cameras[i];
       vec3 o = vec3(camera.t.x(), camera.t.y(), camera.t.z())-position_;
       double t = dot(d, o) / dot(d, d);
       if (t < 0) continue;
