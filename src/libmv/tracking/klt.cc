@@ -134,6 +134,7 @@ bool Tracker::TrackImage(const float* image1,
     Vec2f R, S, V, W;
     R = S = V = W = Vec2f::Zero();
 
+    // FIXME: don't resample source pattern
     const float* pattern1 = &image1[(int(y1)*size+int(x1))*3];
     const float* pattern2 = &image2[(int(*y2)*size+int(*x2))*3];
     float u1 = x1-int(x1), v1 = y1-int(y1);

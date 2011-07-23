@@ -298,7 +298,7 @@ void MainWindow::toggleForward(bool play) {
 void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   std::vector<libmv::Corner> corners = libmv::Detect(image.constBits(), image.width(),
-                                                     image.height(), image.bytesPerLine());
+                                                     image.height(), image.bytesPerLine(),16,64,180);
 
   // Insert features
   QVector<int> tracks;
