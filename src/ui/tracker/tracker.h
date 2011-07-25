@@ -46,6 +46,7 @@ class Tracker : public QGLWidget, public libmv::Tracks {
   Q_OBJECT
  public:
   Tracker(libmv::CameraIntrinsics* intrinsics);
+  int heightForWidth(int) const;
 
   void Load(QString path);
   void Save(QString path);

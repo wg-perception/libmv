@@ -42,12 +42,12 @@ using libmv::Vec3;
 using libmv::Mat3;
 using libmv::Mat34;
 
-void Object::position(libmv::EuclideanReconstruction* reconstruction,
+void Object::position(const libmv::EuclideanReconstruction& reconstruction,
                       vec3* min, vec3* max) const {
   vec3 mean;
   if (!tracks.isEmpty()) {
     foreach (int track, tracks) {
-      EuclideanPoint point = *reconstruction->PointForTrack(track);
+      EuclideanPoint point = *reconstruction.PointForTrack(track);
       mean += vec3(point.X.x(), point.X.y(), point.X.z());
     }
     mean /= tracks.count();
@@ -132,7 +132,7 @@ void Scene::DrawCamera(const EuclideanCamera& camera, QVector<vec3>* lines) {
 
 void Scene::DrawObject(const Object& object, QVector<vec3> *quads) {
   vec3 min, max;
-  object.position(this, &min, &max);
+  object.position(reconstruction_, &min, &max);
   const int indices[6*4] = { 0, 2, 6, 4,
                              1, 3, 7, 5,
                              0, 1, 5, 4,
@@ -148,7 +148,7 @@ void Scene::DrawObject(const Object& object, QVector<vec3> *quads) {
 }
 
 void Scene::upload() {
-  vector<EuclideanPoint> all_points = AllPoints();
+  vector<EuclideanPoint> all_points = reconstruction_.AllPoints();
   QVector<vec3> points;
   points.reserve(all_points.size());
   for (int i = 0; i < all_points.size(); i++) {
@@ -156,7 +156,7 @@ void Scene::upload() {
     DrawPoint(point, &points);
   }
   foreach (int track, selected_tracks_) {
-    EuclideanPoint point = *PointForTrack(track);
+    EuclideanPoint point = *reconstruction_.PointForTrack(track);
     DrawPoint(point, &points);
     DrawPoint(point, &points);
     DrawPoint(point, &points);
@@ -164,7 +164,7 @@ void Scene::upload() {
   bundles_.primitiveType = 1;
   bundles_.upload(points.constData(), points.count(), sizeof(vec3));
 
-  vector<EuclideanCamera> all_cameras = AllCameras();
+  vector<EuclideanCamera> all_cameras = reconstruction_.AllCameras();
   QVector<vec3> lines;
   lines.reserve(all_cameras.size()*16);
   for (int i = 0; i < all_cameras.size(); i++) {
@@ -172,9 +172,9 @@ void Scene::upload() {
     DrawCamera(camera, &lines);
   }
   if (current_image_ >= 0) {
-    DrawCamera(*CameraForImage(current_image_), &lines);
-    DrawCamera(*CameraForImage(current_image_), &lines);
-    DrawCamera(*CameraForImage(current_image_), &lines);
+    DrawCamera(*reconstruction_.CameraForImage(current_image_), &lines);
+    DrawCamera(*reconstruction_.CameraForImage(current_image_), &lines);
+    DrawCamera(*reconstruction_.CameraForImage(current_image_), &lines);
   }
   cameras_.primitiveType = 2;
   cameras_.upload(lines.constData(), lines.count(), sizeof(vec3));
@@ -198,7 +198,7 @@ void Scene::upload() {
 void Scene::Render(int w, int h, int image) {
   /// Compute camera projection
   mat4 transform;
-  EuclideanCamera *camera = CameraForImage(image);
+  EuclideanCamera *camera = reconstruction_.CameraForImage(image);
   if (camera) {
     Mat34 P;
     libmv::P_From_KRt(intrinsics_->K(), camera->R, camera->t, &P);
@@ -358,7 +358,7 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
                                                   1-2.0*e->y()/height(), 1));
     float min_distance = 1;
     int hit_track = -1, hit_image = -1, hit_object = -1;
-    vector<EuclideanPoint> points = AllPoints();
+    vector<EuclideanPoint> points = reconstruction_.AllPoints();
     for (int i = 0; i < points.size(); i++) {
       const EuclideanPoint &point = points[i];
       vec3 o = vec3(point.X.x(), point.X.y(), point.X.z())-position_;
@@ -370,7 +370,7 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
         hit_track = point.track;
       }
     }
-    vector<EuclideanCamera> cameras = AllCameras();
+    vector<EuclideanCamera> cameras = reconstruction_.AllCameras();
     for (int i = 0; i < cameras.size(); i++) {
       const EuclideanCamera &camera = cameras[i];
       vec3 o = vec3(camera.t.x(), camera.t.y(), camera.t.z())-position_;
@@ -387,7 +387,7 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
     int i = 0;
     foreach (Object object, objects_) {
       vec3 min, max;
-      object.position(this, &min, &max);
+      object.position(reconstruction_, &min, &max);
       float z = 0;
       if ( intersect(min, max, position_, d, &z) && z < minZ ) {
         minZ = z;

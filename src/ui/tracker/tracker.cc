@@ -68,9 +68,15 @@ bool CopyRegionFromQImage(QImage image,
 }
 
 Tracker::Tracker(libmv::CameraIntrinsics* intrinsics)
-  : QGLWidget(QGLFormat(QGL::SampleBuffers)),
-    intrinsics_(intrinsics), scene_(0),
-    current_image_(0), active_track_(-1), dragged_(false) {}
+  : intrinsics_(intrinsics), scene_(0),
+    current_image_(0), active_track_(-1), dragged_(false) {
+  QSizePolicy policy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+  policy.setHeightForWidth(true);
+  setSizePolicy(policy);
+}
+int Tracker::heightForWidth ( int w ) const {
+  return w*intrinsics_->image_height()/intrinsics_->image_width();
+}
 
 void Tracker::Load(QString path) {
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
@@ -225,7 +231,6 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   image_shader.bind();
   image_shader["image"] = 0;
   image_.bind(0);
-  float width = 0, height = 0;
   if (image >= 0 && track >= 0) {
     int W = image_.width, H = image_.height;
     Marker marker = MarkerInImageForTrack(image, track);
@@ -234,6 +239,7 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
     vec2 max = (center+kHalfSearchSize) / vec2(W, H);
     glQuad(vec4(-1, 1, min.x, min.y), vec4(1, -1, max.x, max.y));
   } else {
+    float width = 0, height = 0;
     int W = intrinsics_->image_width(), H = intrinsics_->image_height();
     if (W*h > H*w) {
       width = 1;
@@ -243,39 +249,29 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
       width = static_cast<float>(W*h)/(H*w);
     }
     glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
-    if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_image_);
-  }
+    //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_image_);
 
-  static GLShader marker_shader;
-  if (!marker_shader.id) {
-    marker_shader.compile(glsl("vertex transform marker"),
-                          glsl("fragment transform marker"));
-  }
-  marker_shader.bind();
-  mat4 transform;
-  if (image >= 0 && track >= 0) {
-    Marker marker = MarkerInImageForTrack(image, track);
-    vec2 center(marker.x, marker.y);
-    vec2 min = center-kHalfSearchSize;
-    vec2 max = center+kHalfSearchSize;
-    transform.translate(vec3(-1, 1, 0));
-    transform.scale(vec3(2.0/(max-min).x, -2.0/(max-min).y, 1));
-    transform.translate(vec3(-min.x, -min.y, 0));
-  } else {
-    int W = image_.width, H = image_.height;
+    static GLShader marker_shader;
+    if (!marker_shader.id) {
+      marker_shader.compile(glsl("vertex transform marker"),
+                            glsl("fragment transform marker"));
+    }
+    W = image_.width, H = image_.height;
+    mat4 transform;
     transform.scale(vec3(2*width/W, -2*height/H, 1));
     transform.translate(vec3(-W/2, -H/2, 0));
     transform_ = transform;
+    marker_shader.bind();
+    marker_shader["transform"] = transform;
+    markers_.bind();
+    markers_.bindAttribute(&marker_shader, "position", 2);
+    glAdditiveBlendMode();
+    markers_.draw();
   }
-  marker_shader["transform"] = transform;
-  markers_.bind();
-  markers_.bindAttribute(&marker_shader, "position", 2);
-  glAdditiveBlendMode();
-  markers_.draw();
 }
 
 void Tracker::paintGL() {
-  glBindWindow(0, 0, width(), height(),  true);
+  glBindWindow(0, 0, width(), height(), true);
   Render(0, 0, width(), height());
 }
 

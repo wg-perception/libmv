@@ -104,7 +104,7 @@ UncalibratedReconstructor::UncalibratedReconstructor(int width,
   getchar();
   Mat3 K = camera_intrinsics_.K();
   camera_intrinsics_.SetK(K * NormalizerMatrix(width, height).inverse());
-  camera_intrinsics_.set_image_size(width, height);
+  camera_intrinsics_.SetImageSize(width, height);
   LG << "Got K matrix: " << camera_intrinsics_.K();
 
   LG << "Invert the intrinsics to get calibrated tracks.";

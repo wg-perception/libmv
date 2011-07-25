@@ -34,6 +34,7 @@ class Zoom : public QGLWidget {
   Q_OBJECT
  public:
   Zoom(Tracker *tracker);
+  QSize sizeHint() const;
   void SetImage(int image);
 
  public slots:

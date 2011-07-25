@@ -35,11 +35,11 @@
 struct Object {
   mat4 transform;
   QVector<int> tracks;
-  void position(libmv::EuclideanReconstruction* reconstruction,
+  void position(const libmv::EuclideanReconstruction& reconstruction,
                 vec3* min, vec3* max) const;
 };
 
-class Scene : public QGLWidget, public libmv::EuclideanReconstruction {
+class Scene : public QGLWidget {
   Q_OBJECT
  public:
   Scene(libmv::CameraIntrinsics* intrinsics, QGLWidget *shareWidget = 0);
@@ -47,6 +47,9 @@ class Scene : public QGLWidget, public libmv::EuclideanReconstruction {
   void Load(QString path);
   void SetImage(int image);
   void Render(int w, int h, int image = -1);
+  void SetReconstruction(const libmv::EuclideanReconstruction& reconstruction) {
+    reconstruction_ = reconstruction;
+  }
 
  public slots:
   void select(QVector<int>);
@@ -74,6 +77,7 @@ class Scene : public QGLWidget, public libmv::EuclideanReconstruction {
   void DrawObject(const Object& object, QVector<vec3> *quads);
 
   libmv::CameraIntrinsics* intrinsics_;
+  libmv::EuclideanReconstruction reconstruction_;
   QVector<Object> objects_;
   GLBuffer bundles_;
   GLBuffer cameras_;

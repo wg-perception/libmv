@@ -70,7 +70,6 @@ void MainWindow::open() {
   open(dialog.selectedFiles());
 }
 
-<<<<<<< HEAD
 void MainWindow::open(QStringList files) {
 // Clip
   if (files.isEmpty()) return;
@@ -92,17 +91,6 @@ void MainWindow::open(QStringList files) {
 
 // Tracker
   tracker_ = new Tracker(calibration_);
-=======
-MainWindow::MainWindow()
-  : clip_(new Clip(this)),
-    tracks_(new libmv::Tracks()),
-    intrinsics_(new libmv::CameraIntrinsics()),
-    reconstruction_(new libmv::EuclideanReconstruction()),
-    scene_(new Scene(intrinsics_, reconstruction_)),
-    tracker_(new Tracker(tracks_, scene_, scene_)),
-    current_frame_(-1) {
-  setWindowTitle("Tracker");
->>>>>>> c4c67db84cc6e972be19c3e0f495477a1419200e
   setCentralWidget(tracker_);
   connect(calibration_, SIGNAL(settingsChanged()), tracker_, SLOT(update()));
 
@@ -117,6 +105,7 @@ MainWindow::MainWindow()
   zoom_ = new Zoom(tracker_);
   QDockWidget* zoom_dock = new QDockWidget("Zoom Grid");
   zoom_dock->setObjectName("zoomDock");
+  zoom_dock->setTitleBarWidget(new QWidget());
   addDockWidget(Qt::TopDockWidgetArea, zoom_dock);
   zoom_dock->setWidget(zoom_);
   zoom_dock->toggleViewAction()->setIcon(QIcon(":/view-zoom"));
@@ -209,7 +198,7 @@ MainWindow::MainWindow()
   toolbar_->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
   //tracker_->Load(path_);
-  scene_->Load(path_);
+  //scene_->Load(path_);
 
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
@@ -328,14 +317,9 @@ void MainWindow::detect() {
 
 void MainWindow::solve() {
   // Invert the camera intrinsics.
-<<<<<<< HEAD
   // TODO(MatthiasF): handle varying focal lengths
   // TODO(MatthiasF): -> reconstruction
-  libmv::vector<libmv::Marker> markers = tracker_->AllMarkers();
-=======
-  /*
-  libmv::vector<libmv::Marker> markers = tracks_->AllMarkers();
->>>>>>> c4c67db84cc6e972be19c3e0f495477a1419200e
+  /*libmv::vector<libmv::Marker> markers = tracker_->AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
     calibration_->InvertIntrinsics(markers[i].x,
                                   markers[i].y,
@@ -348,25 +332,15 @@ void MainWindow::solve() {
   libmv::ReconstructTwoFrames(keyframe_markers, scene_);
   libmv::Bundle(normalized_tracks, scene_);
   libmv::CompleteReconstruction(normalized_tracks, scene_);
-  libmv::ReprojectionError(*tracker_, *scene_, *calibration_);
+  libmv::EuclideanReprojectionError(*tracker_, *scene_, *calibration_);*/
 
-<<<<<<< HEAD
-=======
-  libmv::ReconstructTwoFrames(keyframe_markers, reconstruction_);
-  libmv::Bundle(normalized_tracks, reconstruction_);
-  libmv::CompleteReconstruction(normalized_tracks, reconstruction_);
-  libmv::ReprojectionError(*tracks_, *reconstruction_, *intrinsics_);
-  */
   QSize size = clip_->Image(0).size();
   libmv::UncalibratedReconstructor reconstructor(size.width(),
                                                  size.height(),
-                                                 keyframes_[0],
-                                                 keyframes_[1],
-                                                 *tracks_);
-  *reconstruction_ = reconstructor.euclidean_reconstruction();
-
-  libmv::EuclideanReprojectionError(*tracks_, *reconstruction_, *intrinsics_);
->>>>>>> c4c67db84cc6e972be19c3e0f495477a1419200e
+                                                 0,
+                                                 clip_->Count()-1,
+                                                 *tracker_);
+  scene_->SetReconstruction( reconstructor.euclidean_reconstruction() );
   scene_->upload();
 }
 

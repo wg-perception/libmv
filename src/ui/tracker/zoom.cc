@@ -26,8 +26,14 @@
 #include "ui/tracker/zoom.h"
 #include "ui/tracker/gl.h"
 
-Zoom::Zoom(Tracker *tracker) : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, tracker),
-    tracker_(tracker) {}
+Zoom::Zoom(Tracker *tracker)
+  : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, tracker), tracker_(tracker) {
+  setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+}
+
+QSize Zoom::sizeHint() const {
+  return QSize(width(),64*(tracks_.count()/(width()/64)));
+}
 
 void Zoom::SetImage(int image) {
   current_image_ = image;
@@ -36,26 +42,22 @@ void Zoom::SetImage(int image) {
 
 void Zoom::select(QVector<int> tracks) {
   tracks_ = tracks;
-  update();
+  updateGeometry();
 }
-
+#include <QDebug>
 void Zoom::paintGL() {
   glBindWindow(0, 0, width(), height(), true);
   if (tracks_.count() == 0) return;
   // FIXME: There are probably better way to do this.
-  // Initial estimate using available area
-  int size = ceil(sqrt(width()*height()/tracks_.count()));
-  int columns = width()/size, rows = height()/size;
-  // Tweak size to fit to widget
-  if (columns*rows < tracks_.count()) {
-    size = qMax( width()/(columns+1), height()/(rows+1) );
-    columns = width()/size, rows = height()/size;
-    if (columns*rows < tracks_.count()) {
-      size = qMin( width()/(columns+1), height()/(rows+1) );
-      columns = width()/size, rows = height()/size;
-      Q_ASSERT(columns*rows >= tracks_.count());
-    }
+  // Maximal estimate using available area
+  int size = sqrt(width()*height()/tracks_.count());
+  int columns = width()/size;
+  for(int rows = height()/size; columns*rows < tracks_.count();) {
+    size--;
+    columns = width()/size;
+    rows = height()/size;
   }
+  qDebug()<<size;
   for (int i = 0; i < tracks_.count(); i++) {
     int y = i/columns, x = i%columns;
     tracker_->Render(x*size, y*size, size, size, current_image_, tracks_[i]);
