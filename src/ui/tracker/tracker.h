@@ -51,6 +51,7 @@ class Tracker : public QGLWidget, public libmv::Tracks {
   void Load(QString path);
   void Save(QString path);
   void SetImage(int id, QImage image);
+  void SetUndistort(bool undistort);
   void SetOverlay(Scene* scene);
   void Track(int previous, int next, QImage old_image, QImage new_image);
   void Render(int x, int y, int w, int h, int image=-1, int track=-1);
@@ -78,6 +79,7 @@ class Tracker : public QGLWidget, public libmv::Tracks {
   int last_frame;
   QMap<int,libmv::Tracker> trackers;
 
+  bool undistort_;
   GLTexture image_;
   mat4 transform_;
   GLBuffer markers_;

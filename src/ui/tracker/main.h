@@ -55,6 +55,7 @@ class MainWindow : public QMainWindow {
   void toggleTracking(bool);
   void toggleBackward(bool);
   void toggleForward(bool);
+  void toggleUndistort(bool);
   void detect();
   void solve();
 

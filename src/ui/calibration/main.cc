@@ -141,6 +141,10 @@ MainWindow::MainWindow() : current(0) {
   side.addRow("K2",&radialDistortion[1]);
   radialDistortion[2].setTextInteractionFlags(Qt::TextSelectableByMouse);
   side.addRow("K3",&radialDistortion[2]);
+  tangentialDistortion[0].setTextInteractionFlags(Qt::TextSelectableByMouse);
+  side.addRow("P1",&tangentialDistortion[0]);
+  tangentialDistortion[1].setTextInteractionFlags(Qt::TextSelectableByMouse);
+  side.addRow("P2",&tangentialDistortion[1]);
 
   hbox.addWidget(&view);
   setLayout(&hbox);
@@ -161,6 +165,7 @@ void MainWindow::open(QStringList files) {
   list.clear();
   images.clear();
   current=0;
+  path = files.count() == 1 ? files.first() : QFileInfo(files.first()).dir().path();
   foreach(QString path, files) {
     if(!QFileInfo(path).exists()) continue;
 
@@ -322,7 +327,7 @@ void MainWindow::process() {
     }
 
     CvMat camera_matrix = cvMat( 3, 3, CV_64F, camera );
-    CvMat distortion_coefficients = cvMat( 1, 4, CV_64F, coefficients );
+    CvMat distortion_coefficients = cvMat( 1, 5, CV_64F, coefficients );
     cvSetZero( &camera_matrix );
     cvSetZero( &distortion_coefficients );
 
@@ -356,16 +361,21 @@ void MainWindow::process() {
     principalPoint.setText(QString("%1 x %2").arg(camera[2]).arg(camera[5]));
     radialDistortion[0].setText(QString::number(coefficients[0]));
     radialDistortion[1].setText(QString::number(coefficients[1]));
-    radialDistortion[2].setText(QString::number(coefficients[2]));
+    radialDistortion[2].setText(QString::number(coefficients[4]));
+    tangentialDistortion[0].setText(QString::number(coefficients[2]));
+    tangentialDistortion[1].setText(QString::number(coefficients[3]));
 
-    QFile target(QDir(source.text()).filePath("camera.xml"));
-    target.open(QFile::WriteOnly | QFile::Truncate);
-    target.write(QString("<lens FocalLengthX='%1' FocalLengthY='%2'"
+    QFile file(path + (QFileInfo(path).isDir()?"/":".") + "camera.xml");
+    if( file.open(QFile::WriteOnly | QFile::Truncate) ) {
+      file.write(QString("<lens FocalLengthX='%1' FocalLengthY='%2'"
                          " PrincipalPointX='%3' PrincipalPointY='%4'"
-                         " k1='%5' k2='%6' k3='%7' />").arg(camera[0])
-                 .arg(camera[4]).arg(camera[2]).arg(camera[5])
-                 .arg(coefficients[0]).arg(coefficients[1]).arg(coefficients[2])
+                         " k1='%5' k2='%6' k3='%7' p1='%8' p2='%9'/>")
+                 .arg(camera[0]).arg(camera[4])
+                 .arg(camera[2]).arg(camera[5])
+                 .arg(coefficients[0]).arg(coefficients[1]).arg(coefficients[4])
+                 .arg(coefficients[2]).arg(coefficients[3])
                  .toAscii());
+    }
     correct.setEnabled(true);
     return;
   }

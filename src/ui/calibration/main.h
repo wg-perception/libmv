@@ -96,15 +96,17 @@ class MainWindow : public QWidget {
   QLabel focalLength;
   QLabel principalPoint;
   QLabel radialDistortion[3];
+  QLabel tangentialDistortion[2];
   View view;
 
+  QString path;
   QList<Image> images;
   Image preview;
   int current;
   bool play;
 
   double camera[9];
-  double coefficients[4];
+  double coefficients[5];
 };
 #endif
 

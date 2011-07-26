@@ -40,16 +40,19 @@ struct Parameter {
 Calibration::Calibration(QString path, QSize size) : path_(path) {
   setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
 
-  const int kCount = 8;
+  const int kCount = 11;
   const Parameter parameters[kCount] = {
-    {"ImageWidth",      "Real Image Width",      "",   0,  size.width()*2,  size.width()    },
-    {"ImageHeight",     "Real Image Height",     "",   0,  size.height()*2, size.height()   },
-    {"FocalLengthX",    "Focal Length (X)",      "px", 0,  size.width()*4,  size.width()*2  },
-    {"FocalLengthY",    "Focal Length (Y)",      "px", 0,  size.width()*4,  size.width()*2  },
-    {"PrincipalPointX", "Principal Point (X)",   "px", 0,  size.width(),    size.width()/2  },
-    {"PrincipalPointY", "Principal Point (Y)",   "px", 0,  size.height(),   size.height()/2 },
-    {"k1",              "1st Radial Distortion", "",  -1,  1,               0               },
-    {"k2",              "2nd Radial Distortion", "",  -1,  1,               0               },
+    {"ImageWidth",      "Real Image Width",          "px", 0,  size.width()*2,  size.width()    },
+    {"ImageHeight",     "Real Image Height",         "px", 0,  size.height()*2, size.height()   },
+    {"FocalLengthX",    "Focal Length (X)",          "px", 0,  size.width()*4,  size.width()*2  },
+    {"FocalLengthY",    "Focal Length (Y)",          "px", 0,  size.width()*4,  size.width()*2  },
+    {"PrincipalPointX", "Principal Point (X)",       "px", 0,  size.width(),    size.width()/2  },
+    {"PrincipalPointY", "Principal Point (Y)",       "px", 0,  size.height(),   size.height()/2 },
+    {"k1",              "1st Radial Distortion",     "",  -1,  1,               0               },
+    {"k2",              "2nd Radial Distortion",     "",  -1,  1,               0               },
+    {"k3",              "3rd Radial Distortion",     "",  -1,  1,               0               },
+    {"p1",              "1st Tangential Distortion", "",  -1,  1,               0               },
+    {"p2",              "2nd Tangential Distortion", "",  -1,  1,               0               },
   };
   for (int i = 0; i < kCount; i++) {
     const Parameter& parameter = parameters[i];
@@ -63,7 +66,6 @@ Calibration::Calibration(QString path, QSize size) : path_(path) {
   }
   setLayout(&layout_);
 
-  //TODO: read XML calibration profile format
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "camera.xml");
   if( file.open(QFile::ReadOnly) ) {
     QXmlStreamReader xml(&file);
@@ -88,18 +90,20 @@ void Calibration::updateSettings() {
   SetImageSize(Value(0),Value(1));
   SetFocalLength(Value(2),Value(3));
   SetPrincipalPoint(Value(4),Value(5));
-  SetRadialDistortion(Value(6), Value(7));
+  SetRadialDistortion(Value(6), Value(7), Value(8));
+  SetTangentialDistortion(Value(9),Value(10));
 
   QFile file(path_ + (QFileInfo(path_).isDir()?"/":".") + "camera.xml");
   if( file.open(QFile::WriteOnly | QFile::Truncate) ) {
     file.write(QString("<lens ImageWidth='%1' ImageHeight='%2' "
                        "FocalLengthX='%3' FocalLengthY='%4' "
                        "PrincipalPointX='%5' PrincipalPointY='%6' "
-                       "k1='%7' k2='%8' />")
+                       "k1='%7' k2='%8' k3='%9' p1='%10' p2='%11' />")
                .arg(Value(0)).arg(Value(1))
                .arg(Value(2)).arg(Value(3))
                .arg(Value(4)).arg(Value(5))
-               .arg(Value(6)).arg(Value(7)).toAscii());
+               .arg(Value(6)).arg(Value(7))
+               .arg(Value(8)).arg(Value(9)).arg(Value(10)) .toAscii());
   }
 
   emit settingsChanged();

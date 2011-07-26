@@ -46,7 +46,7 @@ class Calibration : public QWidget, public libmv::CameraIntrinsics {
  private:
   QString path_;
   QFormLayout layout_;
-  QDoubleSpinBox spinbox_[8];
+  QDoubleSpinBox spinbox_[11];
 
 };
 

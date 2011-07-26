@@ -102,9 +102,50 @@ void Tracker::Save(QString path) {
 
 void Tracker::SetImage(int id, QImage image) {
   current_image_ = id;
-  image_.upload(image);
+  if(undistort_) {
+    //TODO: compute lookup grid once
+    //TODO: interpolate sparse grid
+    //TODO: float32 -> fixed point
+    //TODO -> libmv::CameraIntrinsics
+    int width = image.width(), height = image.height();
+    float* lookup = new float[2*width*height];
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        double image_x, image_y;
+        intrinsics_->ApplyIntrinsics((x-intrinsics_->principal_point_x())/intrinsics_->focal_length_x(),
+                                     (y-intrinsics_->principal_point_y())/intrinsics_->focal_length_y(),
+                                     &image_x,&image_y);
+        lookup[(y*width+x)*2+0] = image_x;
+        lookup[(y*width+x)*2+1] = image_y;
+      }
+    }
+    QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
+    int stride = correct.bytesPerLine();
+    uchar* dst = correct.bits();
+    const uchar* src = image.constBits();
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        float image_x = lookup[(y*width+x)*2+0];
+        float image_y = lookup[(y*width+x)*2+1];
+        int ix = int(image_x), iy = int(image_y);
+        if( ix < 0 || iy < 0 || ix >= width || iy > height ) {
+          dst[y*stride+x] = 0;
+          continue;
+        }
+        // TODO: bilinear
+        dst[y*stride+x] = src[iy*stride+ix];
+      }
+    }
+    image_.upload(correct);
+  } else {
+    image_.upload(image);
+  }
   upload();
   emit trackChanged(selected_tracks_);
+}
+
+void Tracker::SetUndistort(bool undistort) {
+  undistort_ = undistort;
 }
 
 void Tracker::SetOverlay(Scene* scene) {

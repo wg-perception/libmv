@@ -10,14 +10,12 @@ vertex {
     gl_Position = transform * position;
   }
   distort {
-    // TODO(MatthiasF): not sure if this is correct
-    // low order distortion should be enough for preview
-    // u = d + (d − center)(K1*r2)
     vec2 u = gl_Position.xy;
     uniform vec2 center;
     uniform float K1;
-    float r2 = length(u-center);
-    gl_Position.xy = (K1*r2*center + u) / (K1*r2+1);
+    float sqr(vec2 v) { return v*v; }
+    float r2 = sqr(u-center);
+    gl_Position.xy = u + (u - center)*(K1*r2);
   }
   bundle {
     gl_PointSize = 5;

@@ -83,6 +83,7 @@ void MainWindow::open(QStringList files) {
   calibration_ = new Calibration(path_, clip_->Size());
   QDockWidget* calibration_dock = new QDockWidget("Calibration View");
   calibration_dock->setObjectName("calibrationDock");
+  calibration_dock->setTitleBarWidget(new QWidget());
   addDockWidget(Qt::TopDockWidgetArea, calibration_dock);
   calibration_dock->setWidget(calibration_);
   calibration_dock->toggleViewAction()->setIcon(QIcon(":/view-calibration"));
@@ -117,6 +118,7 @@ void MainWindow::open(QStringList files) {
   scene_ = new Scene(calibration_,tracker_);
   QDockWidget* scene_dock = new QDockWidget("Scene View");
   scene_dock->setObjectName("sceneDock");
+  scene_dock->setTitleBarWidget(new QWidget());
   addDockWidget(Qt::BottomDockWidgetArea, scene_dock);
   scene_dock->setWidget(scene_);
   scene_dock->toggleViewAction()->setIcon(QIcon(":/view-scene"));
@@ -132,6 +134,10 @@ void MainWindow::open(QStringList files) {
   toolbar_->addSeparator();
 
   toolbar_->addAction(QIcon(":/detect"), "Detect features",this, SLOT(detect()));
+
+  QAction* undistort_action_ = toolbar_->addAction(QIcon(":/undistort"), "Undistort footage");
+  undistort_action_->setCheckable(true);
+  connect(undistort_action_, SIGNAL(triggered(bool)), SLOT(toggleUndistort(bool)));
 
   QToolButton* delete_button = new QToolButton();
   toolbar_->addWidget(delete_button);
@@ -151,7 +157,6 @@ void MainWindow::open(QStringList files) {
 
   track_action_ = toolbar_->addAction(QIcon(":/record"), "Track selected markers");
   track_action_->setCheckable(true);
-  track_action_->setChecked(true);
   connect(track_action_, SIGNAL(triggered(bool)), SLOT(toggleTracking(bool)));
   connect(tracker_action_, SIGNAL(triggered(bool)),
           track_action_, SLOT(setVisible(bool)));
@@ -200,6 +205,12 @@ void MainWindow::open(QStringList files) {
   //tracker_->Load(path_);
   //scene_->Load(path_);
 
+  //detect();
+  //track_action_->setChecked(true);
+
+  tracker_->SetUndistort(true);
+  undistort_action_->setChecked(true);
+
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
   int frame = 0; //QSettings().value("currentFrame", 0).toInt();
@@ -208,8 +219,6 @@ void MainWindow::open(QStringList files) {
   } else {
     seek(0);
   }
-
-  detect();
 
   restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
@@ -293,6 +302,11 @@ void MainWindow::toggleForward(bool play) {
   } else {
     stop();
   }
+}
+
+void MainWindow::toggleUndistort(bool undistort) {
+  tracker_->SetUndistort( undistort );
+  tracker_->SetImage(current_frame_,clip_->Image(current_frame_));
 }
 
 #if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))

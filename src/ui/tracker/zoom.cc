@@ -28,7 +28,7 @@
 
 Zoom::Zoom(Tracker *tracker)
   : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, tracker), tracker_(tracker) {
-  setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+  setSizePolicy(QSizePolicy::Preferred,QSizePolicy::MinimumExpanding);
 }
 
 QSize Zoom::sizeHint() const {
@@ -44,7 +44,7 @@ void Zoom::select(QVector<int> tracks) {
   tracks_ = tracks;
   updateGeometry();
 }
-#include <QDebug>
+
 void Zoom::paintGL() {
   glBindWindow(0, 0, width(), height(), true);
   if (tracks_.count() == 0) return;
@@ -57,7 +57,6 @@ void Zoom::paintGL() {
     columns = width()/size;
     rows = height()/size;
   }
-  qDebug()<<size;
   for (int i = 0; i < tracks_.count(); i++) {
     int y = i/columns, x = i%columns;
     tracker_->Render(x*size, y*size, size, size, current_image_, tracks_[i]);

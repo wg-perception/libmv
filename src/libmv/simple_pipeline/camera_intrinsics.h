@@ -71,6 +71,11 @@ class CameraIntrinsics {
     k3_ = k3;
   }
 
+  void SetTangentialDistortion(double p1, double p2) {
+    p1_ = p1;
+    p2_ = p2;
+  }
+
   /*!
       Apply camera intrinsics to the normalized point to get image coordinates.
 

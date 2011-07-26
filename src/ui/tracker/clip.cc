@@ -151,7 +151,7 @@ void Clip::DecodeVideo(QString path) {
       break;
     }
   }
-  QProgressDialog progress("Caching "+path,"Abort",0,video->frame_number);
+  QProgressDialog progress("Caching "+path+"("+QString::number(video->frame_number)+")","Abort",0,video->frame_number);
   progress.setWindowModality(Qt::WindowModal);
   int i=0;
   for (AVPacket packet; av_read_frame(file, &packet) >= 0; ) {
