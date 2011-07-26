@@ -21,7 +21,8 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 #define LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 
-#include "libmv/numeric/numeric.h"
+#include <Eigen/Core>
+typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
 
@@ -95,7 +96,22 @@ class CameraIntrinsics {
   void InvertIntrinsics(double image_x, double image_y,
                         double *normalized_x, double *normalized_y) const;
 
+  template<typename T,int N>
+  void Warp(const T* src, T* dst, int x0, int y0,
+                              int width, int height);
+
+  void Distort(const float* src, float* dst, int x, int y,
+               int width, int height, int channels);
+  void Distort(const unsigned char* src, unsigned char* dst, int x, int y,
+               int width, int height, int channels);
+  void Undistort(const float* src, float* dst, int x, int y,
+                 int width, int height, int channels);
+  void Undistort(const unsigned char* src, unsigned char* dst, int x, int y,
+                 int width, int height, int channels);
+
  private:
+  void ComputeLookupGrid();
+
   // The traditional intrinsics matrix from x = K[R|t]X.
   Mat3 K_;
 
@@ -109,6 +125,8 @@ class CameraIntrinsics {
   // the normalized coordinates before the focal length, which makes them
   // independent of image size.
   double k1_, k2_, k3_, p1_, p2_;
+
+  float* grid_;
 };
 
 }  // namespace libmv

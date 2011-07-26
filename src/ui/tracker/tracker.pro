@@ -1,13 +1,13 @@
 QT += opengl
-HEADERS += clip.h  calibration.h        tracker.h  zoom.h  scene.h  main.h ../../libmv/tracking/klt.h
-SOURCES += clip.cc calibration.cc gl.cc tracker.cc zoom.cc scene.cc main.cc ../../libmv/tracking/klt.cc
+HEADERS += clip.h  calibration.h        tracker.h  zoom.h  scene.h  main.h
+SOURCES += clip.cc calibration.cc gl.cc tracker.cc zoom.cc scene.cc main.cc ../../libmv/simple_pipeline/camera_intrinsics.cc
 OTHER_FILES += shader.glsl
 RESOURCES = tracker.qrc
 INCLUDEPATH += ../.. ../../third_party/glog/src
 INCLUDEPATH += /usr/include/eigen3/
 #LIBS += -L../../../bin-dbg/lib/ -lsimple_pipeline_d -limage_d -ltracking_d -lmultiview_d -lglog
 #LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -limage -ltracking -lmultiview
-LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -limage -lmultiview
+LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -limage -ltracking -lmultiview
 QMAKE_CXXFLAGS_RELEASE += -Ofast -march=native
 
 win32:CONFIG+=glew
