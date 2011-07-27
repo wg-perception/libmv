@@ -27,6 +27,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QXmlStreamReader>
+#include <QFormLayout>
+#include <QDoubleSpinBox>
 
 struct Parameter {
   const char* id;
@@ -37,7 +39,7 @@ struct Parameter {
   double value;
 };
 
-Calibration::Calibration(QString path, QSize size) : path_(path) {
+Calibration::Calibration(QString path, QSize size) : CameraIntrinsics(), path_(path) {
   setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
 
   const int kCount = 11;
@@ -54,17 +56,17 @@ Calibration::Calibration(QString path, QSize size) : path_(path) {
     {"p1",              "1st Tangential Distortion", "",  -1,  1,               0               },
     {"p2",              "2nd Tangential Distortion", "",  -1,  1,               0               },
   };
+  QFormLayout* layout = new QFormLayout(this);
   for (int i = 0; i < kCount; i++) {
     const Parameter& parameter = parameters[i];
-    QDoubleSpinBox& spinbox = spinbox_[i];
-    spinbox.setSuffix(parameter.suffix);
-    spinbox.setRange(parameter.min, parameter.max);
-    spinbox.setDecimals(3);
-    spinbox.setValue(parameter.value);
-    layout_.addRow(parameter.name, &spinbox);
-    connect(&spinbox,SIGNAL(valueChanged(double)),SLOT(updateSettings()));
+    QDoubleSpinBox* spinbox = spinbox_[i] = new QDoubleSpinBox(this);
+    spinbox->setSuffix(parameter.suffix);
+    spinbox->setRange(parameter.min, parameter.max);
+    spinbox->setDecimals(3);
+    spinbox->setValue(parameter.value);
+    layout->addRow(parameter.name, spinbox);
+    connect(spinbox,SIGNAL(valueChanged(double)),SLOT(updateSettings()));
   }
-  setLayout(&layout_);
 
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "camera.xml");
   if( file.open(QFile::ReadOnly) ) {
@@ -76,7 +78,7 @@ Calibration::Calibration(QString path, QSize size) : path_(path) {
         for (int i = 0; i < kCount; i++) {
           const Parameter& parameter = parameters[i];
           if(lens.hasAttribute(parameter.id)) {
-            spinbox_[i].setValue(lens.value(parameter.id).toString().toFloat());
+            spinbox_[i]->setValue(lens.value(parameter.id).toString().toFloat());
           }
         }
       }
@@ -85,6 +87,8 @@ Calibration::Calibration(QString path, QSize size) : path_(path) {
 
   updateSettings();
 }
+
+double Calibration::Value(int i) { return spinbox_[i]->value(); }
 
 void Calibration::updateSettings() {
   SetImageSize(Value(0),Value(1));

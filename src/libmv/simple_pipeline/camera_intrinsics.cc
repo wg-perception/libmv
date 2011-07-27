@@ -23,6 +23,8 @@
 
 namespace libmv {
 
+struct Offset { char ix,iy; unsigned char fx,fy; };
+
 CameraIntrinsics::CameraIntrinsics()
     : K_(Mat3::Identity()),
       image_width_(0),
@@ -32,7 +34,13 @@ CameraIntrinsics::CameraIntrinsics()
       k3_(0),
       p1_(0),
       p2_(0),
-      grid_(0) {}
+      distort_(0),
+      undistort_(0) {}
+
+CameraIntrinsics::~CameraIntrinsics() {
+  if(distort_) delete[] distort_;
+  if(undistort_) delete[] undistort_;
+}
 
 void CameraIntrinsics::ApplyIntrinsics(double normalized_x,
                                        double normalized_y,
@@ -98,57 +106,105 @@ void CameraIntrinsics::InvertIntrinsics(double image_x,
   *normalized_y = normalized(1);
 }
 
-void CameraIntrinsics::ComputeLookupGrid() {
-  //TODO: interpolate sparse grid
-  //TODO: float32 -> fixed point
-  if(grid_) return;
-  grid_ = new float[2*image_width()*image_height()];
-  for (int y = 0; y < image_height(); y++) {
-    for (int x = 0; x < image_width(); x++) {
+template<typename WarpFunction>
+void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
       double image_x, image_y;
-      ApplyIntrinsics((x-principal_point_x())/focal_length_x(),
-                      (y-principal_point_y())/focal_length_y(),
-                      &image_x,&image_y);
-      grid_[(y*image_width()+x)*2+0] = image_x;
-      grid_[(y*image_width()+x)*2+1] = image_y;
+      WarpFunction(this,(x-principal_point_x())/focal_length_x(),
+                   (y-principal_point_y())/focal_length_y(),
+                   &image_x,&image_y);
+      int ix = int(image_x), iy = int(image_y);
+      int fx = round((image_x-ix)*256), fy = round((image_y-iy)*256);
+      if(fx == 256) { fx=0; ix++; }
+      if(fy == 256) { fy=0; iy++; }
+      if( ix < 0 || iy < 0 || ix >= width || iy >= height ) {
+        //TODO: clip to edge
+        image_x = x;
+        image_y = y;
+      }
+      //assert( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 );
+      Offset offset = { ix-x, iy-y, fx, fy };
+      grid[y*width+x] = offset;
     }
   }
 }
 
 template<typename T,int N>
-void CameraIntrinsics::Warp(const T* src, T* dst, int x0, int y0,
-                                   int width, int height) {
-  for (int y = x0; y < height; y++) {
-    for (int x = y0; x < width; x++) {
-      float image_x = grid_[(y*width+x)*2+0];
-      float image_y = grid_[(y*width+x)*2+1];
-      int ix = int(image_x), iy = int(image_y);
-      if( ix < 0 || iy < 0 || ix >= width || iy > height ) {
-        dst[y*width+x] = 0;
-        continue;
+static void Warp(const Offset* grid, const T* src, T* dst,
+                 int width, int height) {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      Offset offset = grid[y*width+x];
+      const T* s = &src[((y+offset.iy)*width+(x+offset.ix))*N];
+      for (int i = 0; i < N; i++) {
+        dst[(y*width+x)*N+i] = ((s[        i] * (256-offset.fx) + s[        N+i] * offset.fx) * (256-offset.fy)
+                               +(s[width*N+i] * (256-offset.fx) + s[width*N+N+i] * offset.fx) * offset.fy) / (256*256);
       }
-      // TODO: bilinear
-      dst[y*width+x] = src[iy*width+ix];
     }
   }
 }
 
-void CameraIntrinsics::Undistort(const float* src, float* dst, int x0, int y0,
-                                 int width, int height, int channels) {
-  ComputeLookupGrid();
-  if(channels==1) Warp<float,1>(src,dst,x0,y0,width,height);
-  if(channels==2) Warp<float,2>(src,dst,x0,y0,width,height);
-  if(channels==3) Warp<float,3>(src,dst,x0,y0,width,height);
-  if(channels==4) Warp<float,4>(src,dst,x0,y0,width,height);
+// FIXME: C++ templates limitations makes thing complicated, but maybe there is a simpler method.
+struct ApplyIntrinsicsFunction {
+  ApplyIntrinsicsFunction(CameraIntrinsics* intrinsics, double normalized_x, double normalized_y,
+                           double *image_x, double *image_y) {
+    intrinsics->ApplyIntrinsics(normalized_x,normalized_y,image_x,image_y);
+  }
+};
+struct InvertIntrinsicsFunction {
+  InvertIntrinsicsFunction(CameraIntrinsics* intrinsics, double image_x, double image_y,
+                           double *normalized_x, double *normalized_y) {
+    intrinsics->InvertIntrinsics(image_x,image_y,normalized_x,normalized_y);
+  }
+};
+
+void CameraIntrinsics::Distort(const float* src, float* dst, int width, int height, int channels) {
+  if(!distort_) {
+    distort_ = new Offset[width*height];
+    ComputeLookupGrid<InvertIntrinsicsFunction>(distort_,width,height);
+  }
+       if(channels==1) Warp<float,1>(distort_,src,dst,width,height);
+  else if(channels==2) Warp<float,2>(distort_,src,dst,width,height);
+  else if(channels==3) Warp<float,3>(distort_,src,dst,width,height);
+  else if(channels==4) Warp<float,4>(distort_,src,dst,width,height);
+  //else assert("channels must be between 1 and 4");
 }
 
-void CameraIntrinsics::Undistort(const unsigned char* src, unsigned char* dst, int x0, int y0,
-                                 int width, int height, int channels) {
-  ComputeLookupGrid();
-  if(channels==1) Warp<unsigned char,1>(src,dst,x0,y0,width,height);
-  if(channels==2) Warp<unsigned char,2>(src,dst,x0,y0,width,height);
-  if(channels==3) Warp<unsigned char,3>(src,dst,x0,y0,width,height);
-  if(channels==4) Warp<unsigned char,4>(src,dst,x0,y0,width,height);
+void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int width, int height, int channels) {
+  if(!distort_) {
+    distort_ = new Offset[width*height];
+    ComputeLookupGrid<InvertIntrinsicsFunction>(distort_,width,height);
+  }
+       if(channels==1) Warp<unsigned char,1>(distort_,src,dst,width,height);
+  else if(channels==2) Warp<unsigned char,2>(distort_,src,dst,width,height);
+  else if(channels==3) Warp<unsigned char,3>(distort_,src,dst,width,height);
+  else if(channels==4) Warp<unsigned char,4>(distort_,src,dst,width,height);
+  //else assert("channels must be between 1 and 4");
+}
+
+void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int height, int channels) {
+  if(!undistort_) {
+    undistort_ = new Offset[width*height];
+    ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_,width,height);
+  }
+       if(channels==1) Warp<float,1>(undistort_,src,dst,width,height);
+  else if(channels==2) Warp<float,2>(undistort_,src,dst,width,height);
+  else if(channels==3) Warp<float,3>(undistort_,src,dst,width,height);
+  else if(channels==4) Warp<float,4>(undistort_,src,dst,width,height);
+  //else assert("channels must be between 1 and 4");
+}
+
+void CameraIntrinsics::Undistort(const unsigned char* src, unsigned char* dst, int width, int height, int channels) {
+  if(!undistort_) {
+    undistort_ = new Offset[width*height];
+    ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_,width,height);
+  }
+       if(channels==1) Warp<unsigned char,1>(undistort_,src,dst,width,height);
+  else if(channels==2) Warp<unsigned char,2>(undistort_,src,dst,width,height);
+  else if(channels==3) Warp<unsigned char,3>(undistort_,src,dst,width,height);
+  else if(channels==4) Warp<unsigned char,4>(undistort_,src,dst,width,height);
+  //else assert("channels must be between 1 and 4");
 }
 
 }  // namespace libmv

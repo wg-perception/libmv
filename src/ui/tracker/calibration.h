@@ -28,14 +28,13 @@
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 
 #include <QWidget>
-#include <QFormLayout>
-#include <QDoubleSpinBox>
+class QDoubleSpinBox;
 
 class Calibration : public QWidget, public libmv::CameraIntrinsics {
   Q_OBJECT
  public:
   Calibration(QString path, QSize size);
-  double Value(int i) { return spinbox_[i].value(); }
+  double Value(int i);
 
  public slots:
   void updateSettings();
@@ -45,8 +44,7 @@ class Calibration : public QWidget, public libmv::CameraIntrinsics {
 
  private:
   QString path_;
-  QFormLayout layout_;
-  QDoubleSpinBox spinbox_[11];
+  QDoubleSpinBox* spinbox_[11];
 
 };
 

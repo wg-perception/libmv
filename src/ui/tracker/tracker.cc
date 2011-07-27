@@ -103,6 +103,7 @@ void Tracker::Save(QString path) {
 void Tracker::SetImage(int id, QImage image) {
   current_image_ = id;
   if(undistort_) {
+    QTime time; time.start();
     int width = image.width(), height = image.height();
     const uchar* data = image.constBits();
 #ifdef TEST_FLOAT
@@ -126,8 +127,10 @@ void Tracker::SetImage(int id, QImage image) {
     }
 #else
     QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
-    intrinsics_->Undistort(data, correct.bits(), 0, 0, width, height, 1);
+    intrinsics_->Undistort(data, correct.bits(), width, height, 1);
 #endif
+    qDebug() << QString("%1x%2 image undistorted in %3 ms")
+                .arg(image.width()).arg(image.height()).arg(time.elapsed());
     image_.upload(correct);
   } else {
     image_.upload(image);

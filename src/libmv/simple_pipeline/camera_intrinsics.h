@@ -26,9 +26,12 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
 
+struct Offset;
+
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
+  ~CameraIntrinsics();
 
   const Mat3 &K()                 const { return K_;            }
   // FIXME(MatthiasF): these should be CamelCase methods
@@ -96,21 +99,17 @@ class CameraIntrinsics {
   void InvertIntrinsics(double image_x, double image_y,
                         double *normalized_x, double *normalized_y) const;
 
-  template<typename T,int N>
-  void Warp(const T* src, T* dst, int x0, int y0,
-                              int width, int height);
-
-  void Distort(const float* src, float* dst, int x, int y,
+  void Distort(const float* src, float* dst,
                int width, int height, int channels);
-  void Distort(const unsigned char* src, unsigned char* dst, int x, int y,
+  void Distort(const unsigned char* src, unsigned char* dst,
                int width, int height, int channels);
-  void Undistort(const float* src, float* dst, int x, int y,
+  void Undistort(const float* src, float* dst,
                  int width, int height, int channels);
-  void Undistort(const unsigned char* src, unsigned char* dst, int x, int y,
+  void Undistort(const unsigned char* src, unsigned char* dst,
                  int width, int height, int channels);
 
  private:
-  void ComputeLookupGrid();
+  template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
 
   // The traditional intrinsics matrix from x = K[R|t]X.
   Mat3 K_;
@@ -126,7 +125,8 @@ class CameraIntrinsics {
   // independent of image size.
   double k1_, k2_, k3_, p1_, p2_;
 
-  float* grid_;
+  Offset* distort_;
+  Offset* undistort_;
 };
 
 }  // namespace libmv
