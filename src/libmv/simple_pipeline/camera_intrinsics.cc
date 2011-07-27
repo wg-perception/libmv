@@ -110,19 +110,16 @@ template<typename WarpFunction>
 void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      double image_x, image_y;
-      WarpFunction(this,(x-principal_point_x())/focal_length_x(),
-                   (y-principal_point_y())/focal_length_y(),
-                   &image_x,&image_y);
-      int ix = int(image_x), iy = int(image_y);
-      int fx = round((image_x-ix)*256), fy = round((image_y-iy)*256);
+      double warp_x, warp_y;
+      WarpFunction(this,x,y,&warp_x,&warp_y);
+      int ix = int(warp_x), iy = int(warp_y);
+      int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
       if(fx == 256) { fx=0; ix++; }
       if(fy == 256) { fy=0; iy++; }
-      if( ix < 0 || iy < 0 || ix >= width || iy >= height ) {
-        //TODO: clip to edge
-        image_x = x;
-        image_y = y;
-      }
+      if( ix < 0 ) { ix = 0; fx = 0; }
+      if( iy < 0 ) { iy = 0; fy = 0; }
+      if( ix >= width-1 ) { ix = width-1; fx = 0; }
+      if( iy >= height-1 ) { iy = height-1; fy = 0; }
       //assert( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 );
       Offset offset = { ix-x, iy-y, fx, fy };
       grid[y*width+x] = offset;
@@ -147,15 +144,20 @@ static void Warp(const Offset* grid, const T* src, T* dst,
 
 // FIXME: C++ templates limitations makes thing complicated, but maybe there is a simpler method.
 struct ApplyIntrinsicsFunction {
-  ApplyIntrinsicsFunction(CameraIntrinsics* intrinsics, double normalized_x, double normalized_y,
-                           double *image_x, double *image_y) {
-    intrinsics->ApplyIntrinsics(normalized_x,normalized_y,image_x,image_y);
+  ApplyIntrinsicsFunction(CameraIntrinsics* intrinsics, double x, double y,
+                           double *warp_x, double *warp_y) {
+    intrinsics->ApplyIntrinsics(
+          (x-intrinsics->principal_point_x())/intrinsics->focal_length_x(),
+          (y-intrinsics->principal_point_y())/intrinsics->focal_length_y(),
+          warp_x, warp_y);
   }
 };
 struct InvertIntrinsicsFunction {
-  InvertIntrinsicsFunction(CameraIntrinsics* intrinsics, double image_x, double image_y,
-                           double *normalized_x, double *normalized_y) {
-    intrinsics->InvertIntrinsics(image_x,image_y,normalized_x,normalized_y);
+  InvertIntrinsicsFunction(CameraIntrinsics* intrinsics, double x, double y,
+                           double *warp_x, double *warp_y) {
+    intrinsics->InvertIntrinsics(x,y,warp_x,warp_y);
+    *warp_x = *warp_x*intrinsics->focal_length_x()+intrinsics->principal_point_x();
+    *warp_y = *warp_y*intrinsics->focal_length_y()+intrinsics->principal_point_y();
   }
 };
 

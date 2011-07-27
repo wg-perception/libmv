@@ -106,7 +106,7 @@ void Tracker::SetImage(int id, QImage image) {
     QTime time; time.start();
     int width = image.width(), height = image.height();
     const uchar* data = image.constBits();
-#if 1
+#if 1 //float
     float* floatSrc = new float[width*height];
     int srcStride = image.bytesPerLine();
     for (int y = 0; y < height; y++) {
@@ -116,6 +116,19 @@ void Tracker::SetImage(int id, QImage image) {
     }
     float* floatDst = new float[width*height];
     intrinsics_->Undistort(floatSrc, floatDst, width, height, 1);
+#if 1 //roundtrip
+    float* floatRoundtrip = new float[width*height];
+    intrinsics_->Distort(floatDst, floatRoundtrip, width, height, 1);
+#if 1 //difference
+    float* floatDiff = floatRoundtrip;
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        floatDiff[y*width+x] = qBound(0,16*abs(floatSrc[y*width+x]-floatDiff[y*width+x]),255);
+      }
+    }
+#endif
+    floatDst = floatRoundtrip;
+#endif
     QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
     uchar* dst = correct.bits();
     int dstStride = correct.bytesPerLine();
@@ -124,11 +137,24 @@ void Tracker::SetImage(int id, QImage image) {
         dst[y*dstStride+x] = floatDst[y*width+x];
       }
     }
-#else
+#else //ubyte
     QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
     intrinsics_->Undistort(data, correct.bits(), width, height, 1);
+#if 1 //roundtrip
+    QImage roundtrip(image.width(),image.height(),QImage::Format_Indexed8);
+    intrinsics_->Distort(correct.constBits(), roundtrip.bits(), width, height, 1);
+#if 1 //difference
+    uchar* diff = roundtrip.bits();
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        diff[y*width+x] = qBound(0,16*abs(data[y*width+x]-diff[y*width+x]),255);
+      }
+    }
 #endif
-    qDebug() << QString("%1x%2 image undistorted in %3 ms")
+    correct = roundtrip;
+#endif
+#endif
+    qDebug() << QString("%1x%2 image warped in %3 ms")
                 .arg(image.width()).arg(image.height()).arg(time.elapsed());
     image_.upload(correct);
   } else {
