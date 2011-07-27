@@ -106,23 +106,22 @@ void Tracker::SetImage(int id, QImage image) {
     QTime time; time.start();
     int width = image.width(), height = image.height();
     const uchar* data = image.constBits();
-#ifdef TEST_FLOAT
-    float* src = new float[width*height];
+#if 1
+    float* floatSrc = new float[width*height];
     int srcStride = image.bytesPerLine();
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        *src++ = data[y * stride + x];
+        floatSrc[y*width+x] = data[y * srcStride + x];
       }
     }
-    float* copy = new float[width*height];
-    intrinsics_->Undistort(src, copy, 0, 0, width, height, 1);
+    float* floatDst = new float[width*height];
+    intrinsics_->Undistort(floatSrc, floatDst, width, height, 1);
     QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
     uchar* dst = correct.bits();
     int dstStride = correct.bytesPerLine();
-    const uchar* src = image.constBits();
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        dst[y*dstStride+x] = dst[y*width+x];
+        dst[y*dstStride+x] = floatDst[y*width+x];
       }
     }
 #else
