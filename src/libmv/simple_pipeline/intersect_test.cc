@@ -1,4 +1,4 @@
-// Copyright (c) 2011 libmv authors.
+// Copyright (c) 2007, 2008 libmv authors.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -20,34 +20,28 @@
 
 #include <iostream>
 
+#include "intersect.h"
+#include "libmv/multiview/test_data_sets.h"
 #include "testing/testing.h"
-#include "libmv/simple_pipeline/camera_intrinsics.h"
-#include "libmv/logging/logging.h"
 
-namespace libmv {
+namespace {
+using namespace libmv;
 
-TEST(CameraIntrinsics, ApplyIsInvertibleSimple) {
-  CameraIntrinsics intrinsics;
-  intrinsics.SetFocalLength(500.0,500.0);
-  intrinsics.SetPrincipalPoint(250.0, 125.0);
-  intrinsics.SetRadialDistortion(0.034, 0.0, 0.0);
+TEST(Intersect, EuclideanIntersect) {
+#if 0
+  TwoViewDataSet d = TwoRealisticCameras();
 
-  // Scan over image coordinates, invert the intrinsics, then re-apply them to
-  // make sure the cycle gets back where it started.
-  for (double y = 0; y < 1000; y += 100) {
-    for (double x = 0; x < 1000; x += 100) {
-      double normalized_x, normalized_y;
-      intrinsics.InvertIntrinsics(x, y, &normalized_x, &normalized_y);
-
-      double xp, yp;
-      intrinsics.ApplyIntrinsics(normalized_x, normalized_y, &xp, &yp);
-
-      EXPECT_NEAR(x, xp, 1e-8) << "y: " << y;
-      EXPECT_NEAR(y, yp, 1e-8) << "x: " << x;
-      LG << "Error x: " << (x - xp);
-      LG << "Error y: " << (y - yp);
-    }
+  for (int i = 0; i < d.X.cols(); ++i) {
+    Vec2 x1, x2;
+    MatrixColumn(d.x1, i, &x1);
+    MatrixColumn(d.x2, i, &x2);
+    Vec3 X_estimated, X_gt;
+    MatrixColumn(d.X, i, &X_gt);
+    TriangulateDLT(d.P1, x1, d.P2, x2, &X_estimated);
+    EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
   }
+#endif
 }
 
-} // namespace libmv
+
+} // namespace

@@ -22,6 +22,8 @@
 #define LIBMV_SIMPLE_PIPELINE_RESECT_H
 
 #include "libmv/base/vector.h"
+#include "libmv/simple_pipeline/tracks.h"
+#include "libmv/simple_pipeline/reconstruction.h"
 
 namespace libmv {
 

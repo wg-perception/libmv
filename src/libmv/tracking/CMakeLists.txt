@@ -12,5 +12,3 @@ SET_TARGET_PROPERTIES(tracking PROPERTIES DEBUG_POSTFIX "_d")
 
 LIBMV_INSTALL_LIB(tracking)
             
-LIBMV_TEST(klt_region_tracker "tracking;image;numeric")
-LIBMV_TEST(pyramid_region_tracker "tracking;image;numeric")
