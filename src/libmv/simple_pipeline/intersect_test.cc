@@ -21,27 +21,60 @@
 #include <iostream>
 
 #include "intersect.h"
-#include "libmv/multiview/test_data_sets.h"
 #include "testing/testing.h"
+#include "libmv/multiview/projection.h"
+#include "libmv/numeric/numeric.h"
 
 namespace {
 using namespace libmv;
 
 TEST(Intersect, EuclideanIntersect) {
-#if 0
-  TwoViewDataSet d = TwoRealisticCameras();
+  Mat3 K1;
+  K1 << 320, 0, 160,
+        0, 320, 120,
+        0,   0,   1;
+  Mat3 K2;
+  K2 << 360, 0, 170,
+        0, 360, 110,
+        0,   0,   1;
+  Mat3 R1 = RotationAroundZ(-0.1);
+  Mat3 R2 = RotationAroundX(-0.1);
+  Vec3 t1; t1 <<  1,  1, 10;
+  Vec3 t2; t2 << -2, -1, 10;
+  Mat34 P1, P2;
+  P_From_KRt(K1, R1, t1, &P1);
+  P_From_KRt(K2, R2, t2, &P2);
 
-  for (int i = 0; i < d.X.cols(); ++i) {
+  //Mat3 F; FundamentalFromProjections(P1, P2, &F);
+
+  Mat3X X;
+  X.resize(3, 30);
+  X.setRandom();
+
+  Mat2X x1, x2;
+  Project(P1, X, &x1);
+  Project(P2, X, &x2);
+
+  for (int i = 0; i < X.cols(); ++i) {
     Vec2 x1, x2;
-    MatrixColumn(d.x1, i, &x1);
-    MatrixColumn(d.x2, i, &x2);
-    Vec3 X_estimated, X_gt;
-    MatrixColumn(d.X, i, &X_gt);
-    TriangulateDLT(d.P1, x1, d.P2, x2, &X_estimated);
-    EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
+    MatrixColumn(x1, i, &x1);
+    MatrixColumn(x2, i, &x2);
+    Vec3 expected;
+    MatrixColumn(X, i, &expected);
+
+    EuclideanReconstruction reconstruction;
+    reconstruction.InsertCamera(1,R1,t1);
+    reconstruction.InsertCamera(2,R2,t2);
+
+    vector<Marker> markers;
+    Marker a = { 1, 0, x1.x(), x1.y() };
+    markers.push_back( a );
+    Marker b = { 2, 0, x2.x(), x2.y() };
+    markers.push_back( b );
+
+    EuclideanIntersect(markers, &reconstruction);
+    Vec3 estimated = reconstruction.PointForTrack(0)->X;
+    EXPECT_NEAR(0, DistanceLInfinity(estimated, expected), 1e-8);
   }
-#endif
 }
-
-
 } // namespace
