@@ -1,0 +1,59 @@
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
+
+#ifndef LIBMV_TRACKING_SAD_H_
+#define LIBMV_TRACKING_SAD_H_
+
+#ifdef __cplusplus
+namespace libmv {
+#endif
+
+typedef unsigned char ubyte;
+
+/*!
+      Sample \a pattern from \a image.
+
+      \a pattern is a 16x16 single channel image to sample
+      \a x, \a y is the pattern center in \a image.
+      On return, \a pattern will contain sampled region from \a image
+*/
+void SamplePattern(const ubyte* image, int width, float x, float y, ubyte* pattern);
+
+/*!
+      Track \a pattern in \a image.
+
+      \a pattern is a 16x16 single channel image to track
+      \a x, \a y is the initial estimated position in \a image.
+      On return, \a x, \a y is the tracked position.
+      \a image should be a single channel image tile of \a width x \a height
+
+      \note For best performance, \a width should be a multiple of 16.
+*/
+bool Track(const ubyte* pattern, const ubyte* image, int stride, int width, int height, float* x, float* y);
+
+#ifdef __cplusplus
+}  // namespace libmv
+#endif
+
+#endif  // LIBMV_TRACKING_SAD_H_

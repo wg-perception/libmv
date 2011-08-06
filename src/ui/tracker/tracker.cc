@@ -26,8 +26,8 @@
 #include "ui/tracker/scene.h"
 #include "ui/tracker/gl.h"
 
-#include "libmv/image/image.h"
 #include "libmv/base/vector.h"
+#include "libmv/tracking/sad.h"
 
 using libmv::Marker;
 using libmv::vector;
@@ -41,34 +41,10 @@ using libmv::vector;
 #define constBits bits
 #endif
 
-// Copy the region starting at x0, y0 with width w, h into region.
-// If the region asked for is outside the image border, the marker is removed.
-// Returns false if the region leave the image.
-bool CopyRegionFromQImage(QImage image,
-                          int w, int h,
-                          int x0, int y0,
-                          libmv::FloatImage *region) {
-  Q_ASSERT(image.depth() == 8);
-  const unsigned char *data = image.constBits();
-  int width = image.width();
-  int height = image.height();
-
-  // Return if the region leave the image.
-  if (x0 < 0 || y0 < 0 || x0+w >= width || y0+h >= height) return false;
-
-  // Copy the region.
-  region->resize(h, w);
-  float* dst = region->Data();
-  for (int y = y0; y < y0 + h; ++y) {
-    for (int x = x0; x < x0 + w; ++x) {
-      *dst++ = data[y * width + x];
-    }
-  }
-  return true;
-}
+typedef unsigned char ubyte;
 
 Tracker::Tracker(libmv::CameraIntrinsics* intrinsics)
-  : intrinsics_(intrinsics), scene_(0),
+  : intrinsics_(intrinsics), scene_(0), undistort_(false),
     current_image_(0), active_track_(-1), dragged_(false) {
   QSizePolicy policy(QSizePolicy::Expanding,QSizePolicy::Preferred);
   policy.setHeightForWidth(true);
@@ -100,10 +76,12 @@ void Tracker::Save(QString path) {
   }
 }
 
+inline float sqr(float x) { return x*x; }
 void Tracker::SetImage(int id, QImage image) {
   current_image_ = id;
   if(undistort_) {
     QTime time; time.start();
+#if 0
     int width = image.width(), height = image.height();
     const uchar* data = image.constBits();
 #if 1 //float
@@ -119,13 +97,19 @@ void Tracker::SetImage(int id, QImage image) {
 #if 1 //roundtrip
     float* floatRoundtrip = new float[width*height];
     intrinsics_->Distort(floatDst, floatRoundtrip, width, height, 1);
-#if 1 //difference
+#if 0 //difference
     float* floatDiff = floatRoundtrip;
+    float error = 0;
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        floatDiff[y*width+x] = qBound(0,16*abs(floatSrc[y*width+x]-floatDiff[y*width+x]),255);
+        float delta = sqr(floatSrc[y*width+x]-floatDiff[y*width+x]);
+        floatDiff[y*width+x] = qBound(0.f,16*delta,255.f);
+        error += delta;
       }
     }
+    float mse = error/(width*height);
+    float snr = 10*log10(sqr(255)/mse);
+    qDebug()<<"Mean squared error:"<<mse<<"signal-to-noise ratio"<<snr;
 #endif
     floatDst = floatRoundtrip;
 #endif
@@ -157,6 +141,7 @@ void Tracker::SetImage(int id, QImage image) {
     qDebug() << QString("%1x%2 image warped in %3 ms")
                 .arg(image.width()).arg(image.height()).arg(time.elapsed());
     image_.upload(correct);
+#endif
   } else {
     image_.upload(image);
   }
@@ -176,38 +161,31 @@ void Tracker::SetOverlay(Scene* scene) {
 void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
   QTime time; time.start();
   Q_ASSERT( old_image.size() == new_image.size() );
-  // Reset trackers when seeking
-  if (last_frame != previous) {
-    trackers.clear();
-  }
   vector<Marker> previous_markers = MarkersInImage(previous);
   for (int i = 0; i < previous_markers.size(); i++) {
     const Marker &marker = previous_markers[i];
     if (!selected_tracks_.contains(marker.track)) {
       continue;
     }
-    if (!trackers.contains(marker.track)) {
-      int x0 = marker.x - kHalfSearchSize;
-      int y0 = marker.y - kHalfSearchSize;
-      libmv::FloatImage old_patch;
-      if (!CopyRegionFromQImage(old_image, kSearchSize, kSearchSize, x0, y0, &old_patch)) {
-        continue;
-      }
-      trackers[marker.track] = libmv::Tracker(old_patch, marker.x - x0, marker.y - y0,
-                                              kHalfPatternSize,kSearchSize,kSearchSize,kPyramidLevelCount);
-    }
-    libmv::Tracker& tracker = trackers[marker.track];
 
-    int x1 = marker.x - kHalfSearchSize;
-    int y1 = marker.y - kHalfSearchSize;
-    libmv::FloatImage new_patch;
-    if (!CopyRegionFromQImage(new_image, kSearchSize, kSearchSize, x1, y1, &new_patch)) {
-      continue;
-    }
+    Q_ASSERT(old_image.depth() == 8);
+    int width = old_image.width(), height = old_image.height(),
+        stride = old_image.bytesPerLine();
+    int old_x = marker.x, old_y = marker.y;
+    int x0 = qMax( (int)old_x - kHalfSearchSize, 0 );
+    int y0 = qMax( (int)old_y - kHalfSearchSize, 0 );
+    int x1 = qMin( x0+kSearchSize, width  );
+    int y1 = qMin( y0+kSearchSize, height );
+    int w = x1-x0, h = y1-y0;
+    if (w == 0 || h == 0) continue;
 
-    float x = marker.x - x1, y = marker.y - y1;
-    tracker.Track(new_patch, &x, &y);
-    Insert(next, marker.track, x1 + x, y1 + y);
+    const ubyte *old_data = old_image.constBits();
+    ubyte pattern[16*16];
+    libmv::SamplePattern(old_data,width,marker.x,marker.y,pattern);
+
+    float x = marker.x - x0, y = marker.y - y0;
+    libmv::Track(pattern, new_image.constBits()+y0*stride+x0, stride, w, h, &x, &y);
+    Insert(next, marker.track, x0+x, y0+y);
   }
   last_frame = next;
   qDebug() << previous_markers.size() <<"markers in" << time.elapsed() << "ms";

@@ -86,7 +86,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
     *y2 *= 2;
 
     // Track the point on this level with the base tracker.
-    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], search_width >> i, xx, yy, x2, y2);
+    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], search_width >> i, half_pattern_size >> i, xx, yy, x2, y2);
 
     if (i == 0 && !succeeded) {
       // Only fail on the highest-resolution level, because a failure on a
@@ -124,6 +124,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
 bool Tracker::TrackImage(const float* image1,
                          const float* image2,
                          int size,
+                         int half_pattern_size,
                          float  x1, float  y1,
                          float *x2, float *y2) const {
   for (int i = 0; i < max_iterations; ++i) {
@@ -133,6 +134,14 @@ bool Tracker::TrackImage(const float* image1,
 
     Vec2f R, S, V, W;
     R = S = V = W = Vec2f::Zero();
+
+    // Prevent leaving search region
+    int min = half_pattern_size, max = size-half_pattern_size-1;
+    if(isnan(x1) || isnan(y1) || isnan(*x2) || isnan(*y2) ||
+       x1 < min || y1 < min || *x2 < min || *y2 < min ||
+       x1 >= max || y1 >= max || *x2 >= max || *y2 >= max) {
+      return false;
+    }
 
     // FIXME: don't resample source pattern
     const float* pattern1 = &image1[(int(y1)*size+int(x1))*3];

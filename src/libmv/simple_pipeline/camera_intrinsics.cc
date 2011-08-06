@@ -116,10 +116,18 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
       if(fx == 256) { fx=0; ix++; }
       if(fy == 256) { fy=0; iy++; }
-      if( ix < 0 ) { ix = 0; fx = 0; }
-      if( iy < 0 ) { iy = 0; fy = 0; }
-      if( ix >= width-1 ) { ix = width-1; fx = 0; }
-      if( iy >= height-1 ) { iy = height-1; fy = 0; }
+#ifdef CLIP
+      // Use nearest border pixel
+      if( ix < 0 ) { ix = 0, fx = 0; }
+      if( iy < 0 ) { iy = 0, fy = 0; }
+      if( ix >= width-1 ) { ix = width-1, fx = 0; }
+      if( iy >= height-1 ) { iy = height-1, fy = 0; }
+#else
+      // No offset: Avoid adding out of bounds to error.
+      if( ix < 0 || iy < 0 || ix >= width-1 || iy >= height-1 ) {
+        ix = x; iy = y; fx = fy = 0;
+      }
+#endif
       //assert( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 );
       Offset offset = { ix-x, iy-y, fx, fy };
       grid[y*width+x] = offset;

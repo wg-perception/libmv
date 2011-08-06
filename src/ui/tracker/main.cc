@@ -206,14 +206,14 @@ void MainWindow::open(QStringList files) {
   //scene_->Load(path_);
 
   //detect();
-  //track_action_->setChecked(true);
+  track_action_->setChecked(true);
 
-  tracker_->SetUndistort(true);
-  undistort_action_->setChecked(true);
+  //tracker_->SetUndistort(true);
+  //undistort_action_->setChecked(true);
 
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
-  int frame = 0; //QSettings().value("currentFrame", 0).toInt();
+  int frame = 8; //QSettings().value("currentFrame", 0).toInt();
   if(frame >= 0 && frame < clip_->Count()) {
     seek(frame);
   } else {

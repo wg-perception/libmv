@@ -56,7 +56,7 @@ public:
 
 private:
   void MakePyramid(const FloatImage &image, float** pyramid) const;
-  bool TrackImage(const float* image1, const float* image2, int size,
+  bool TrackImage(const float* image1, const float* image2, int size, int half_pattern_size,
                   float x1, float y1, float *x2, float *y2) const;
 
   int half_pattern_size;
