@@ -33,9 +33,8 @@
 #include "libmv/simple_pipeline/tracks.h"
 
 // TODO(MatthiasF): custom pattern/search size
-static const int kHalfPatternSize = 8;
-static const int kHalfSearchSize = 128 / 2;
-static const int kSearchSize = kHalfSearchSize * 2;
+static const int kPatternSize = 16;
+static const int kSearchSize = 128;
 
 class Scene;
 

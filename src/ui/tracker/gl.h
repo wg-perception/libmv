@@ -36,7 +36,8 @@ class QImage;
 
 struct vec2 {
   float x, y;
-  inline vec2(float x = 0, float y = 0) : x(x), y(y) {}
+  inline vec2() : x(0), y(0) {}
+  inline vec2(float x, float y) : x(x), y(y) {}
   inline vec2(float v[2]) : x(v[0]), y(v[1]) {}
 #ifdef QSTRING_H
   inline QString toString() const {
@@ -44,12 +45,14 @@ struct vec2 {
   }
 #endif
 };
+inline vec2 operator -( vec2 a ) { return vec2( -a.x, -a.y ); }
 inline vec2 operator +( vec2 a, vec2 b ) { return vec2( a.x+b.x, a.y+b.y ); }
 inline vec2 operator +( vec2 a, float b ) { return vec2( a.x+b, a.y+b ); }
 inline vec2 operator -( vec2 a, vec2 b ) { return vec2( a.x-b.x, a.y-b.y ); }
 inline vec2 operator -( vec2 a, float b ) { return vec2( a.x-b, a.y-b ); }
 inline vec2 operator *( float b, vec2 a ) { return vec2( a.x*b, a.y*b ); }
 inline vec2 operator /( vec2 a, float b ) { return vec2( a.x/b, a.y/b ); }
+inline vec2 operator /( float a, vec2 b ) { return vec2( a/b.x, a/b.y ); }
 inline vec2 operator /( vec2 a, vec2 b ) { return vec2( a.x/b.x, a.y/b.y ); }
 inline bool operator <( vec2 a, vec2 b ) { return a.x < b.x && a.y < b.y; }
 inline bool operator >( vec2 a, vec2 b ) { return a.x > b.x && a.y > b.y; }
@@ -58,6 +61,7 @@ struct vec3 {
   float x, y, z;
   inline vec3() : x(0), y(0), z(0) {}
   inline vec3(float x, float y, float z) : x(x), y(y), z(z) {}
+  inline vec3(vec2 v, float z) : x(v.x), y(v.y), z(z) {}
   inline vec3(float v[3]) : x(v[0]), y(v[1]), z(v[2]) {}
   inline vec3 operator -() { return vec3(-x, -y, -z); }
   inline void operator +=(vec3 a) { x += a.x, y += a.y, z += a.z; }
@@ -114,8 +118,9 @@ inline vec3 normalize(vec3 a) { return a*(1.0/length(a)); }
 
 struct vec4 {
   float x, y, z, w;
-  inline vec4(float x = 0, float y = 0, float z = 0, float w = 0)
-    : x(x), y(y), z(z), w(w) {}
+  inline vec4() : x(0), y(0), z(0), w(0) {}
+  inline vec4(float x, float y , float z, float w) : x(x), y(y), z(z), w(w) {}
+  inline vec4(float x, float y , vec2 v) : x(x), y(y), z(v.x), w(v.y) {}
   inline float& operator[]( int i ) { return (&x)[i]; }
   inline vec3 xyz() { return vec3(x, y, z); }
   inline vec2 xy() { return vec2(x, y); }

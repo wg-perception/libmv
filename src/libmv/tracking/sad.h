@@ -38,7 +38,7 @@ typedef unsigned char ubyte;
       \a x, \a y is the pattern center in \a image.
       On return, \a pattern will contain sampled region from \a image
 */
-void SamplePattern(const ubyte* image, int width, float x, float y, ubyte* pattern);
+void SamplePattern(const ubyte* image, int stride, float x, float y, ubyte* pattern);
 
 /*!
       Track \a pattern in \a image.

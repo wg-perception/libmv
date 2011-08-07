@@ -202,7 +202,7 @@ void MainWindow::open(QStringList files) {
       ->setShortcut(Qt::Key_Right);
   toolbar_->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
-  //tracker_->Load(path_);
+  tracker_->Load(path_);
   //scene_->Load(path_);
 
   //detect();
@@ -213,7 +213,7 @@ void MainWindow::open(QStringList files) {
 
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
-  int frame = 8; //QSettings().value("currentFrame", 0).toInt();
+  int frame = 0; //QSettings().value("currentFrame", 0).toInt();
   if(frame >= 0 && frame < clip_->Count()) {
     seek(frame);
   } else {

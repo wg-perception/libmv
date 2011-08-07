@@ -32,7 +32,8 @@ Zoom::Zoom(Tracker *tracker)
 }
 
 QSize Zoom::sizeHint() const {
-  return QSize(width(),64*(tracks_.count()/(width()/64)));
+  int columns = width()/64;
+  return QSize(columns*64,qMin(1,tracks_.count()/columns)*64);
 }
 
 void Zoom::SetImage(int image) {
@@ -43,6 +44,7 @@ void Zoom::SetImage(int image) {
 void Zoom::select(QVector<int> tracks) {
   tracks_ = tracks;
   updateGeometry();
+  update();
 }
 
 void Zoom::paintGL() {

@@ -171,9 +171,10 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     Q_ASSERT(old_image.depth() == 8);
     int width = old_image.width(), height = old_image.height(),
         stride = old_image.bytesPerLine();
-    int old_x = marker.x, old_y = marker.y;
-    int x0 = qMax( (int)old_x - kHalfSearchSize, 0 );
-    int y0 = qMax( (int)old_y - kHalfSearchSize, 0 );
+    float x = marker.x, y = marker.y;
+    int ix = x, iy = y;
+    int x0 = qMax( ix - kSearchSize/2, 0 );
+    int y0 = qMax( iy - kSearchSize/2, 0 );
     int x1 = qMin( x0+kSearchSize, width  );
     int y1 = qMin( y0+kSearchSize, height );
     int w = x1-x0, h = y1-y0;
@@ -181,11 +182,12 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
 
     const ubyte *old_data = old_image.constBits();
     ubyte pattern[16*16];
-    libmv::SamplePattern(old_data,width,marker.x,marker.y,pattern);
+    libmv::SamplePattern(old_data,stride,x,y,pattern);
 
-    float x = marker.x - x0, y = marker.y - y0;
+    x -= x0, y -= y0;
     libmv::Track(pattern, new_image.constBits()+y0*stride+x0, stride, w, h, &x, &y);
-    Insert(next, marker.track, x0+x, y0+y);
+    x += x0, y += y0;
+    Insert(next, marker.track, x, y);
   }
   last_frame = next;
   qDebug() << previous_markers.size() <<"markers in" << time.elapsed() << "ms";
@@ -218,12 +220,12 @@ void Tracker::DrawMarker(const libmv::Marker marker, QVector<vec2> *lines) {
   vec2 center = vec2(marker.x, marker.y);
   vec2 quad[] = { vec2(-1, -1), vec2(1, -1), vec2(1, 1), vec2(-1, 1) };
   for (int i = 0; i < 4; i++) {
-    *lines << center+(kHalfSearchSize+0.5)*quad[i];
-    *lines << center+(kHalfSearchSize+0.5)*quad[(i+1)%4];
+    *lines << center+(kSearchSize/2)*quad[i];
+    *lines << center+(kSearchSize/2)*quad[(i+1)%4];
   }
   for (int i = 0; i < 4; i++) {
-    *lines << center+(kHalfPatternSize+0.5)*quad[i];
-    *lines << center+(kHalfPatternSize+0.5)*quad[(i+1)%4];
+    *lines << center+(kPatternSize/2)*quad[i];
+    *lines << center+(kPatternSize/2)*quad[(i+1)%4];
   }
 }
 
@@ -270,13 +272,18 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   image_shader.bind();
   image_shader["image"] = 0;
   image_.bind(0);
+  mat4 transform;
   if (image >= 0 && track >= 0) {
-    int W = image_.width, H = image_.height;
     Marker marker = MarkerInImageForTrack(image, track);
     vec2 center(marker.x, marker.y);
-    vec2 min = (center-kHalfSearchSize) / vec2(W, H);
-    vec2 max = (center+kHalfSearchSize) / vec2(W, H);
-    glQuad(vec4(-1, 1, min.x, min.y), vec4(1, -1, max.x, max.y));
+    vec2 min = (center-kSearchSize/2);
+    vec2 max = (center+kSearchSize/2);
+    vec2 size( image_.width, image_.height );
+    glQuad(vec4(-1, 1, min/size), vec4(1, -1, max/size));
+    transform.scale(vec3(1, -1, 0));
+    transform.translate(vec3(-1, -1, 0));
+    transform.scale(vec3(2/(max-min), 1));
+    transform.translate(vec3(-min, 0));
   } else {
     float width = 0, height = 0;
     int W = intrinsics_->image_width(), H = intrinsics_->image_height();
@@ -289,24 +296,22 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
     }
     glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
     //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_image_);
-
-    static GLShader marker_shader;
-    if (!marker_shader.id) {
-      marker_shader.compile(glsl("vertex transform marker"),
-                            glsl("fragment transform marker"));
-    }
     W = image_.width, H = image_.height;
-    mat4 transform;
     transform.scale(vec3(2*width/W, -2*height/H, 1));
     transform.translate(vec3(-W/2, -H/2, 0));
     transform_ = transform;
-    marker_shader.bind();
-    marker_shader["transform"] = transform;
-    markers_.bind();
-    markers_.bindAttribute(&marker_shader, "position", 2);
-    glAdditiveBlendMode();
-    markers_.draw();
   }
+  static GLShader marker_shader;
+  if (!marker_shader.id) {
+    marker_shader.compile(glsl("vertex transform marker"),
+                          glsl("fragment transform marker"));
+  }
+  marker_shader.bind();
+  marker_shader["transform"] = transform;
+  markers_.bind();
+  markers_.bindAttribute(&marker_shader, "position", 2);
+  glAdditiveBlendMode();
+  markers_.draw();
 }
 
 void Tracker::paintGL() {
@@ -322,7 +327,7 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
   for (int i = 0; i < markers.size(); i++) {
     const Marker &marker = markers[i];
     vec2 center = vec2(marker.x, marker.y);
-    if (pos > center-kHalfSearchSize && pos < center+kHalfSearchSize) {
+    if (pos > center-kSearchSize/2 && pos < center+kSearchSize/2) {
       active_track_ = marker.track;
       return;
     }

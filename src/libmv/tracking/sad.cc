@@ -36,15 +36,16 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
         + (s[stride] * (k-u) + s[stride+1] * u) * (  v) ) / (k*k);
 }
 
-void SamplePattern(const ubyte* image, int w, float x, float y, ubyte* pattern) {
+void SamplePattern(const ubyte* image, int stride, float x, float y, ubyte* pattern) {
   const int k = 256;
   int fx = lround(x*k), fy = lround(y*k);
   int ix = fx/k, iy = fy/k;
   int u = fx%k, v = fy%k;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
-    pattern[i*16+j] = sample<k>(image,w,ix+j-8,iy+i-8,u,v);
+    pattern[i*16+j] = sample<256>(image,stride,ix+j-8,iy+i-8,u,v);
   }
 }
+
 
 bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
@@ -67,19 +68,40 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
 
   const int kPrecision = 4; //subpixel precision in bits
   const int kScale = 1<<kPrecision;
-  const int kRadius = kScale/2;
+//#define FULL_SEARCH
+#ifdef FULL_SEARCH
   int fx=0,fy=0;
-  for(int k = kPrecision; k <= kPrecision; k++) {
+  for(int y = -kScale+1; y < kScale; y++) {
+    for(int x = -kScale+1; x < kScale; x++) {
+      int sx = ix, sy = iy;
+      int u = x, v = y;
+      if( x < 0 ) sx--, u+=kScale;
+      if( y < 0 ) sy--, v+=kScale;
+      uint sad=0;
+      for(int i = 0; i < 16; i++) {
+        for(int j = 0; j < 16; j++) {
+          sad += abs((int)pattern[i*16+j] - sample<kScale>(image,stride,sx+j,sy+i,u,v));
+        }
+      }
+      if(sad < min) {
+        min = sad;
+        fx = x; fy = y;
+      }
+    }
+  }
+#else // LINEAR_SEARCH
+  int fx=0,fy=0;
+  for(int k = 1; k <= kPrecision; k++) {
     fx *= 2, fy *= 2;
     int nx = fx, ny = fy;
     int p = kPrecision-k;
-    for(int y = -kRadius; y <= kRadius; y++) {
-      for(int x = -kRadius; x <= kRadius; x++) {
+    for(int y = -1; y <= 1; y++) {
+      for(int x = -1; x <= 1; x++) {
         uint sad=0;
         int sx = ix, sy = iy;
         int u = (fx+x)<<p, v = (fy+y)<<p;
-        while( u < 0 ) u+=kScale, sx--;
-        while( v < 0 ) v+=kScale, sy--;
+        if( u < 0 ) u+=kScale, sx--;
+        if( v < 0 ) v+=kScale, sy--;
         for(int i = 0; i < 16; i++) {
           for(int j = 0; j < 16; j++) {
             sad += abs((int)pattern[i*16+j] - sample<kScale>(image,stride,sx+j,sy+i,u,v));
@@ -93,7 +115,11 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
     }
     fx = nx, fy = ny;
   }
-  qDebug() << ix-w/2+8 << iy-h/2+8 << fx << fy << min;
+#endif
+  /*qDebug().nospace()<< int(*px)-w/2 <<"."<< int(kScale*(*px-int(*px)))
+              <<", "<< int(*py)-h/2 <<"."<< int(kScale*(*py-int(*py)))
+            <<" -> "<< ix      -w/2+8 <<"."<< fx
+              <<", "<< iy      -h/2+8 <<"."<< fy;*/
   *px = float((ix*kScale)+fx)/kScale+8;
   *py = float((iy*kScale)+fy)/kScale+8;
   return true;
