@@ -46,6 +46,27 @@ void SamplePattern(const ubyte* image, int stride, float x, float y, ubyte* patt
   }
 }
 
+#ifdef __SSE2__
+#include <emmintrin.h>
+inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+  __m128i a = _mm_setzero_si128();
+  for(int i = 0; i < 16; i++) {
+    a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*16)),
+                                        _mm_loadu_si128((__m128i*)(image+i*stride))));
+  }
+  return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
+}
+#else
+inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+  uint sad=0;
+  for(int i = 0; i < 16; i++) {
+    for(int j = 0; j < 16; j++) {
+      sad += abs((int)pattern[i*16+j] - image[i*stride+j]);
+    }
+  }
+  return sad;
+}
+#endif
 
 bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
@@ -53,12 +74,7 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
   // integer pixel
   for(int y = 0; y < h-16; y++) {
     for(int x = 0; x < w-16; x++) {
-      uint sad=0;
-      for(int i = 0; i < 16; i++) {
-        for(int j = 0; j < 16; j++) {
-          sad += abs((int)pattern[i*16+j] - image[(y+i)*stride+x+j]);
-        }
-      }
+      uint sad = SAD(pattern,&image[y*stride+x],stride);
       if(sad < min) {
         min = sad;
         ix = x, iy = y;
