@@ -99,12 +99,44 @@ class CameraIntrinsics {
   void InvertIntrinsics(double image_x, double image_y,
                         double *normalized_x, double *normalized_y) const;
 
+  /*!
+      Distort an image using the current camera instrinsics
+
+      The distorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This is the reference implementation using floating point images.
+  */
   void Distort(const float* src, float* dst,
                int width, int height, int channels);
+  /*!
+      Distort an image using the current camera instrinsics
+
+      The distorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This version is much faster.
+  */
   void Distort(const unsigned char* src, unsigned char* dst,
                int width, int height, int channels);
+  /*!
+      Undistort an image using the current camera instrinsics
+
+      The undistorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This is the reference implementation using floating point images.
+  */
   void Undistort(const float* src, float* dst,
                  int width, int height, int channels);
+  /*!
+      Undistort an image using the current camera instrinsics
+
+      The undistorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This version is much faster.
+  */
   void Undistort(const unsigned char* src, unsigned char* dst,
                  int width, int height, int channels);
 

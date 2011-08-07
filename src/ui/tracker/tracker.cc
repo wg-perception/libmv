@@ -46,12 +46,7 @@ typedef unsigned char ubyte;
 Tracker::Tracker(libmv::CameraIntrinsics* intrinsics)
   : intrinsics_(intrinsics), scene_(0), undistort_(false),
     current_image_(0), active_track_(-1), dragged_(false) {
-  QSizePolicy policy(QSizePolicy::Expanding,QSizePolicy::Preferred);
-  policy.setHeightForWidth(true);
-  setSizePolicy(policy);
-}
-int Tracker::heightForWidth ( int w ) const {
-  return w*intrinsics_->image_height()/intrinsics_->image_width();
+  setMinimumHeight(64);
 }
 
 void Tracker::Load(QString path) {
@@ -78,70 +73,15 @@ void Tracker::Save(QString path) {
 
 inline float sqr(float x) { return x*x; }
 void Tracker::SetImage(int id, QImage image) {
+  makeCurrent();
   current_image_ = id;
   if(undistort_) {
     QTime time; time.start();
-#if 0
-    int width = image.width(), height = image.height();
-    const uchar* data = image.constBits();
-#if 1 //float
-    float* floatSrc = new float[width*height];
-    int srcStride = image.bytesPerLine();
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        floatSrc[y*width+x] = data[y * srcStride + x];
-      }
-    }
-    float* floatDst = new float[width*height];
-    intrinsics_->Undistort(floatSrc, floatDst, width, height, 1);
-#if 1 //roundtrip
-    float* floatRoundtrip = new float[width*height];
-    intrinsics_->Distort(floatDst, floatRoundtrip, width, height, 1);
-#if 0 //difference
-    float* floatDiff = floatRoundtrip;
-    float error = 0;
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        float delta = sqr(floatSrc[y*width+x]-floatDiff[y*width+x]);
-        floatDiff[y*width+x] = qBound(0.f,16*delta,255.f);
-        error += delta;
-      }
-    }
-    float mse = error/(width*height);
-    float snr = 10*log10(sqr(255)/mse);
-    qDebug()<<"Mean squared error:"<<mse<<"signal-to-noise ratio"<<snr;
-#endif
-    floatDst = floatRoundtrip;
-#endif
     QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
-    uchar* dst = correct.bits();
-    int dstStride = correct.bytesPerLine();
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        dst[y*dstStride+x] = floatDst[y*width+x];
-      }
-    }
-#else //ubyte
-    QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
-    intrinsics_->Undistort(data, correct.bits(), width, height, 1);
-#if 1 //roundtrip
-    QImage roundtrip(image.width(),image.height(),QImage::Format_Indexed8);
-    intrinsics_->Distort(correct.constBits(), roundtrip.bits(), width, height, 1);
-#if 1 //difference
-    uchar* diff = roundtrip.bits();
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        diff[y*width+x] = qBound(0,16*abs(data[y*width+x]-diff[y*width+x]),255);
-      }
-    }
-#endif
-    correct = roundtrip;
-#endif
-#endif
+    intrinsics_->Undistort(image.constBits(), correct.bits(), image.width(), image.height(), 1);
     qDebug() << QString("%1x%2 image warped in %3 ms")
                 .arg(image.width()).arg(image.height()).arg(time.elapsed());
     image_.upload(correct);
-#endif
   } else {
     image_.upload(image);
   }
@@ -160,25 +100,27 @@ void Tracker::SetOverlay(Scene* scene) {
 // Track active trackers from the previous image into next one.
 void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
   QTime time; time.start();
-  Q_ASSERT( old_image.size() == new_image.size() );
+  Q_ASSERT(old_image.size() == new_image.size() && old_image.depth() == 8);
+  int width = old_image.width(), height = old_image.height(),
+      stride = old_image.bytesPerLine();
   vector<Marker> previous_markers = MarkersInImage(previous);
   for (int i = 0; i < previous_markers.size(); i++) {
     const Marker &marker = previous_markers[i];
     if (!selected_tracks_.contains(marker.track)) {
       continue;
     }
-
-    Q_ASSERT(old_image.depth() == 8);
-    int width = old_image.width(), height = old_image.height(),
-        stride = old_image.bytesPerLine();
     float x = marker.x, y = marker.y;
+    if( x < kPatternSize || y < kPatternSize ||
+        x >= width-kPatternSize || y >= height-kPatternSize ) {
+      continue;
+    }
+
     int ix = x, iy = y;
     int x0 = qMax( ix - kSearchSize/2, 0 );
     int y0 = qMax( iy - kSearchSize/2, 0 );
     int x1 = qMin( x0+kSearchSize, width  );
     int y1 = qMin( y0+kSearchSize, height );
     int w = x1-x0, h = y1-y0;
-    if (w == 0 || h == 0) continue;
 
     const ubyte *old_data = old_image.constBits();
     ubyte pattern[16*16];

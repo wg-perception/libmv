@@ -189,10 +189,32 @@ int Clip::Count() {
   return images_.count();
 }
 
+#define DOWNSAMPLE 1
+
 QSize Clip::Size() {
+#if DOWNSAMPLE
+  return size_/2;
+#else
   return size_;
+#endif
 }
 
 QImage Clip::Image(int i) {
+#define DOWNSAMPLE 1
+#if DOWNSAMPLE
+  QImage src = images_[i];
+  QImage dst = QImage(src.width()/2,src.height()/2,QImage::Format_Indexed8);
+  int w = dst.width(), h=dst.height();
+  const uchar* s = src.constBits();
+  uchar* d = dst.bits();
+  for(int y=0; y<h; y++) {
+    for(int x=0; x<w; x++, d++, s+=2) {
+      d[0] = ( s[0] + s[1] + s[w*2] + s[w*2+1] ) / 4;
+    }
+    s += w*2;
+  }
+  return dst;
+#else
   return images_[i];
+#endif
 }

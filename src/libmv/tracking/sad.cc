@@ -22,7 +22,7 @@
 **
 ****************************************************************************/
 
-#include "sad.h"
+#include "libmv/tracking/sad.h"
 #include <stdlib.h>
 #include <math.h>
 #include <QDebug>
@@ -68,15 +68,17 @@ inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 }
 #endif
 
+float sq( float x ) { return x*x; }
 bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
   uint min=-1;
   // integer pixel
   for(int y = 0; y < h-16; y++) {
     for(int x = 0; x < w-16; x++) {
-      uint sad = SAD(pattern,&image[y*stride+x],stride);
-      if(sad < min) {
-        min = sad;
+      uint d = SAD(pattern,&image[y*stride+x],stride); //image L1 distance
+      d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance
+      if(d < min) {
+        min = d;
         ix = x, iy = y;
       }
     }
@@ -84,9 +86,9 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
 
   const int kPrecision = 4; //subpixel precision in bits
   const int kScale = 1<<kPrecision;
-//#define FULL_SEARCH
-#ifdef FULL_SEARCH
   int fx=0,fy=0;
+#define LINEAR_SEARCH 1
+#if FULL_SEARCH
   for(int y = -kScale+1; y < kScale; y++) {
     for(int x = -kScale+1; x < kScale; x++) {
       int sx = ix, sy = iy;
@@ -105,8 +107,7 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
       }
     }
   }
-#else // LINEAR_SEARCH
-  int fx=0,fy=0;
+#elif LINEAR_SEARCH
   for(int k = 1; k <= kPrecision; k++) {
     fx *= 2, fy *= 2;
     int nx = fx, ny = fy;

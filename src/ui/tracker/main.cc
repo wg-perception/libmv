@@ -53,7 +53,9 @@ MainWindow::MainWindow() : clip_(0), calibration_(0), tracker_(0), zoom_(0), sce
   setWindowTitle("Tracker");
   toolbar_ = addToolBar("Main Toolbar");
   toolbar_->setObjectName("mainToolbar");
+  toolbar_->setMovable(false);
   toolbar_->addAction(QIcon(":/open"), "Load Footage", this, SLOT(open()));
+  restoreGeometry(QSettings().value("geometry").toByteArray());
 }
 
 MainWindow::~MainWindow() {
@@ -114,7 +116,7 @@ void MainWindow::open(QStringList files) {
   toolbar_->addAction(zoom_dock->toggleViewAction());
   connect(tracker_, SIGNAL(trackChanged(QVector<int>)), zoom_, SLOT(select(QVector<int>)));
 
-// Reconstruction
+#if RECONSTRUCTION
   scene_ = new Scene(calibration_,tracker_);
   QDockWidget* scene_dock = new QDockWidget("Scene View");
   scene_dock->setObjectName("sceneDock");
@@ -130,6 +132,7 @@ void MainWindow::open(QStringList files) {
   connect(scene_, SIGNAL(trackChanged(QVector<int>)),
           zoom_, SLOT(select(QVector<int>)));
   tracker_->SetOverlay(scene_);
+#endif
 
   toolbar_->addSeparator();
 
@@ -157,10 +160,10 @@ void MainWindow::open(QStringList files) {
 
   track_action_ = toolbar_->addAction(QIcon(":/record"), "Track selected markers");
   track_action_->setCheckable(true);
-  connect(track_action_, SIGNAL(triggered(bool)), SLOT(toggleTracking(bool)));
-  connect(tracker_action_, SIGNAL(triggered(bool)),
-          track_action_, SLOT(setVisible(bool)));
+  connect(track_action_, SIGNAL(toggled(bool)), SLOT(toggleTracking(bool)));
+  connect(tracker_action_, SIGNAL(toggled(bool)), track_action_, SLOT(setVisible(bool)));
 
+#if RECONSTRUCTION
   toolbar_->addAction(QIcon(":/solve"), "Solve reconstruction",
                      this, SLOT(solve()));
   QAction* add_action = toolbar_->addAction(QIcon(":/add"), "Add object",
@@ -173,6 +176,8 @@ void MainWindow::open(QStringList files) {
         scene_, SLOT(link()));
   connect(scene_dock->toggleViewAction(), SIGNAL(triggered(bool)),
           link_action, SLOT(setVisible(bool)));
+  //scene_->Load(path_);
+#endif
 
   toolbar_->addSeparator();
 
@@ -203,13 +208,8 @@ void MainWindow::open(QStringList files) {
   toolbar_->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
   tracker_->Load(path_);
-  //scene_->Load(path_);
-
   //detect();
   track_action_->setChecked(true);
-
-  //tracker_->SetUndistort(true);
-  //undistort_action_->setChecked(true);
 
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
@@ -219,8 +219,6 @@ void MainWindow::open(QStringList files) {
   } else {
     seek(0);
   }
-
-  restoreGeometry(QSettings().value("geometry").toByteArray());
   restoreState(QSettings().value("windowState").toByteArray());
 }
 
@@ -329,6 +327,7 @@ void MainWindow::detect() {
   zoom_->select(tracks);
 }
 
+#ifdef RECONSTRUCTION
 void MainWindow::solve() {
   // Invert the camera intrinsics.
   // TODO(MatthiasF): handle varying focal lengths
@@ -357,6 +356,7 @@ void MainWindow::solve() {
   scene_->SetReconstruction( reconstructor.euclidean_reconstruction() );
   scene_->upload();
 }
+#endif
 
 int main(int argc, char *argv[]) {
   libmv::Init("", &argc, &argv);

@@ -106,6 +106,7 @@ void CameraIntrinsics::InvertIntrinsics(double image_x,
   *normalized_y = normalized(1);
 }
 
+// TODO(MatthiasF): downsample lookup
 template<typename WarpFunction>
 void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
   for (int y = 0; y < height; y++) {
@@ -135,6 +136,7 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
   }
 }
 
+// TODO(MatthiasF): cubic B-Spline image sampling, bilinear lookup
 template<typename T,int N>
 static void Warp(const Offset* grid, const T* src, T* dst,
                  int width, int height) {

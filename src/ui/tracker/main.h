@@ -57,7 +57,9 @@ class MainWindow : public QMainWindow {
   void toggleForward(bool);
   void toggleUndistort(bool);
   void detect();
+#ifdef RECONSTRUCTION
   void solve();
+#endif
 
  private:
   QString path_;

@@ -1,4 +1,4 @@
-SET(TRACKING_SRC klt.cc)
+SET(TRACKING_SRC klt.cc sad.cc)
 
 # Define the header files so that they appear in IDEs.
 FILE(GLOB TRACKING_HDRS *.h)

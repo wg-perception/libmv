@@ -28,12 +28,7 @@
 
 Zoom::Zoom(Tracker *tracker)
   : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, tracker), tracker_(tracker) {
-  setSizePolicy(QSizePolicy::Preferred,QSizePolicy::MinimumExpanding);
-}
-
-QSize Zoom::sizeHint() const {
-  int columns = width()/64;
-  return QSize(columns*64,qMin(1,tracks_.count()/columns)*64);
+  setMinimumHeight(64);
 }
 
 void Zoom::SetImage(int image) {
