@@ -97,6 +97,7 @@ void Calibration::updateSettings() {
   SetRadialDistortion(Value(6), Value(7), Value(8));
   SetTangentialDistortion(Value(9),Value(10));
 
+#ifdef NDEBUG
   QFile file(path_ + (QFileInfo(path_).isDir()?"/":".") + "camera.xml");
   if( file.open(QFile::WriteOnly | QFile::Truncate) ) {
     file.write(QString("<lens ImageWidth='%1' ImageHeight='%2' "
@@ -109,6 +110,7 @@ void Calibration::updateSettings() {
                .arg(Value(6)).arg(Value(7))
                .arg(Value(8)).arg(Value(9)).arg(Value(10)) .toAscii());
   }
+#endif
 
   emit settingsChanged();
 }

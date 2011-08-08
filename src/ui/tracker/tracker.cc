@@ -63,9 +63,10 @@ void Tracker::Load(QString path) {
 }
 
 void Tracker::Save(QString path) {
+  vector<Marker> markers = AllMarkers();
+  if (markers.size() == 0) return;
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
   if (file.open(QFile::WriteOnly | QIODevice::Truncate)) {
-    vector<Marker> markers = AllMarkers();
     file.write(reinterpret_cast<char *>(markers.data()),
                markers.size() * sizeof(Marker));
   }

@@ -76,7 +76,7 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
   for(int y = 0; y < h-16; y++) {
     for(int x = 0; x < w-16; x++) {
       uint d = SAD(pattern,&image[y*stride+x],stride); //image L1 distance
-      d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance
+      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance
       if(d < min) {
         min = d;
         ix = x, iy = y;
@@ -87,27 +87,6 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
   const int kPrecision = 4; //subpixel precision in bits
   const int kScale = 1<<kPrecision;
   int fx=0,fy=0;
-#define LINEAR_SEARCH 1
-#if FULL_SEARCH
-  for(int y = -kScale+1; y < kScale; y++) {
-    for(int x = -kScale+1; x < kScale; x++) {
-      int sx = ix, sy = iy;
-      int u = x, v = y;
-      if( x < 0 ) sx--, u+=kScale;
-      if( y < 0 ) sy--, v+=kScale;
-      uint sad=0;
-      for(int i = 0; i < 16; i++) {
-        for(int j = 0; j < 16; j++) {
-          sad += abs((int)pattern[i*16+j] - sample<kScale>(image,stride,sx+j,sy+i,u,v));
-        }
-      }
-      if(sad < min) {
-        min = sad;
-        fx = x; fy = y;
-      }
-    }
-  }
-#elif LINEAR_SEARCH
   for(int k = 1; k <= kPrecision; k++) {
     fx *= 2, fy *= 2;
     int nx = fx, ny = fy;
@@ -132,7 +111,6 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
     }
     fx = nx, fy = ny;
   }
-#endif
   /*qDebug().nospace()<< int(*px)-w/2 <<"."<< int(kScale*(*px-int(*px)))
               <<", "<< int(*py)-h/2 <<"."<< int(kScale*(*py-int(*py)))
             <<" -> "<< ix      -w/2+8 <<"."<< fx

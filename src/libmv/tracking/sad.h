@@ -32,23 +32,30 @@ namespace libmv {
 typedef unsigned char ubyte;
 
 /*!
-      Sample \a pattern from \a image.
-
-      \a pattern is a 16x16 single channel image to sample
-      \a x, \a y is the pattern center in \a image.
-      On return, \a pattern will contain sampled region from \a image
+    Sample \a pattern from \a image.
+    \a pattern is a 16x16 single channel image to sample
+    \a x, \a y is the pattern center in \a image.
+    On return, \a pattern will contain sampled region from \a image
 */
 void SamplePattern(const ubyte* image, int stride, float x, float y, ubyte* pattern);
 
 /*!
-      Track \a pattern in \a image.
+    Track \a pattern in \a image.
 
-      \a pattern is a 16x16 single channel image to track
-      \a x, \a y is the initial estimated position in \a image.
-      On return, \a x, \a y is the tracked position.
-      \a image should be a single channel image tile of \a width x \a height
+    This template matcher computes the
+    \link http://en.wikipedia.org/wiki/Sum_of_absolute_differences Sum of Absolute Differences (SAD) \endlink
+    for each integer pixel position in the search region and then iteratively
+    refine subpixel position using a square search.
+    A similar method is used for motion estimation in video encoders.
 
-      \note For best performance, \a width should be a multiple of 16.
+    \a pattern is a 16x16 single channel image to track.
+    \a x, \a y is the initial estimated position in \a image.
+    On return, \a x, \a y is the tracked position.
+    \a image is a reference to the single channel image to search.
+    \a stride is size of \a image lines.
+
+    \note For a 16x speedup, compile this tracker with SSE2 support.
+    \note \a stride allow you to reference your search region instead of copying.
 */
 bool Track(const ubyte* pattern, const ubyte* image, int stride, int width, int height, float* x, float* y);
 
