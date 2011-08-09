@@ -33,7 +33,8 @@ namespace {
 
 // These are "strategy" classes which make it possible to use the same code for
 // both projective and euclidean reconstruction.
-
+// FIXME(MatthiasF): OOP would achieve the same goal while avoiding
+// template bloat and making interface changes much easier.
 struct EuclideanPipelineRoutines {
   typedef EuclideanReconstruction Reconstruction;
   typedef EuclideanCamera Camera;
@@ -45,8 +46,8 @@ struct EuclideanPipelineRoutines {
   }
 
   static bool Resect(const vector<Marker> &markers,
-                     EuclideanReconstruction *reconstruction) {
-    return EuclideanResect(markers, reconstruction);
+                     EuclideanReconstruction *reconstruction, bool final_pass) {
+    return EuclideanResect(markers, reconstruction, final_pass);
   }
 
   static bool Intersect(const vector<Marker> &markers,
@@ -83,8 +84,8 @@ struct ProjectivePipelineRoutines {
   }
 
   static bool Resect(const vector<Marker> &markers,
-                     ProjectiveReconstruction *reconstruction) {
-    return ProjectiveResect(markers, reconstruction, true);
+                     ProjectiveReconstruction *reconstruction, bool final_pass) {
+    return ProjectiveResect(markers, reconstruction);
   }
 
   static bool Intersect(const vector<Marker> &markers,
@@ -179,7 +180,7 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
-        if (PipelineRoutines::Resect(reconstructed_markers, reconstruction)) {
+        if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, false)) {
           num_resects++;
           LG << "Ran Resect() for image " << image;
         } else {
@@ -210,7 +211,7 @@ void InternalCompleteReconstruction(
       }
     }
     if (reconstructed_markers.size() >= 5) {
-      if (Resect(reconstructed_markers, reconstruction, true)) {
+      if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, true)) {
         num_resects++;
         LG << "Ran Resect() for image " << image;
       } else {
@@ -219,7 +220,7 @@ void InternalCompleteReconstruction(
     }
   }
   if (num_resects) {
-    Bundle(tracks, reconstruction);
+    PipelineRoutines::Bundle(tracks, reconstruction);
   }
 }
 
