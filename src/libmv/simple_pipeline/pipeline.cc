@@ -117,8 +117,6 @@ template<typename PipelineRoutines>
 void InternalCompleteReconstruction(
     const Tracks &tracks,
     typename PipelineRoutines::Reconstruction *reconstruction) {
-  LG << "Waiting on input..."; getchar();
-
   int max_track = tracks.MaxTrack();
   int max_image = tracks.MaxImage();
   int num_resects = -1;
@@ -156,7 +154,6 @@ void InternalCompleteReconstruction(
       LG << "Ran Bundle() after intersections.";
     }
     LG << "Did " << num_intersects << " intersects.";
-    LG << "Waiting on input..."; getchar();
 
     LG << "Bailing on rest of reconstruction early.";
     return;
@@ -192,7 +189,6 @@ void InternalCompleteReconstruction(
       PipelineRoutines::Bundle(tracks, reconstruction);
     }
     LG << "Did " << num_resects << " resects.";
-    LG << "Waiting on input..."; getchar();
   }
 
   // One last pass...
