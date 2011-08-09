@@ -155,9 +155,6 @@ void InternalCompleteReconstruction(
     }
     LG << "Did " << num_intersects << " intersects.";
 
-    LG << "Bailing on rest of reconstruction early.";
-    return;
-
     // Do all possible resections.
     num_resects = 0;
     for (int image = 0; image <= max_image; ++image) {
