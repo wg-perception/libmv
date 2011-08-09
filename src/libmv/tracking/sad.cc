@@ -25,7 +25,6 @@
 #include "libmv/tracking/sad.h"
 #include <stdlib.h>
 #include <math.h>
-#include <QDebug>
 
 namespace libmv {
 
