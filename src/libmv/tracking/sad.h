@@ -30,14 +30,17 @@ namespace libmv {
 #endif
 
 typedef unsigned char ubyte;
+typedef float mat3[9];
 
 /*!
     Sample \a pattern from \a image.
-    \a pattern is a 16x16 single channel image to sample
-    \a x, \a y is the pattern center in \a image.
-    On return, \a pattern will contain sampled region from \a image
+
+    \a pattern is a 16x16 buffer
+    \a warp is the transformation to apply when sampling the \a pattern in \a image.
+
+    \note \a warp might be used by higher level tracking methods (e.g planar)
 */
-void SamplePattern(const ubyte* image, int stride, float x, float y, ubyte* pattern);
+void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern);
 
 /*!
     Track \a pattern in \a image.

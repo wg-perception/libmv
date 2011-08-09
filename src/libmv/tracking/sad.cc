@@ -29,6 +29,15 @@
 
 namespace libmv {
 
+struct vec2 {
+  float x,y;
+  inline vec2(float x, float y):x(x),y(y){}
+};
+static vec2 operator*(mat3 m, vec2 v) {
+  float z = v.x*m[6]+v.y*m[7]+m[8];
+  return vec2((v.x*m[0]+v.y*m[1]+m[2])/z,(v.x*m[3]+v.y*m[4]+m[5])/z);
+}
+
 //! fixed point bilinear sample with precision k
 template <int k> inline int sample(const ubyte* image,int stride, int x, int y, int u, int v) {
   const ubyte* s = &image[y*stride+x];
@@ -36,13 +45,14 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
         + (s[stride] * (k-u) + s[stride+1] * u) * (  v) ) / (k*k);
 }
 
-void SamplePattern(const ubyte* image, int stride, float x, float y, ubyte* pattern) {
+void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern) {
   const int k = 256;
-  int fx = lround(x*k), fy = lround(y*k);
-  int ix = fx/k, iy = fy/k;
-  int u = fx%k, v = fy%k;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
-    pattern[i*16+j] = sample<256>(image,stride,ix+j-8,iy+i-8,u,v);
+    vec2 p = warp*vec2(i-8,j-8);
+    int fx = lround(p.x*k), fy = lround(p.y*k);
+    int ix = fx/k, iy = fy/k;
+    int u = fx%k, v = fy%k;
+    pattern[i*16+j] = sample<k>(image,stride,ix,iy,u,v);
   }
 }
 
@@ -111,10 +121,7 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
     }
     fx = nx, fy = ny;
   }
-  /*qDebug().nospace()<< int(*px)-w/2 <<"."<< int(kScale*(*px-int(*px)))
-              <<", "<< int(*py)-h/2 <<"."<< int(kScale*(*py-int(*py)))
-            <<" -> "<< ix      -w/2+8 <<"."<< fx
-              <<", "<< iy      -h/2+8 <<"."<< fy;*/
+
   *px = float((ix*kScale)+fx)/kScale+8;
   *py = float((iy*kScale)+fy)/kScale+8;
   return true;

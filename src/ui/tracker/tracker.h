@@ -31,6 +31,7 @@
 
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 #include "libmv/simple_pipeline/tracks.h"
+#include "libmv/tracking/sad.h"
 
 // TODO(MatthiasF): custom pattern/search size
 static const int kPatternSize = 16;
@@ -72,7 +73,7 @@ class Tracker : public QGLWidget, public libmv::Tracks {
   libmv::CameraIntrinsics* intrinsics_;
   Scene* scene_;
   int last_frame;
-  //QMap<int,ubyte*> patterns;
+  QMap<int,libmv::ubyte*> patterns;
 
   bool undistort_;
   GLTexture image_;

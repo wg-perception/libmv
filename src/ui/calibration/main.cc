@@ -20,7 +20,6 @@
 
 #include "main.h"
 
-#include "opencv2/highgui/highgui.hpp" //cvLoadImage
 #include "opencv2/imgproc/imgproc_c.h" //cvFindCornerSubPix
 #include "opencv2/calib3d/calib3d.hpp" //cvFindChessboardCorners
 

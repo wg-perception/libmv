@@ -27,7 +27,6 @@
 #include "ui/tracker/gl.h"
 
 #include "libmv/base/vector.h"
-#include "libmv/tracking/sad.h"
 
 using libmv::Marker;
 using libmv::vector;
@@ -64,8 +63,11 @@ void Tracker::Load(QString path) {
 
 void Tracker::Save(QString path) {
   vector<Marker> markers = AllMarkers();
-  if (markers.size() == 0) return;
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
+  if (markers.size() == 0) {
+    if(file.exists()) file.remove();
+    return;
+  }
   if (file.open(QFile::WriteOnly | QIODevice::Truncate)) {
     file.write(reinterpret_cast<char *>(markers.data()),
                markers.size() * sizeof(Marker));
@@ -123,9 +125,15 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     int y1 = qMin( y0+kSearchSize, height );
     int w = x1-x0, h = y1-y0;
 
-    const ubyte *old_data = old_image.constBits();
-    ubyte pattern[16*16];
-    libmv::SamplePattern(old_data,stride,x,y,pattern);
+    ubyte*& pattern = patterns[marker.track]; //TODO: take nearest keyframe
+    if(!pattern) {
+      pattern = new ubyte[16*16];
+      const ubyte *old_data = old_image.constBits();
+      libmv::mat3 affine = { 1, 0, x,
+                             0, 1, y,
+                             0, 0, 1 };
+      libmv::SamplePattern(old_data,stride,affine,pattern);
+    }
 
     x -= x0, y -= y0;
     libmv::Track(pattern, new_image.constBits()+y0*stride+x0, stride, w, h, &x, &y);
