@@ -128,7 +128,7 @@ void InternalCompleteReconstruction(
   while (num_resects != 0 || num_intersects != 0) {
     // Do all possible intersections.
     num_intersects = 0;
-    for (int track = 0; track < max_track; ++track) {
+    for (int track = 0; track <= max_track; ++track) {
       if (reconstruction->PointForTrack(track)) {
         LG << "Skipping point: " << track;
         continue;
@@ -162,7 +162,7 @@ void InternalCompleteReconstruction(
 
     // Do all possible resections.
     num_resects = 0;
-    for (int image = 0; image < max_image; ++image) {
+    for (int image = 0; image <= max_image; ++image) {
       if (reconstruction->CameraForImage(image)) {
         LG << "Skipping frame: " << image;
         continue;
