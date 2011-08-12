@@ -62,7 +62,7 @@ MainWindow::~MainWindow() {
   QSettings().setValue("geometry", saveGeometry());
   QSettings().setValue("windowState", saveState());
   QSettings().setValue("currentFrame", current_frame_);
-  if(tracker_) tracker_->Save(path_);
+  //if(tracker_) tracker_->Save(path_);
   //if(scene_) scene_->Save(path_);
 }
 
@@ -207,9 +207,10 @@ void MainWindow::open(QStringList files) {
       ->setShortcut(Qt::Key_Right);
   toolbar_->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
-  tracker_->Load(path_);
+  //tracker_->Load(path_);
   //detect();
-  track_action_->setChecked(true);
+  //track_action_->setChecked(true);
+  undistort_action_->setChecked(true);
 
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
