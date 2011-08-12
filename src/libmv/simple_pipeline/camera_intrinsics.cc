@@ -23,7 +23,7 @@
 
 namespace libmv {
 
-struct Offset { char ix,iy; unsigned char fx,fy; };
+struct Offset { signed char ix,iy; unsigned char fx,fy; };
 
 CameraIntrinsics::CameraIntrinsics()
     : K_(Mat3::Identity()),
