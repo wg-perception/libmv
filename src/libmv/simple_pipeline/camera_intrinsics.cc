@@ -158,8 +158,8 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
       // Use nearest border pixel
       if( ix < 0 ) { ix = 0, fx = 0; }
       if( iy < 0 ) { iy = 0, fy = 0; }
-      if( ix >= width-1 ) { ix = width-1, fx = 0; }
-      if( iy >= height-1 ) { iy = height-1, fy = 0; }
+      if( ix >= width-2 ) ix = width-2;
+      if( iy >= height-2 ) iy = height-2;
       //assert( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 );
       Offset offset = { ix-x, iy-y, fx, fy };
       grid[y*width+x] = offset;

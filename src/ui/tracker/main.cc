@@ -140,7 +140,7 @@ void MainWindow::open(QStringList files) {
 
   QAction* undistort_action_ = toolbar_->addAction(QIcon(":/undistort"), "Undistort footage");
   undistort_action_->setCheckable(true);
-  connect(undistort_action_, SIGNAL(triggered(bool)), SLOT(toggleUndistort(bool)));
+  connect(undistort_action_, SIGNAL(toggled(bool)), SLOT(toggleUndistort(bool)));
 
   QToolButton* delete_button = new QToolButton();
   toolbar_->addWidget(delete_button);
@@ -207,11 +207,6 @@ void MainWindow::open(QStringList files) {
       ->setShortcut(Qt::Key_Right);
   toolbar_->addAction(QIcon(":/skip-forward"), "Last Frame", this, SLOT(last()));
 
-  //tracker_->Load(path_);
-  //detect();
-  //track_action_->setChecked(true);
-  undistort_action_->setChecked(true);
-
   spinbox_.setMaximum(clip_->Count() - 1);
   slider_.setMaximum(clip_->Count() - 1);
   int frame = 0; //QSettings().value("currentFrame", 0).toInt();
@@ -221,6 +216,11 @@ void MainWindow::open(QStringList files) {
     seek(0);
   }
   restoreState(QSettings().value("windowState").toByteArray());
+
+  //tracker_->Load(path_);
+  //detect();
+  //track_action_->setChecked(true);
+  undistort_action_->setChecked(true);
 }
 
 void MainWindow::seek(int next) {
