@@ -24,33 +24,32 @@
 
 #include "libmv/simple_pipeline/detect.h"
 #include <string.h>
-#include <QDebug>
 
 namespace libmv {
 
 #ifdef __SSE2__
 #include <emmintrin.h>
-static uint SAD(const ubyte* imageA, const ubyte* imageB, int stride) {
+static uint SAD(const ubyte* imageA, const ubyte* imageB, int strideA, int strideB) {
   __m128i a = _mm_setzero_si128();
   for(int i = 0; i < 16; i++) {
-    a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(imageA+i*stride)),
-                                        _mm_loadu_si128((__m128i*)(imageB+i*stride))));
+    a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(imageA+i*strideA)),
+                                        _mm_loadu_si128((__m128i*)(imageB+i*strideB))));
   }
   return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
 }
 #else
-static uint SAD(const ubyte* imageA, const ubyte* imageB, int stride) {
+static uint SAD(const ubyte* imageA, const ubyte* imageB, int strideA, int strideB) {
   uint sad=0;
   for(int i = 0; i < 16; i++) {
     for(int j = 0; j < 16; j++) {
-      sad += abs((int)imageA[i*stride+j] - imageB[i*stride+j]);
+      sad += abs((int)imageA[i*strideA+j] - imageB[i*strideB+j]);
     }
   }
   return sad;
 }
 #endif
 
-void Detect(ubyte* image, int width, int height, Corner* corners, int* cornerCount) {
+void Detect(ubyte* image, int width, int height, Feature* detected, int* count, ubyte* pattern) {
   unsigned short histogram[256];
   memset(histogram,0,sizeof(histogram));
   ubyte scores[width*height];
@@ -61,10 +60,11 @@ void Detect(ubyte* image, int width, int height, Corner* corners, int* cornerCou
     for(int x=n; x<width-n; x++) {
       ubyte* s = &image[y*width+x];
       int score = // low self-similarity with overlapping patterns //OPTI: load pattern once
-          SAD(s, s-r*width-r, width)+SAD(s, s-r*width, width)+SAD(s, s-r*width+r, width)+
-          SAD(s, s        -r, width)+                         SAD(s, s        +r, width)+
-          SAD(s, s+r*width-r, width)+SAD(s, s+r*width, width)+SAD(s, s+r*width+r, width);
+          SAD(s, s-r*width-r, width, width)+SAD(s, s-r*width, width, width)+SAD(s, s-r*width+r, width, width)+
+          SAD(s, s        -r, width, width)+                                SAD(s, s        +r, width, width)+
+          SAD(s, s+r*width-r, width, width)+SAD(s, s+r*width, width, width)+SAD(s, s+r*width+r, width, width);
       score /= 256; // normalize
+      if(pattern) score -= SAD(s, pattern, width, 16); // find only features similar to pattern
       if(score<=16) continue; // filter very self-similar features
       score -= 16; // translate to score/histogram values
       if(score>255) score=255; // clip
@@ -87,22 +87,21 @@ void Detect(ubyte* image, int width, int height, Corner* corners, int* cornerCou
       nonmax:;
     }
   }
-  int count = *cornerCount;
   int min=255, total=0;
   for(; min>0; min--) {
     int h = histogram[min];
-    if(total+h > count) break;
+    if(total+h > *count) break;
     total += h;
   }
   int i=0;
   for(int y=16; y<height-16; y++) {
     for(int x=16; x<width-16; x++) {
       int s = scores[y*width+x];
-      Corner c = { x+8, y+8, s, 16 };
-      if(s>min) corners[i++] = c;
+      Feature f = { x+8, y+8, s, 16 };
+      if(s>min) detected[i++] = f;
     }
   }
-  *cornerCount = i;
+  *count = i;
 }
 
 }

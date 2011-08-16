@@ -313,14 +313,14 @@ void MainWindow::toggleUndistort(bool undistort) {
 void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   int count=16;
-  libmv::Corner corners[count];
-  libmv::Detect((libmv::ubyte*)image.constBits(), image.width(), image.height(), corners, &count);
+  libmv::Feature detected[count];
+  libmv::Detect((libmv::ubyte*)image.constBits(), image.width(), image.height(), detected, &count, 0);
 
   // Insert features
   QVector<int> tracks;
   for(int i=0; i<count; i++) {
     int track = tracker_->MaxTrack() + 1;
-    tracker_->Insert(current_frame_, track, corners[i].x, corners[i].y );
+    tracker_->Insert(current_frame_, track, detected[i].x, detected[i].y );
     tracks << track;
   }
   tracker_->select(tracks);

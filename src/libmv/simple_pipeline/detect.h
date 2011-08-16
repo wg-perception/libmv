@@ -32,21 +32,17 @@ namespace libmv {
 typedef unsigned char ubyte;
 
 /*!
-    A Corner is the 2D location of a detected feature in an image.
+    \a Feature is the 2D location of a detected feature in an image.
 
-    \a x, \a y is the position of the feature center in pixels (from image top-left).
-    \a score is an estimate of how well the feature will be tracked.
-    \a size can be used as an initial pattern size to track the feature.
+    \a x, \a y is the position of the center in pixels (from image top-left).
+    \a score is an estimate of how well the pattern will be tracked.
+    \a size can be used as an initial size to track the pattern.
 
     \sa Detect
 */
-struct Corner {
-  /// Feature center position in pixels (from image top-left)
-  /// \note libmv might eventually support subpixel precision.
+struct Feature {
   float x, y;
-  /// Trackness of the feature
   float score;
-  /// Size of the feature in pixels
   float size;
 };
 
@@ -55,11 +51,13 @@ struct Corner {
 
     \a image is a single channel 8-bit image of size \a width x \a height
 
-    \a corners is an array with space to hold \a *count \a Corner.
-    \a *count is the maximum feature count to detect on input and the actual
+    \a detected is an array with space to hold \a *count features.
+    \a *count is the maximum count to detect on input and the actual
     detected count on output.
+
+    Only features similar to \a pattern will be found if it is not null.
 */
-void Detect(ubyte* image, int width, int height, Corner* corners, int* count);
+void Detect(ubyte* image, int width, int height, Feature* detected, int* count, ubyte* pattern);
 
 #ifdef __cplusplus
 }
