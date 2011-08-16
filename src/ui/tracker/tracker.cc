@@ -129,8 +129,8 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     int w = x1-x0, h = y1-y0;
 
     ubyte*& pattern = patterns[marker.track]; //TODO: take nearest keyframe
-    /*if(!pattern)*/ {
-      if(!pattern) pattern = new ubyte[16*16];
+    if(!pattern) {
+      pattern = new ubyte[16*16];
       const ubyte *old_data = old_image.constBits();
       libmv::mat3 affine = { 1, 0, x,
                              0, 1, y,
