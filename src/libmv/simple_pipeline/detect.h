@@ -34,14 +34,14 @@ typedef unsigned char ubyte;
 /*!
     A Corner is the 2D location of a detected feature in an image.
 
-    \a x, \a y is the position of the corner in pixels from the top left corner.
+    \a x, \a y is the position of the feature center in pixels (from image top-left).
     \a score is an estimate of how well the feature will be tracked.
     \a size can be used as an initial pattern size to track the feature.
 
     \sa Detect
 */
 struct Corner {
-  /// Feature center position in pixels (from top-left image corner)
+  /// Feature center position in pixels (from image top-left)
   /// \note libmv might eventually support subpixel precision.
   float x, y;
   /// Trackness of the feature
@@ -53,17 +53,13 @@ struct Corner {
 /*!
     Detect features in an image.
 
-    You need to input a single channel 8-bit image using pointer to image \a data,
-    \a width, \a height and \a stride (i.e bytes per line).
+    \a image is a single channel 8-bit image of size \a width x \a height
 
-    To avoid detecting tracks which will quickly go out of frame, only corners
-    further than \a margin pixels from the image edges are considered.
-
-    You can tweak the count of detected corners using \a min_trackness, which is
-    the minimum score to add a corner, and \a min_distance which is the minimal
-    distance accepted between two corners.
+    \a corners is an array with space to hold \a *count \a Corner.
+    \a *count is the maximum feature count to detect on input and the actual
+    detected count on output.
 */
-void Detect(ubyte* data, int width, int height, Corner* corners, int* count);
+void Detect(ubyte* image, int width, int height, Corner* corners, int* count);
 
 #ifdef __cplusplus
 }

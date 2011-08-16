@@ -50,7 +50,7 @@ static uint SAD(const ubyte* imageA, const ubyte* imageB, int stride) {
 }
 #endif
 
-void Detect(ubyte* data, int width, int height, Corner* corners, int* cornerCount) {
+void Detect(ubyte* image, int width, int height, Corner* corners, int* cornerCount) {
   unsigned short histogram[256];
   memset(histogram,0,sizeof(histogram));
   ubyte scores[width*height];
@@ -59,7 +59,7 @@ void Detect(ubyte* data, int width, int height, Corner* corners, int* cornerCoun
   const int n = 32; //radius for non maximal suppression
   for(int y=n; y<height-n; y++) {
     for(int x=n; x<width-n; x++) {
-      ubyte* s = &data[y*width+x];
+      ubyte* s = &image[y*width+x];
       int score = // low self-similarity with overlapping patterns //OPTI: load pattern once
           SAD(s, s-r*width-r, width)+SAD(s, s-r*width, width)+SAD(s, s-r*width+r, width)+
           SAD(s, s        -r, width)+                         SAD(s, s        +r, width)+

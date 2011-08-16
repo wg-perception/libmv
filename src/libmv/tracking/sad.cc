@@ -44,7 +44,7 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
         + (s[stride] * (k-u) + s[stride+1] * u) * (  v) ) / (k*k);
 }
 
-void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern) {
+void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern) {
   const int k = 256;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
     vec2 p = warp*vec2(j-8,i-8);
@@ -78,7 +78,7 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 #endif
 
 //float sq( float x ) { return x*x; }
-bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, float* px, float* py) {
+void Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
   uint min=-1;
   // integer pixel
@@ -123,7 +123,6 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
 
   *px = float((ix*kScale)+fx)/kScale+8;
   *py = float((iy*kScale)+fy)/kScale+8;
-  return true;
 }
 
 }  // namespace libmv

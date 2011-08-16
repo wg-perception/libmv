@@ -135,11 +135,11 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
       libmv::mat3 affine = { 1, 0, x,
                              0, 1, y,
                              0, 0, 1 };
-      libmv::SamplePattern(old_data,stride,affine,pattern);
+      libmv::SamplePattern((ubyte*)old_data,stride,affine,pattern);
     }
 
     x -= x0, y -= y0;
-    libmv::Track(pattern, new_image.constBits()+y0*stride+x0, stride, w, h, &x, &y);
+    libmv::Track(pattern, (ubyte*)new_image.constBits()+y0*stride+x0, stride, w, h, &x, &y);
     x += x0, y += y0;
     Insert(next, marker.track, x, y);
   }
