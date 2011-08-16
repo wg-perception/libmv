@@ -42,8 +42,8 @@ using libmv::vector;
 
 typedef unsigned char ubyte;
 
-Tracker::Tracker(libmv::CameraIntrinsics* intrinsics)
-  : intrinsics_(intrinsics), scene_(0), undistort_(false),
+Tracker::Tracker(libmv::CameraIntrinsics* intrinsics) : intrinsics_(intrinsics),
+    scene_(0), undistort_(false),
     current_image_(0), active_track_(-1), dragged_(false) {
   setMinimumHeight(64);
 }
@@ -78,6 +78,7 @@ inline float sqr(float x) { return x*x; }
 void Tracker::SetImage(int id, QImage image) {
   makeCurrent();
   current_image_ = id;
+#ifdef LENS_DISTORTION
   if(undistort_) {
     QTime time; time.start();
     QImage correct(image.width(),image.height(),QImage::Format_Indexed8);
@@ -85,7 +86,9 @@ void Tracker::SetImage(int id, QImage image) {
     qDebug() << QString("%1x%2 image warped in %3 ms")
                 .arg(image.width()).arg(image.height()).arg(time.elapsed());
     image_.upload(correct);
-  } else {
+  } else
+#endif
+  {
     image_.upload(image);
   }
   upload();
@@ -126,8 +129,8 @@ void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) 
     int w = x1-x0, h = y1-y0;
 
     ubyte*& pattern = patterns[marker.track]; //TODO: take nearest keyframe
-    if(!pattern) {
-      pattern = new ubyte[16*16];
+    /*if(!pattern)*/ {
+      if(!pattern) pattern = new ubyte[16*16];
       const ubyte *old_data = old_image.constBits();
       libmv::mat3 affine = { 1, 0, x,
                              0, 1, y,
