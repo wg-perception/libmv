@@ -47,7 +47,7 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
 void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern) {
   const int k = 256;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
-    vec2 p = warp*vec2(i-8,j-8);
+    vec2 p = warp*vec2(j-8,i-8);
     int fx = lround(p.x*k), fy = lround(p.y*k);
     int ix = fx/k, iy = fy/k;
     int u = fx%k, v = fy%k;
@@ -57,7 +57,7 @@ void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern) {
 
 #ifdef __SSE2__
 #include <emmintrin.h>
-inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
   __m128i a = _mm_setzero_si128();
   for(int i = 0; i < 16; i++) {
     a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*16)),
@@ -66,7 +66,7 @@ inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
   return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
 }
 #else
-inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
   uint sad=0;
   for(int i = 0; i < 16; i++) {
     for(int j = 0; j < 16; j++) {
@@ -77,7 +77,7 @@ inline uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 }
 #endif
 
-float sq( float x ) { return x*x; }
+//float sq( float x ) { return x*x; }
 bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
   uint min=-1;
