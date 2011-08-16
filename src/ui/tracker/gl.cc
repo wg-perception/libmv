@@ -91,52 +91,28 @@ void GLUniform::set(vec4* data, int size) {
   if (id >= 0) glUniform4fv(id, size, reinterpret_cast<float*>(data));
 }
 
+bool compileShader(int program, int type, QByteArray source) {
+  int shader = glCreateShader(type);
+  const char* string = source.constData(); glShaderSource(shader,1,&string,0);
+  glCompileShader(shader); glAttachShader(program,shader);
+  int status; glGetShaderiv(shader,GL_COMPILE_STATUS,&status);
+  if(status==GL_TRUE) return true;
+  int l=0; glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&l);
+  QByteArray msg(l,0); glGetShaderInfoLog(shader,l,0,msg.data());
+  qDebug()<<(type==GL_VERTEX_SHADER?"Vertex:\n":"Fragment:\n")<<msg;
+  return false;
+}
 bool GLShader::compile(QString vertex, QString fragment) {
-  if (!id) id = glCreateProgram();
-  QByteArray vertexSource = vertex.toAscii();
-  const char* vertexString = vertexSource.constData();
-  int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexString, 0);
-  glCompileShader(vertexShader);
-  glAttachShader(id, vertexShader);
-  {
-    int l = 0;
-    glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &l);
-    if (l > 1) {
-      QByteArray msg(l, 0);
-      glGetShaderInfoLog(vertexShader, l, 0, msg.data());
-      qDebug() << msg;
-      return false;
-    }
-  }
-  QByteArray fragmentSource = fragment.toAscii();
-  const char* fragmentString = fragmentSource.constData();
-  int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentString, 0);
-  glCompileShader(fragmentShader);
-  glAttachShader(id, fragmentShader);
-  {
-    int l = 0;
-    glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &l);
-    if (l > 1) {
-      QByteArray msg(l, 0);
-      glGetShaderInfoLog(fragmentShader, l, 0, msg.data());
-      qDebug() << msg;
-      return false;
-    }
-  }
-  glLinkProgram(id);
-  {
-    int l = 0;
-    glGetProgramiv(id, GL_INFO_LOG_LENGTH, &l);
-    if (l > 1) {
-      QByteArray msg(l, 0);
-      glGetProgramInfoLog(id, l, 0, msg.data());
-      qDebug() << msg;
-      return false;
-    }
-  }
-  return true;
+    if(!id) id = glCreateProgram();
+    compileShader(id,GL_VERTEX_SHADER,vertex.toAscii());
+    compileShader(id,GL_FRAGMENT_SHADER,fragment.toAscii());
+    glLinkProgram(id);
+    int status; glGetProgramiv(id,GL_LINK_STATUS,&status);
+    if(status==GL_TRUE) return true;
+    int l=0; glGetProgramiv(id,GL_INFO_LOG_LENGTH,&l);
+    QByteArray msg(l,0); glGetProgramInfoLog(id,l,0,msg.data());
+    qDebug()<<"Program:\n"<<msg;
+    return false;
 }
 
 void GLShader::bind() {
