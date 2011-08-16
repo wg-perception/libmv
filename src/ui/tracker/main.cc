@@ -32,7 +32,6 @@
 #include "libmv/simple_pipeline/detect.h"
 
 // TODO(MatthiasF): simpler API
-#include "libmv/tools/tool.h"
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/pipeline.h"
@@ -81,7 +80,6 @@ void MainWindow::open(QStringList files) {
   setWindowTitle(QString("Tracker - %1").arg(QDir(path_).dirName()));
   current_frame_ = -1;
 
-// Calibration
   calibration_ = new Calibration(path_, clip_->Size());
   QDockWidget* calibration_dock = new QDockWidget("Calibration View");
   calibration_dock->setObjectName("calibrationDock");
@@ -94,8 +92,8 @@ void MainWindow::open(QStringList files) {
 
 // Tracker
   tracker_ = new Tracker(calibration_);
-  setCentralWidget(tracker_);
   connect(calibration_, SIGNAL(settingsChanged()), tracker_, SLOT(update()));
+  setCentralWidget(tracker_);
 
   QAction* tracker_action_ = toolbar_->addAction(QIcon(":/view-image"),
                                                 "Tracker View");
@@ -218,9 +216,9 @@ void MainWindow::open(QStringList files) {
   restoreState(QSettings().value("windowState").toByteArray());
 
   //tracker_->Load(path_);
-  //detect();
-  //track_action_->setChecked(true);
-  undistort_action_->setChecked(true);
+  detect();
+  track_action_->setChecked(true);
+  //undistort_action_->setChecked(true);
 }
 
 void MainWindow::seek(int next) {
@@ -314,14 +312,15 @@ void MainWindow::toggleUndistort(bool undistort) {
 
 void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
-  std::vector<libmv::Corner> corners = libmv::Detect(image.constBits(), image.width(),
-                                                     image.height(), image.bytesPerLine(),16,64,180);
+  int count=16;
+  libmv::Corner corners[count];
+  libmv::Detect((libmv::ubyte*)image.constBits(), image.width(), image.height(), corners, &count);
 
   // Insert features
   QVector<int> tracks;
-  foreach(libmv::Corner corner, corners) {
+  for(int i=0; i<count; i++) {
     int track = tracker_->MaxTrack() + 1;
-    tracker_->Insert(current_frame_, track, corner.x, corner.y );
+    tracker_->Insert(current_frame_, track, corners[i].x, corners[i].y );
     tracks << track;
   }
   tracker_->select(tracks);
@@ -360,7 +359,6 @@ void MainWindow::solve() {
 #endif
 
 int main(int argc, char *argv[]) {
-  libmv::Init("", &argc, &argv);
   QApplication app(argc, argv);
   app.setOrganizationName("libmv");
   app.setApplicationName("tracker");

@@ -25,9 +25,11 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_DETECT_H_
 #define LIBMV_SIMPLE_PIPELINE_DETECT_H_
 
-#include <vector>
-
+#ifdef __cplusplus
 namespace libmv {
+#endif
+
+typedef unsigned char ubyte;
 
 /*!
     A Corner is the 2D location of a detected feature in an image.
@@ -39,7 +41,7 @@ namespace libmv {
     \sa Detect
 */
 struct Corner {
-  /// Position in pixels (from top-left corner)
+  /// Feature center position in pixels (from top-left image corner)
   /// \note libmv might eventually support subpixel precision.
   float x, y;
   /// Trackness of the feature
@@ -60,18 +62,11 @@ struct Corner {
     You can tweak the count of detected corners using \a min_trackness, which is
     the minimum score to add a corner, and \a min_distance which is the minimal
     distance accepted between two corners.
-
-    \note You can binary search over \a min_trackness to get a given corner count.
-
-    \note a way to get an uniform distribution of a given corner count is:
-          \a min_distance = \a width * \a height / desired_corner_count ^ 2
-
-    \return All detected corners matching given parameters
 */
-std::vector<Corner> Detect(const unsigned char* data, int width, int height,
-                           int stride, int margin = 16, int min_trackness = 16,
-                           int min_distance = 120);
+void Detect(ubyte* data, int width, int height, Corner* corners, int* count);
 
+#ifdef __cplusplus
 }
+#endif
 
 #endif

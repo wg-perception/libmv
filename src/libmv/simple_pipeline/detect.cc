@@ -23,49 +23,86 @@
 ****************************************************************************/
 
 #include "libmv/simple_pipeline/detect.h"
-#include <third_party/fast/fast.h>
-#include <stdlib.h>
+#include <string.h>
+#include <QDebug>
 
 namespace libmv {
 
-std::vector<Corner> Detect(const unsigned char* data, int width, int height, int stride,
-                           int margin, int min_trackness, int min_distance) {
-  std::vector<Corner> corners;
-  data += margin*width + margin;
-  // TODO(MatthiasF): Support targetting a feature count (binary search trackness)
-  int num_corners;
-  xy* all = fast9_detect(data, width-2*margin, height-2*margin,
-                         stride, min_trackness, &num_corners);
-  if(num_corners == 0) {
-    free(all);
-    return corners;
+#ifdef __SSE2__
+#include <emmintrin.h>
+static uint SAD(const ubyte* imageA, const ubyte* imageB, int stride) {
+  __m128i a = _mm_setzero_si128();
+  for(int i = 0; i < 16; i++) {
+    a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(imageA+i*stride)),
+                                        _mm_loadu_si128((__m128i*)(imageB+i*stride))));
   }
-  int* scores = fast9_score(data, stride, all, num_corners, min_trackness);
-  // TODO: merge with close feature suppression
-  xy* nonmax = nonmax_suppression(all, scores, num_corners, &num_corners);
-  free(all);
-  // Remove too close features
-  // TODO(MatthiasF): A resolution independent parameter would be better than distance
-  // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
-  // FIXME(MatthiasF): this method will not necessarily give all maximum markers
-  if(num_corners) corners.reserve(num_corners);
-  for(int i = 0; i < num_corners; ++i) {
-    xy xy = nonmax[i];
-    Corner a = { xy.x+margin, xy.y+margin, scores[i], 7 };
-    // compare each feature against filtered set
-    for(int j = 0; j < corners.size(); j++) {
-      Corner& b = corners[j];
-      if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
-        // already a nearby feature
-        goto skip;
-      }
-    }
-    // otherwise add the new feature
-    corners.push_back(a);
-    skip: ;
-  }
-  free(scores);
-  free(nonmax);
-  return corners;
+  return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
 }
+#else
+static uint SAD(const ubyte* imageA, const ubyte* imageB, int stride) {
+  uint sad=0;
+  for(int i = 0; i < 16; i++) {
+    for(int j = 0; j < 16; j++) {
+      sad += abs((int)imageA[i*stride+j] - imageB[i*stride+j]);
+    }
+  }
+  return sad;
+}
+#endif
+
+void Detect(ubyte* data, int width, int height, Corner* corners, int* cornerCount) {
+  unsigned short histogram[256];
+  memset(histogram,0,sizeof(histogram));
+  ubyte scores[width*height];
+  memset(scores,0,sizeof(scores));
+  const int r = 1; //radius for self similarity comparison
+  const int n = 32; //radius for non maximal suppression
+  for(int y=n; y<height-n; y++) {
+    for(int x=n; x<width-n; x++) {
+      ubyte* s = &data[y*width+x];
+      int score = // low self-similarity with overlapping patterns //OPTI: load pattern once
+          SAD(s, s-r*width-r, width)+SAD(s, s-r*width, width)+SAD(s, s-r*width+r, width)+
+          SAD(s, s        -r, width)+                         SAD(s, s        +r, width)+
+          SAD(s, s+r*width-r, width)+SAD(s, s+r*width, width)+SAD(s, s+r*width+r, width);
+      score /= 256; // normalize
+      if(score<=16) continue; // filter very self-similar features
+      score -= 16; // translate to score/histogram values
+      if(score>255) score=255; // clip
+      ubyte* c = &scores[y*width+x];
+      for(int i=-n; i<0; i++) {
+        for(int j=-n; j<n; j++) {
+          int s = c[i*width+j];
+          if(s == 0) continue;
+          if(s >= score) goto nonmax;
+          c[i*width+j]=0, histogram[s]--;
+        }
+      }
+      for(int i=0, j=-n; j<0; j++) {
+        int s = c[i*width+j];
+        if(s == 0) continue;
+        if(s >= score) goto nonmax;
+        c[i*width+j]=0, histogram[s]--;
+      }
+      c[0] = score, histogram[score]++;
+      nonmax:;
+    }
+  }
+  int count = *cornerCount;
+  int min=255, total=0;
+  for(; min>0; min--) {
+    int h = histogram[min];
+    if(total+h > count) break;
+    total += h;
+  }
+  int i=0;
+  for(int y=16; y<height-16; y++) {
+    for(int x=16; x<width-16; x++) {
+      int s = scores[y*width+x];
+      Corner c = { x+8, y+8, s, 16 };
+      if(s>min) corners[i++] = c;
+    }
+  }
+  *cornerCount = i;
+}
+
 }
