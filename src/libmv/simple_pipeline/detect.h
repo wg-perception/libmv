@@ -45,7 +45,7 @@ struct Feature {
   float score;
   float size;
 };
-
+ //radius for non maximal suppression
 /*!
     Detect features in an image.
 
@@ -55,9 +55,15 @@ struct Feature {
     \a *count is the maximum count to detect on input and the actual
     detected count on output.
 
-    Only features similar to \a pattern will be found if it is not null.
+    \a distance is the minimal distance between detected features.
+
+    if \a pattern is null all good features will be found.
+    if \a pattern is not null only features similar to \a pattern will be found.
+
+    \note \a You can crop the image (to avoid detecting markers near the borders) without copying:
+             image += marginY*stride+marginX, width -= 2*marginX, height -= 2*marginY;
 */
-void Detect(ubyte* image, int width, int height, Feature* detected, int* count, ubyte* pattern);
+void Detect(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance /*=32*/, ubyte* pattern /*=0*/);
 
 #ifdef __cplusplus
 }

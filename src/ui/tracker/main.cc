@@ -314,7 +314,7 @@ void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   int count=16;
   libmv::Feature detected[count];
-  libmv::Detect((libmv::ubyte*)image.constBits(), image.width(), image.height(), detected, &count, 0);
+  libmv::Detect((libmv::ubyte*)image.constBits(), image.bytesPerLine(), image.width(), image.height(), detected, &count, 32, 0);
 
   // Insert features
   QVector<int> tracks;

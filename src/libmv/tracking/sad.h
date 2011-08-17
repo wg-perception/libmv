@@ -59,8 +59,10 @@ void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern);
 
     \note For a 16x speedup, compile this tracker with SSE2 support.
     \note \a stride allow you to reference your search region instead of copying.
+
+    \return Sum of absolute difference between reference and matched pattern.
 */
-void Track(ubyte* pattern, ubyte* image, int stride, int width, int height, float* x, float* y);
+int Track(ubyte* pattern, ubyte* image, int stride, int width, int height, float* x, float* y);
 
 #ifdef __cplusplus
 }  // namespace libmv

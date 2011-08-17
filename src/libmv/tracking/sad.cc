@@ -89,14 +89,14 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 #endif
 
 //float sq( float x ) { return x*x; }
-void Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, float* py) {
+int Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
   uint min=-1;
   // integer pixel
   for(int y = 0; y < h-16; y++) {
     for(int x = 0; x < w-16; x++) {
       uint d = SAD(pattern,&image[y*stride+x],stride); //image L1 distance
-      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance
+      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance (need feature prediction first)
       if(d < min) {
         min = d;
         ix = x, iy = y;
@@ -134,6 +134,7 @@ void Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, fl
 
   *px = float((ix*kScale)+fx)/kScale+8;
   *py = float((iy*kScale)+fy)/kScale+8;
+  return min;
 }
 
 }  // namespace libmv
