@@ -28,6 +28,8 @@
 
 namespace libmv {
 
+typedef unsigned int uint;
+
 struct vec2 {
   float x,y;
   inline vec2(float x, float y):x(x),y(y){}
@@ -44,11 +46,20 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
         + (s[stride] * (k-u) + s[stride+1] * u) * (  v) ) / (k*k);
 }
 
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
 void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern) {
   const int k = 256;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
     vec2 p = warp*vec2(j-8,i-8);
+#ifdef __SSE__
+    //MSVC apparently doesn't support any float rounding.
+    int fx = _mm_cvtss_si32(_mm_set_ss(p.x*k));
+    int fy = _mm_cvtss_si32(_mm_set_ss(p.y*k));
+#else
     int fx = lround(p.x*k), fy = lround(p.y*k);
+#endif
     int ix = fx/k, iy = fy/k;
     int u = fx%k, v = fy%k;
     pattern[i*16+j] = sample<k>(image,stride,ix,iy,u,v);
