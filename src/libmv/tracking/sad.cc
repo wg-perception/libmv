@@ -106,21 +106,23 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
   }
   m(0,2) = ix, m(1,2) = iy;
 
-  // diamond search 6D affine transform
+  // 6D coordinate descent to find affine transform
   float step = 0.5;
   for(int p = 0; p < 4; p++) { //foreach precision level
     step /= 2;
-    for(int d = 0; d < 10; d++) { //foreach dimension (twice)
-      for(float x = -step*2; x <= step*2; x+=step*2) { //test small steps
-        mat32 t = m;
-        t.data[d] += x;
-        if( d<4 && (t.data[d] > 2 || t.data[d] < -2) ) continue; // avoid big distortion
-        ubyte match[size*size];
-        SamplePattern(image,stride,t,match,size);
-        uint sad = SAD(reference,match,size,size);
-        if(sad < min) {
-          min = sad;
-          m = t;
+    for(int i = 0; i < 2; i++) { // iterate twice per precision level
+      for(int d = 0; d < 6; d++) { // foreach dimension
+        for(float x = -step*2; x <= step*2; x+=step*2) { //test small steps
+          mat32 t = m;
+          t.data[d] += x;
+          if( d<4 && (t.data[d] > 2 || t.data[d] < -2) ) continue; // avoid big distortion
+          ubyte match[size*size];
+          SamplePattern(image,stride,t,match,size);
+          uint sad = SAD(reference,match,size,size);
+          if(sad < min) {
+            min = sad;
+            m = t;
+          }
         }
       }
     }
