@@ -110,11 +110,11 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
   float step = 0.5;
   for(int p = 0; p < 4; p++) { //foreach precision level
     step /= 2;
-    for(int d = 5; d >= 0; d--) { //foreach dimension (do translation first)
-      for(float x = -step; x <= step; x+=step) { //test small steps
+    for(int d = 0; d < 10; d++) { //foreach dimension (twice)
+      for(float x = -step*2; x <= step*2; x+=step*2) { //test small steps
         mat32 t = m;
         t.data[d] += x;
-        if( d<4 && (t.data[d] > 2 || t.data[d] < 0.5) ) continue; // avoid big distortion
+        if( d<4 && (t.data[d] > 2 || t.data[d] < -2) ) continue; // avoid big distortion
         ubyte match[size*size];
         SamplePattern(image,stride,t,match,size);
         uint sad = SAD(reference,match,size,size);
