@@ -102,16 +102,14 @@ void Tracker::SetOverlay(Scene* scene) {
 void Tracker::Track(int previous, int next, QImage search) {
   QTime time; time.start();
   int width = search.width(), height = search.height(), stride = search.bytesPerLine();
-  foreach(int i, selected_tracks_) {
-    QVector<mat32>& track = tracks[i];
+  foreach(int index, selected_tracks_) {
+    QVector<mat32>& track = tracks[index];
     mat32 marker = track[previous];
 
     // Stop tracking near borders
     int x = marker(0,2), y = marker(1,2);
-    if( x < kPatternSize || y < kPatternSize ||
-        x >= width-kPatternSize || y >= height-kPatternSize ) {
-      continue;
-    }
+    int size = kPatternSize;
+    if( x < size || y < size || x >= width-size || y >= height-size ) continue;
 
     // Compute clipped search region
     int x0 = qMax( x - kSearchSize/2, 0     );
@@ -120,13 +118,9 @@ void Tracker::Track(int previous, int next, QImage search) {
     int y1 = qMin( y + kSearchSize/2, height);
     int w = x1-x0, h = y1-y0;
 
-    // Translate to search region
-    marker(0,2) -= x0, marker(1,2) -= y0;
-
-    qDebug() << libmv::Track(references[i].data, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
-
-    // Translate back to image
-    marker(0,2) += x0, marker(1,2) += y0;
+    marker(0,2) -= x0, marker(1,2) -= y0; // Translate to search region
+    libmv::Track(references[index], size, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
+    marker(0,2) += x0, marker(1,2) += y0; // Translate back to image
 
     if(track.count()<=next) track.resize(next+1);
     track[next] = marker;
@@ -247,6 +241,7 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   markers_.bind();
   markers_.bindAttribute(&marker_shader, "position", 2);
   glAdditiveBlendMode();
+  glSmooth();
   markers_.draw();
 }
 
@@ -272,11 +267,11 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
   int new_track = tracks.count();
   mat32 marker;
   marker(0,2) = pos.x, marker(1,2) = pos.y;
-  tracks << QVector<mat32>(1,marker);
-  Pattern pattern;
-  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,pattern.data);
+  tracks << QVector<mat32>(current_+1,marker);
+  ubyte* pattern = new ubyte[kPatternSize*kPatternSize];
+  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,pattern,kPatternSize);
   references << pattern;
-  selected_tracks_ += new_track;
+  selected_tracks_ << new_track;
   active_track_ = new_track;
   emit trackChanged(selected_tracks_);
   upload();
@@ -289,7 +284,7 @@ void Tracker::mouseMoveEvent(QMouseEvent* e) {
   mat32& marker = tracks[active_track_][current_];
   marker(0,2) += delta.x;
   marker(1,2) += delta.y;
-  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,references[active_track_].data);
+  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,references[active_track_],kPatternSize);
   upload();
   last_position_ = pos;
   dragged_ = true;

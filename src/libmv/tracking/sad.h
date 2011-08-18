@@ -49,10 +49,9 @@ struct mat32 {
 /*!
     Sample \a pattern from \a image.
 
-    \a pattern is a 16x16 buffer
     \a warp is the transformation to apply to \a image when sampling the \a pattern.
 */
-void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern);
+void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int size);
 
 /*!
     Track \a pattern in \a image.
@@ -63,8 +62,9 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern);
     refine subpixel position using a square search.
     A similar method is used for motion estimation in video encoders.
 
-    \a pattern is a 16x16 single channel image to track.
-    \a image is a reference to the single channel region to search.
+    \a reference is the pattern to track.
+    the \a size of the pattern should be aligned to 16.
+    \a image is a reference to the region to search.
     \a stride is size of \a image lines.
 
     On input, \a warp is the predicted affine transformation (e.g from previous frame)
@@ -81,7 +81,7 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern);
     \note \a stride allow you to reference your search region instead of copying.
     \note For a 16x speedup, compile this tracker with SSE2 support.
 */
-float Track(ubyte* pattern, ubyte* image, int stride, int width, int height, mat32* warp);
+float Track(ubyte* reference, int size, ubyte* image, int stride, int width, int height, mat32* warp);
 
 #ifdef __cplusplus
 }  // namespace libmv

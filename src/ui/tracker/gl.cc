@@ -78,9 +78,6 @@ void GLUniform::operator=(vec3 v) {
 void GLUniform::operator=(vec4 v) {
   if (id >= 0) glUniform4f(id, v.x, v.y, v.z, v.w);
 }
-void GLUniform::operator=(mat3 m) {
-  if (id >= 0) glUniformMatrix3fv(id, 1, 0, m.data);
-}
 void GLUniform::operator=(mat4 m) {
   if (id >= 0) glUniformMatrix4fv(id, 1, 0, m.data);
 }
@@ -239,6 +236,15 @@ void glQuad(vec4 min, vec4 max) {
 void glBindWindow(int x, int y, int w, int h, bool clear) {
   glViewport(x, y, w, h);
   if(clear) glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+}
+
+void glSmooth()  {
+  glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+  glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
+  glEnable(GL_LINE_SMOOTH); glEnable(GL_POLYGON_SMOOTH);
+}
+void glHard() {
+  glDisable(GL_LINE_SMOOTH); glDisable(GL_POLYGON_SMOOTH);
 }
 
 void glAdditiveBlendMode() {

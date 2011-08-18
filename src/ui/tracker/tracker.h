@@ -34,8 +34,8 @@
 #include "libmv/tracking/sad.h"
 
 // TODO(MatthiasF): custom pattern/search size
-static const int kPatternSize = 16;
-static const int kSearchSize = 128;
+static const int kPatternSize = 32;
+static const int kSearchSize = 48;
 
 class Scene;
 
@@ -51,7 +51,7 @@ class Tracker : public QGLWidget {
   void SetImage(int id, QImage image);
   void SetUndistort(bool undistort);
   void SetOverlay(Scene* scene);
-  void Track(int previous, int next, QImage image);
+  void Track(int previous, int next, QImage search);
   void Render(int x, int y, int w, int h, int image=-1, int track=-1);
 
  public slots:
@@ -75,8 +75,7 @@ class Tracker : public QGLWidget {
   libmv::CameraIntrinsics* intrinsics_;
   Scene* scene_;
   int last_frame;
-  struct Pattern { ubyte data[16*16]; };
-  QVector< Pattern > references;
+  QVector< ubyte* > references;
   QVector< QVector<libmv::mat32> > tracks; //[track][image]
 
   bool undistort_;

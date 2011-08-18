@@ -50,94 +50,92 @@ int lround(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
 int lround(float x) { return x+0.5; }
 #endif
 
-void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern) {
+//TODO(MatthiasF): SSE optimization
+void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int size) {
   const int k = 256;
-  for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
-    vec2 p = warp*vec2(j-8,i-8);
+  for (int i = 0; i < size; i++) for (int j = 0; j < size; j++) {
+    vec2 p = warp*vec2(j-size/2,i-size/2);
     int fx = lround(p.x*k), fy = lround(p.y*k);
     int ix = fx/k, iy = fy/k;
     int u = fx%k, v = fy%k;
-    pattern[i*16+j] = sample<k>(image,stride,ix,iy,u,v);
+    pattern[i*size+j] = sample<k>(image,stride,ix,iy,u,v);
   }
 }
 
 #ifdef __SSE2__
 #include <emmintrin.h>
-static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) {
   __m128i a = _mm_setzero_si128();
-  for(int i = 0; i < 16; i++) {
-    a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*16)),
-                                        _mm_loadu_si128((__m128i*)(image+i*stride))));
+  for(int i = 0; i < size; i++) {
+    for(int j = 0; j < size/16; j++) {
+      a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*size+j*16)),
+                                          _mm_loadu_si128((__m128i*)(image+i*stride+j*16))));
+    }
   }
   return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
 }
 #else
-static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) {
   uint sad=0;
-  for(int i = 0; i < 16; i++) {
-    for(int j = 0; j < 16; j++) {
-      sad += abs((int)pattern[i*16+j] - image[i*stride+j]);
+  for(int i = 0; i < size; i++) {
+    for(int j = 0; j < size; j++) {
+      sad += abs((int)pattern[i*size+j] - image[i*stride+j]);
     }
   }
   return sad;
 }
 #endif
 
-//float sq( float x ) { return x*x; }
-float Track(ubyte* pattern, ubyte* image, int stride, int w, int h, mat32* warp) {
+float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, mat32* warp) {
   mat32 m=*warp;
-  int ix = m(0,2)-8, iy = m(1,2)-8;
   uint min=-1;
-  // integer pixel
-  for(int y = 0; y < h-16; y++) {
-    for(int x = 0; x < w-16; x++) {
-      uint d = SAD(pattern,&image[y*stride+x],stride); //image L1 distance
-      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance (need feature prediction first)
-      if(d < min) {
-        min = d;
+
+  // exhaustive search integer pixel translation
+  int ix = m(0,2), iy = m(1,2);
+  for(int y = size/2; y < h-size/2; y++) {
+    for(int x = size/2; x < w-size/2; x++) {
+      m(0,2) = x, m(1,2) = y;
+      ubyte match[size*size];
+      SamplePattern(image,stride,m,match,size);
+      uint sad = SAD(reference,match,size,size);
+      if(sad < min) {
+        min = sad;
         ix = x, iy = y;
       }
     }
   }
+  m(0,2) = ix, m(1,2) = iy;
 
-  const int kPrecision = 4; //subpixel precision in bits
-  const int kScale = 1<<kPrecision;
-  int fx=0,fy=0;
-  for(int k = 1; k <= kPrecision; k++) {
-    fx *= 2, fy *= 2;
-    int nx = fx, ny = fy;
-    int p = kPrecision-k;
-    for(int y = -1; y <= 1; y++) {
-      for(int x = -1; x <= 1; x++) {
-        uint sad=0;
-        int sx = ix, sy = iy;
-        int u = (fx+x)<<p, v = (fy+y)<<p;
-        if( u < 0 ) u+=kScale, sx--;
-        if( v < 0 ) v+=kScale, sy--;
-        for(int i = 0; i < 16; i++) {
-          for(int j = 0; j < 16; j++) {
-            sad += abs((int)pattern[i*16+j] - sample<kScale>(image,stride,sx+j,sy+i,u,v));
-          }
-        }
+  // diamond search 6D affine transform
+  float step = 0.5;
+  for(int p = 0; p < 4; p++) { //foreach precision level
+    step /= 2;
+    for(int d = 5; d >= 0; d--) { //foreach dimension (do translation first)
+      for(float x = -step; x <= step; x+=step) { //test small steps
+        mat32 t = m;
+        t.data[d] += x;
+        if( d<4 && (t.data[d] > 2 || t.data[d] < 0.5) ) continue; // avoid big distortion
+        ubyte match[size*size];
+        SamplePattern(image,stride,t,match,size);
+        uint sad = SAD(reference,match,size,size);
         if(sad < min) {
           min = sad;
-          nx = fx + x, ny = fy + y;
+          m = t;
         }
       }
     }
-    fx = nx, fy = ny;
   }
-  if( fx < 0 ) fx+=kScale, ix--;
-  if( fy < 0 ) fy+=kScale, iy--;
-  m(0,2) = float((ix*kScale)+fx)/kScale+8;
-  m(1,2) = float((iy*kScale)+fy)/kScale+8;
   *warp = m;
+
   // Compute Pearson product-moment correlation coefficient
   uint sX=0,sY=0,sXX=0,sYY=0,sXY=0;
-  for(int i = 0; i < 16; i++) {
-    for(int j = 0; j < 16; j++) {
-      int x = pattern[i*16+j];
-      int y = sample<kScale>(image,stride,ix+j,iy+i,fx,fy);
+  ubyte match[size*size];
+  SamplePattern(image,stride,m,match,size);
+  SAD(reference,match,size,size);
+  for(int i = 0; i < size; i++) {
+    for(int j = 0; j < size; j++) {
+      int x = reference[i*size+j];
+      int y = match[i*size+j];
       sX += x;
       sY += y;
       sXX += x*x;
@@ -145,7 +143,7 @@ float Track(ubyte* pattern, ubyte* image, int stride, int w, int h, mat32* warp)
       sXY += x*y;
     }
   }
-  const int N = 16*16;
+  const int N = size*size;
   sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
   return (sXY-sX*sY)/sqrt((sXX-sX*sX)*(sYY-sY*sY));
 }

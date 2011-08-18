@@ -313,6 +313,8 @@ struct GLTexture {
 
 void glInitialize();
 void glBindWindow(int x, int y, int w, int h, bool clear);
+void glSmooth();
+void glHard();
 void glAdditiveBlendMode();
 void glDisableBlend();
 void glQuad(vec4 min, vec4 max);
