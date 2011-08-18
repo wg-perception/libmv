@@ -42,7 +42,6 @@ class AVFormatContext;
 class AVCodecContext;
 #endif
 
-// -> image/clip.cc
 class Clip {
  public:
   Clip(QStringList files);

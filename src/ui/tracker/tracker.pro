@@ -1,12 +1,13 @@
 QT += opengl
-HEADERS += clip.h        tracker.h  zoom.h  main.h
-SOURCES += clip.cc gl.cc tracker.cc zoom.cc main.cc
+#HEADERS += clip.h        tracker.h  zoom.h  main.h
+#SOURCES += clip.cc gl.cc tracker.cc zoom.cc main.cc
+HEADERS += clip.h        tracker.h  main.h
+SOURCES += clip.cc gl.cc tracker.cc main.cc
 HEADERS += ../../libmv/tracking/sad.h
 SOURCES += ../../libmv/tracking/sad.cc
 HEADERS += ../../libmv/simple_pipeline/detect.h
 SOURCES += ../../libmv/simple_pipeline/detect.cc
-HEADERS += ../../libmv/simple_pipeline/tracks.h
-SOURCES += ../../libmv/simple_pipeline/tracks.cc
+#TODO: Qt Tracker should be independent from libmv to be able to use new lens distortion API
 HEADERS += calibration.h ../../libmv/simple_pipeline/camera_intrinsics.h
 SOURCES += calibration.cc ../../libmv/simple_pipeline/camera_intrinsics.cc
 #HEADERS += scene.h

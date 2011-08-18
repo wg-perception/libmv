@@ -104,7 +104,7 @@ void Detect(ubyte* image, int stride, int width, int height, Feature* detected, 
     }
   }
   *count = i;
-  free(scores);
+  delete[] scores;
 }
 
 }

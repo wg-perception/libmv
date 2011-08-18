@@ -135,16 +135,6 @@ inline vec4 normalize(vec4 a) {
   return a*(1.0/length(a.xyz()));
 }
 
-struct mat3 {
-  float data[3*3];
-  inline float& m(int i, int j) { return data[j*3+i]; }
-  inline float& operator()(int i, int j) { return m(i, j); }
-  inline vec3 operator*(vec3 v) {
-    vec3 r;
-    for (int i = 0; i < 3; i++) r[i] = v.x*m(i, 0)+v.y*m(i, 1)+v.z*m(i, 2);
-    return r;
-  }
-};
 struct mat4 {
   float data[4*4];
   inline mat4(int d = 1) {
@@ -229,20 +219,6 @@ struct mat4 {
         m(i0, j1) * (m(i1, j0) * m(i2, j2) - m(i2, j0) * m(i1, j2)) +
         m(i0, j2) * (m(i1, j0) * m(i2, j1) - m(i2, j0) * m(i1, j1));
   }
-  inline mat3 normalMatrix() const {
-    float det = 1 / det3(0, 1, 2, 0, 1, 2);
-    mat3 n;
-    n(0, 0) =  (m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1)) * det;
-    n(1, 0) = -(m(0, 1) * m(2, 2) - m(2, 1) * m(0, 2)) * det;
-    n(2, 0) =  (m(0, 1) * m(1, 2) - m(1, 1) * m(0, 2)) * det;
-    n(0, 1) = -(m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) * det;
-    n(1, 1) =  (m(0, 0) * m(2, 2) - m(2, 0) * m(0, 2)) * det;
-    n(2, 1) = -(m(0, 0) * m(1, 2) - m(1, 0) * m(0, 2)) * det;
-    n(0, 2) =  (m(1, 0) * m(2, 1) - m(2, 0) * m(1, 1)) * det;
-    n(1, 2) = -(m(0, 0) * m(2, 1) - m(2, 0) * m(0, 1)) * det;
-    n(2, 2) =  (m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0)) * det;
-    return n;
-  }
   inline mat4 inverse() const {
     float det = 1 / (m(0, 0) * det3(1, 2, 3, 1, 2, 3) -
                      m(0, 1) * det3(0, 2, 3, 1, 2, 3) +
@@ -287,7 +263,6 @@ struct GLUniform {
   void operator=(vec2);
   void operator=(vec3);
   void operator=(vec4);
-  void operator=(mat3);
   void operator=(mat4);
   void set(vec3*, int);
   void set(vec4*, int);

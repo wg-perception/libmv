@@ -26,11 +26,6 @@
 #include "ui/tracker/scene.h"
 #include "ui/tracker/gl.h"
 
-#include "libmv/base/vector.h"
-
-using libmv::Marker;
-using libmv::vector;
-
 #include <QMouseEvent>
 #include <QFileInfo>
 #include <QDebug>
@@ -40,44 +35,45 @@ using libmv::vector;
 #define constBits bits
 #endif
 
-typedef unsigned char ubyte;
+using libmv::mat32;
+inline vec2 operator*(mat32 m, vec2 v) {
+  return vec2(v.x*m(0,0)+v.y*m(0,1)+m(0,2),v.x*m(1,0)+v.y*m(1,1)+m(1,2));
+}
+
+QDataStream& operator<<(QDataStream& s, const mat32& m) { s.writeRawData((char*)&m,sizeof(m)); return s; }
+QDataStream& operator>>(QDataStream& s, mat32& m) { s.readRawData((char*)&m,sizeof(m)); return s; }
+QDebug operator <<(QDebug d, mat32 m) {
+  return d.nospace()<<m(0,0)<<", "<<m(0,1)<<", "<<m(0,2)<<"\n"<<m(1,0)<<", "<<m(1,1)<<", "<<m(1,2);
+}
 
 Tracker::Tracker(libmv::CameraIntrinsics* intrinsics) : intrinsics_(intrinsics),
     scene_(0), undistort_(false),
-    current_image_(0), active_track_(-1), dragged_(false) {
+    current_(0), active_track_(-1), dragged_(false) {
   setMinimumHeight(64);
 }
 
 void Tracker::Load(QString path) {
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
-  if( file.open(QFile::ReadOnly) ) {
-    Marker marker;
-    while(file.read((char*)&marker,sizeof(Marker))>0) {
-      Insert(marker.image, marker.track, marker.x, marker.y);
-      // Select all tracks with markers visible on first frame
-      if(marker.image==0) selected_tracks_ << marker.track;
-    }
+  if (file.open(QFile::ReadOnly)) {
+    QDataStream s(&file);
+    s >> tracks;
   }
   emit trackChanged(selected_tracks_);
 }
 
 void Tracker::Save(QString path) {
-  vector<Marker> markers = AllMarkers();
   QFile file(path + (QFileInfo(path).isDir()?"/":".") + "tracks");
-  if (markers.size() == 0) {
-    if(file.exists()) file.remove();
-    return;
-  }
-  if (file.open(QFile::WriteOnly | QIODevice::Truncate)) {
-    file.write(reinterpret_cast<char *>(markers.data()),
-               markers.size() * sizeof(Marker));
+  if (file.open(QFile::WriteOnly|QFile::Truncate)) {
+    QDataStream s(&file);
+    s << tracks;
   }
 }
 
 inline float sqr(float x) { return x*x; }
 void Tracker::SetImage(int id, QImage image) {
   makeCurrent();
-  current_image_ = id;
+  current_ = id;
+  image_ = image;
 #ifdef LENS_DISTORTION
   if(undistort_) {
     QTime time; time.start();
@@ -89,7 +85,7 @@ void Tracker::SetImage(int id, QImage image) {
   } else
 #endif
   {
-    image_.upload(image);
+    texture_.upload(image);
   }
   upload();
   emit trackChanged(selected_tracks_);
@@ -103,48 +99,40 @@ void Tracker::SetOverlay(Scene* scene) {
   scene_ = scene;
 }
 
-// Track active trackers from the previous image into next one.
-void Tracker::Track(int previous, int next, QImage old_image, QImage new_image) {
+void Tracker::Track(int previous, int next, QImage search) {
   QTime time; time.start();
-  Q_ASSERT(old_image.size() == new_image.size() && old_image.depth() == 8);
-  int width = old_image.width(), height = old_image.height(),
-      stride = old_image.bytesPerLine();
-  vector<Marker> previous_markers = MarkersInImage(previous);
-  for (int i = 0; i < previous_markers.size(); i++) {
-    const Marker &marker = previous_markers[i];
-    if (!selected_tracks_.contains(marker.track)) {
-      continue;
-    }
-    float x = marker.x, y = marker.y;
+  int width = search.width(), height = search.height(), stride = search.bytesPerLine();
+  foreach(int i, selected_tracks_) {
+    QVector<mat32>& track = tracks[i];
+    mat32 marker = track[previous];
+
+    // Stop tracking near borders
+    int x = marker(0,2), y = marker(1,2);
     if( x < kPatternSize || y < kPatternSize ||
         x >= width-kPatternSize || y >= height-kPatternSize ) {
       continue;
     }
 
-    int ix = x, iy = y;
-    int x0 = qMax( ix - kSearchSize/2, 0 );
-    int y0 = qMax( iy - kSearchSize/2, 0 );
-    int x1 = qMin( x0+kSearchSize, width  );
-    int y1 = qMin( y0+kSearchSize, height );
+    // Compute clipped search region
+    int x0 = qMax( x - kSearchSize/2, 0     );
+    int y0 = qMax( y - kSearchSize/2, 0     );
+    int x1 = qMin( x + kSearchSize/2, width );
+    int y1 = qMin( y + kSearchSize/2, height);
     int w = x1-x0, h = y1-y0;
 
-    ubyte*& pattern = patterns[marker.track]; //TODO: take nearest keyframe
-    if(!pattern) {
-      pattern = new ubyte[16*16];
-      const ubyte *old_data = old_image.constBits();
-      libmv::mat3 affine = { 1, 0, x,
-                             0, 1, y,
-                             0, 0, 1 };
-      libmv::SamplePattern((ubyte*)old_data,stride,affine,pattern);
-    }
+    // Translate to search region
+    marker(0,2) -= x0, marker(1,2) -= y0;
 
-    x -= x0, y -= y0;
-    libmv::Track(pattern, (ubyte*)new_image.constBits()+y0*stride+x0, stride, w, h, &x, &y);
-    x += x0, y += y0;
-    Insert(next, marker.track, x, y);
+    libmv::Track(references[i].data, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
+
+    // Translate back to image
+    marker(0,2) += x0, marker(1,2) += y0;
+
+    if(track.count()<=next) track.resize(next+1);
+    track[next] = marker;
   }
   last_frame = next;
-  qDebug() << previous_markers.size() <<"markers in" << time.elapsed() << "ms";
+  qDebug() << selected_tracks_.size() <<"markers in" << time.elapsed() << "ms";
 }
 
 void Tracker::select(QVector<int> tracks) {
@@ -154,7 +142,7 @@ void Tracker::select(QVector<int> tracks) {
 
 void Tracker::deleteSelectedMarkers() {
   foreach (int track, selected_tracks_) {
-    RemoveMarker(current_image_, track);
+    tracks[track][current_] = mat32();
   }
   selected_tracks_.clear();
   upload();
@@ -163,53 +151,47 @@ void Tracker::deleteSelectedMarkers() {
 
 void Tracker::deleteSelectedTracks() {
   foreach (int track, selected_tracks_) {
-    RemoveMarkersForTrack(track);
+    tracks.remove(track);
   }
   selected_tracks_.clear();
   upload();
   emit trackChanged(selected_tracks_);
 }
 
-void Tracker::DrawMarker(const libmv::Marker marker, QVector<vec2> *lines) {
-  vec2 center = vec2(marker.x, marker.y);
+void Tracker::DrawMarker(const mat32& marker, QVector<vec2> *lines) {
   vec2 quad[] = { vec2(-1, -1), vec2(1, -1), vec2(1, 1), vec2(-1, 1) };
   for (int i = 0; i < 4; i++) {
-    *lines << center+(kSearchSize/2)*quad[i];
-    *lines << center+(kSearchSize/2)*quad[(i+1)%4];
+    *lines << marker*((kSearchSize/2)*quad[i]);
+    *lines << marker*((kSearchSize/2)*quad[(i+1)%4]);
   }
   for (int i = 0; i < 4; i++) {
-    *lines << center+(kPatternSize/2)*quad[i];
-    *lines << center+(kPatternSize/2)*quad[(i+1)%4];
+    *lines << marker*((kPatternSize/2)*quad[i]);
+    *lines << marker*((kPatternSize/2)*quad[(i+1)%4]);
   }
-}
-
-bool compare_image(const Marker &a, const Marker &b) {
-    return a.image < b.image;
 }
 
 void Tracker::upload() {
   makeCurrent();
-  vector<Marker> markers = MarkersInImage(current_image_);
   QVector<vec2> lines;
-  lines.reserve(markers.size()*8);
-  for (int i = 0; i < markers.size(); i++) {
-    const Marker &marker = markers[i];
-    DrawMarker(marker, &lines);
-    vector<Marker> track = MarkersForTrack(marker.track);
-    qSort(track.begin(), track.end(), compare_image);
-    for (int i = 0; i < track.size()-1; i++) {
-      lines << vec2(track[i].x, track[i].y) << vec2(track[i+1].x, track[i+1].y);
+  foreach(QVector<mat32> track, tracks) {
+    if (current_ < track.count()) {
+      const mat32 current = track[current_];
+      if(current) DrawMarker(current, &lines);
     }
   }
-  foreach (int track, selected_tracks_) {
-    Marker marker = MarkerInImageForTrack(current_image_, track);
-    if (marker.image < 0) {
-      selected_tracks_.remove(selected_tracks_.indexOf(track));
+  foreach (int index, selected_tracks_) {
+    QVector<mat32> track = tracks[index];
+    if (current_ >= track.count()) {
+      selected_tracks_.remove(selected_tracks_.indexOf(index));
       continue;
     }
-    DrawMarker(marker, &lines);
-    DrawMarker(marker, &lines);
-    DrawMarker(marker, &lines);
+    for (int i = 0; i < track.size()-1; i++) {
+      lines << track[i]*vec2(0,0) <<  track[i+1]*vec2(0,0);
+    }
+    const mat32 current = track[current_];
+    DrawMarker(current, &lines);
+    DrawMarker(current, &lines);
+    DrawMarker(current, &lines);
   }
   markers_.primitiveType = 2;
   markers_.upload(lines.constData(), lines.count(), sizeof(vec2));
@@ -225,11 +207,11 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   }
   image_shader.bind();
   image_shader["image"] = 0;
-  image_.bind(0);
+  texture_.bind(0);
   mat4 transform;
   if (image >= 0 && track >= 0) {
-    Marker marker = MarkerInImageForTrack(image, track);
-    vec2 center(marker.x, marker.y);
+    //mat3 marker = tracks[track][image];
+    /*vec2 center(marker.x, marker.y);
     vec2 min = (center-kSearchSize/2);
     vec2 max = (center+kSearchSize/2);
     vec2 size( image_.width, image_.height );
@@ -237,7 +219,7 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
     transform.scale(vec3(1, -1, 0));
     transform.translate(vec3(-1, -1, 0));
     transform.scale(vec3(2/(max-min), 1));
-    transform.translate(vec3(-min, 0));
+    transform.translate(vec3(-min, 0));*/
   } else {
     float width = 0, height = 0;
     int W = intrinsics_->image_width(), H = intrinsics_->image_height();
@@ -249,8 +231,8 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
       width = static_cast<float>(W*h)/(H*w);
     }
     glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
-    //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_image_);
-    W = image_.width, H = image_.height;
+    //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_);
+    W = image_.width(), H = image_.height();
     transform.scale(vec3(2*width/W, -2*height/H, 1));
     transform.translate(vec3(-W/2, -H/2, 0));
     transform_ = transform;
@@ -277,18 +259,24 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
   vec2 pos = transform_.inverse()*vec2(2.0*e->x()/width()-1,
                                        1-2.0*e->y()/height());
   last_position_ = pos;
-  vector<Marker> markers = MarkersInImage(current_image_);
-  for (int i = 0; i < markers.size(); i++) {
-    const Marker &marker = markers[i];
-    vec2 center = vec2(marker.x, marker.y);
+  int i=0;
+  foreach(QVector<mat32> track, tracks) {
+    mat32 marker = track[current_];
+    vec2 center = vec2(marker(0,2), marker(1,2));
     if (pos > center-kSearchSize/2 && pos < center+kSearchSize/2) {
-      active_track_ = marker.track;
+      active_track_ = i;
       return;
     }
+    i++;
   }
-  int new_track = MaxTrack() + 1;
-  Insert(current_image_, new_track, pos.x, pos.y);
-  selected_tracks_ << new_track;
+  int new_track = tracks.count();
+  mat32 marker;
+  marker(0,2) = pos.x, marker(1,2) = pos.y;
+  tracks << QVector<mat32>(1,marker);
+  Pattern pattern;
+  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,pattern.data);
+  references << pattern;
+  selected_tracks_ += new_track;
   active_track_ = new_track;
   emit trackChanged(selected_tracks_);
   upload();
@@ -298,11 +286,10 @@ void Tracker::mouseMoveEvent(QMouseEvent* e) {
   vec2 pos = transform_.inverse()*vec2(2.0*e->x()/width()-1,
                                        1-2.0*e->y()/height());
   vec2 delta = pos-last_position_;
-  // FIXME: a reference would avoid duplicate lookup
-  Marker marker = MarkerInImageForTrack(current_image_, active_track_);
-  marker.x += delta.x;
-  marker.y += delta.y;
-  Insert(current_image_, active_track_, marker.x, marker.y);
+  mat32& marker = tracks[active_track_][current_];
+  marker(0,2) += delta.x;
+  marker(1,2) += delta.y;
+  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,references[active_track_].data);
   upload();
   last_position_ = pos;
   dragged_ = true;

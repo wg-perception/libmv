@@ -29,8 +29,8 @@
 #include <QGLWidget>
 #include "ui/tracker/gl.h"
 
+//TODO: Qt Tracker should be independent from libmv to be able to use new lens distortion API
 #include "libmv/simple_pipeline/camera_intrinsics.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/tracking/sad.h"
 
 // TODO(MatthiasF): custom pattern/search size
@@ -39,7 +39,9 @@ static const int kSearchSize = 128;
 
 class Scene;
 
-class Tracker : public QGLWidget, public libmv::Tracks {
+typedef unsigned char ubyte;
+
+class Tracker : public QGLWidget {
   Q_OBJECT
  public:
   Tracker(libmv::CameraIntrinsics* intrinsics);
@@ -49,7 +51,7 @@ class Tracker : public QGLWidget, public libmv::Tracks {
   void SetImage(int id, QImage image);
   void SetUndistort(bool undistort);
   void SetOverlay(Scene* scene);
-  void Track(int previous, int next, QImage old_image, QImage new_image);
+  void Track(int previous, int next, QImage image);
   void Render(int x, int y, int w, int h, int image=-1, int track=-1);
 
  public slots:
@@ -68,18 +70,21 @@ class Tracker : public QGLWidget, public libmv::Tracks {
   void mouseReleaseEvent(QMouseEvent *event);
 
  private:
-  void DrawMarker(const libmv::Marker marker, QVector<vec2> *lines);
+  void DrawMarker(const libmv::mat32& marker, QVector<vec2> *lines);
 
   libmv::CameraIntrinsics* intrinsics_;
   Scene* scene_;
   int last_frame;
-  QMap<int,libmv::ubyte*> patterns;
+  struct Pattern { ubyte data[16*16]; };
+  QVector< Pattern > references;
+  QVector< QVector<libmv::mat32> > tracks; //[track][image]
 
   bool undistort_;
-  GLTexture image_;
+  QImage image_;
+  GLTexture texture_;
   mat4 transform_;
   GLBuffer markers_;
-  int current_image_;
+  int current_;
   QVector<int> selected_tracks_;
   vec2 last_position_;
   int active_track_;

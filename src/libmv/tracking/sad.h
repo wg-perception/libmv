@@ -30,17 +30,29 @@ namespace libmv {
 #endif
 
 typedef unsigned char ubyte;
-typedef float mat3[9];
+typedef unsigned int uint;
+
+/// Affine transformation matrix in column major order.
+struct mat32 {
+  float data[3*2];
+#ifdef __cplusplus
+  inline mat32(int d=1) { for(int i=0;i<3*2;i++) data[i]=0; if(d!=0) for(int i=0;i<2;i++) m(i,i)=d; }
+  inline float m(int i, int j) const { return data[j*2+i]; }
+  inline float& m(int i, int j) { return data[j*2+i]; }
+  inline float operator()(int i, int j) const { return m(i,j); }
+  inline float& operator()(int i, int j) { return m(i,j); }
+  inline operator bool() const { for (int i=0; i<3*2; i++) if(data[i]!=0) return true; return false; }
+#endif
+};
+
 
 /*!
     Sample \a pattern from \a image.
 
     \a pattern is a 16x16 buffer
-    \a warp is the transformation to apply when sampling the \a pattern in \a image.
-
-    \note \a warp might be used by higher level tracking methods (e.g planar)
+    \a warp is the transformation to apply to \a image when sampling the \a pattern.
 */
-void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern);
+void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern);
 
 /*!
     Track \a pattern in \a image.
@@ -52,19 +64,23 @@ void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern);
     A similar method is used for motion estimation in video encoders.
 
     \a pattern is a 16x16 single channel image to track.
-    \a x, \a y is the initial estimated position in \a image.
-    On return, \a x, \a y is the tracked position.
-    \a image is a reference to the single channel image to search.
+    \a image is a reference to the single channel region to search.
     \a stride is size of \a image lines.
 
-    \note For a 16x speedup, compile this tracker with SSE2 support.
-    \note \a stride allow you to reference your search region instead of copying.
+    On input, \a warp is the predicted affine transformation (e.g from previous frame)
+    On return, \a warp is the affine transformation which best match the reference \a pattern
 
     \return Sum of absolute difference between reference and matched pattern.
             A lower value indicate a better match. Divide this sum by the pattern area (16x16)
             to compute the per pixel deviation (0=perfect match, 255=worst match).
+
+    \note To track affine features:
+     - Sample reference pattern using estimated (e.g previous frame) warp.
+     -
+    \note \a stride allow you to reference your search region instead of copying.
+    \note For a 16x speedup, compile this tracker with SSE2 support.
 */
-int Track(ubyte* pattern, ubyte* image, int stride, int width, int height, float* x, float* y);
+uint Track(ubyte* pattern, ubyte* image, int stride, int width, int height, mat32* warp);
 
 #ifdef __cplusplus
 }  // namespace libmv

@@ -28,15 +28,12 @@
 
 namespace libmv {
 
-typedef unsigned int uint;
-
 struct vec2 {
   float x,y;
   inline vec2(float x, float y):x(x),y(y){}
 };
-static vec2 operator*(mat3 m, vec2 v) {
-  float z = v.x*m[6]+v.y*m[7]+m[8];
-  return vec2((v.x*m[0]+v.y*m[1]+m[2])/z,(v.x*m[3]+v.y*m[4]+m[5])/z);
+inline vec2 operator*(mat32 m, vec2 v) {
+  return vec2(v.x*m(0,0)+v.y*m(0,1)+m(0,2),v.x*m(1,0)+v.y*m(1,1)+m(1,2));
 }
 
 //! fixed point bilinear sample with precision k
@@ -48,20 +45,16 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
 
 #ifdef __SSE__
 #include <xmmintrin.h>
+int lround(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
+#elif defined(_MSC_VER)
+int lround(float x) { return x+0.5; }
 #endif
-void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern) {
+
+void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern) {
   const int k = 256;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
     vec2 p = warp*vec2(j-8,i-8);
-#ifdef __SSE__
-    //MSVC apparently doesn't support any float rounding.
-    int fx = _mm_cvtss_si32(_mm_set_ss(p.x*k));
-    int fy = _mm_cvtss_si32(_mm_set_ss(p.y*k));
-#elif defined(_MSC_VER)
-    int fx = int(p.x*k+0.5), fy = int(p.y*k+0.5);
-#else
     int fx = lround(p.x*k), fy = lround(p.y*k);
-#endif
     int ix = fx/k, iy = fy/k;
     int u = fx%k, v = fy%k;
     pattern[i*16+j] = sample<k>(image,stride,ix,iy,u,v);
@@ -91,8 +84,9 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 #endif
 
 //float sq( float x ) { return x*x; }
-int Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, float* py) {
-  int ix = *px-8, iy = *py-8;
+uint Track(ubyte* pattern, ubyte* image, int stride, int w, int h, mat32* warp) {
+  mat32 m=*warp;
+  int ix = m(0,2)-8, iy = m(1,2)-8;
   uint min=-1;
   // integer pixel
   for(int y = 0; y < h-16; y++) {
@@ -134,9 +128,10 @@ int Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, flo
     fx = nx, fy = ny;
   }
 
-  *px = float((ix*kScale)+fx)/kScale+8;
-  *py = float((iy*kScale)+fy)/kScale+8;
-  return min;
+  m(0,2) = float((ix*kScale)+fx)/kScale+8;
+  m(1,2) = float((iy*kScale)+fy)/kScale+8;
+  *warp = m;
+  return min; //TODO: return NCC < (f-<f>)/|f| , (g-<g>)/|g| >
 }
 
 }  // namespace libmv
