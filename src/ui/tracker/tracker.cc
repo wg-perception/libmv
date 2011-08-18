@@ -123,7 +123,7 @@ void Tracker::Track(int previous, int next, QImage search) {
     // Translate to search region
     marker(0,2) -= x0, marker(1,2) -= y0;
 
-    libmv::Track(references[i].data, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
+    qDebug() << libmv::Track(references[i].data, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
 
     // Translate back to image
     marker(0,2) += x0, marker(1,2) += y0;

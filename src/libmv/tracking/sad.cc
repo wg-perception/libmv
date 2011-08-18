@@ -84,7 +84,7 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 #endif
 
 //float sq( float x ) { return x*x; }
-uint Track(ubyte* pattern, ubyte* image, int stride, int w, int h, mat32* warp) {
+float Track(ubyte* pattern, ubyte* image, int stride, int w, int h, mat32* warp) {
   mat32 m=*warp;
   int ix = m(0,2)-8, iy = m(1,2)-8;
   uint min=-1;
@@ -127,11 +127,27 @@ uint Track(ubyte* pattern, ubyte* image, int stride, int w, int h, mat32* warp) 
     }
     fx = nx, fy = ny;
   }
-
+  if( fx < 0 ) fx+=kScale, ix--;
+  if( fy < 0 ) fy+=kScale, iy--;
   m(0,2) = float((ix*kScale)+fx)/kScale+8;
   m(1,2) = float((iy*kScale)+fy)/kScale+8;
   *warp = m;
-  return min; //TODO: return NCC < (f-<f>)/|f| , (g-<g>)/|g| >
+  // Compute Pearson product-moment correlation coefficient
+  uint sX=0,sY=0,sXX=0,sYY=0,sXY=0;
+  for(int i = 0; i < 16; i++) {
+    for(int j = 0; j < 16; j++) {
+      int x = pattern[i*16+j];
+      int y = sample<kScale>(image,stride,ix+j,iy+i,fx,fy);
+      sX += x;
+      sY += y;
+      sXX += x*x;
+      sYY += y*y;
+      sXY += x*y;
+    }
+  }
+  const int N = 16*16;
+  sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
+  return (sXY-sX*sY)/sqrt((sXX-sX*sX)*(sYY-sY*sY));
 }
 
 }  // namespace libmv

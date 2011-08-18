@@ -70,9 +70,10 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern);
     On input, \a warp is the predicted affine transformation (e.g from previous frame)
     On return, \a warp is the affine transformation which best match the reference \a pattern
 
-    \return Sum of absolute difference between reference and matched pattern.
-            A lower value indicate a better match. Divide this sum by the pattern area (16x16)
-            to compute the per pixel deviation (0=perfect match, 255=worst match).
+    \return Pearson product-moment correlation coefficient between reference and matched pattern.
+            This measure of the linear dependence between the patterns
+            ranges from −1 (negative correlation) to 1 (positive correlation).
+            A value of 0 implies that there is no linear correlation between the variables.
 
     \note To track affine features:
      - Sample reference pattern using estimated (e.g previous frame) warp.
@@ -80,7 +81,7 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern);
     \note \a stride allow you to reference your search region instead of copying.
     \note For a 16x speedup, compile this tracker with SSE2 support.
 */
-uint Track(ubyte* pattern, ubyte* image, int stride, int width, int height, mat32* warp);
+float Track(ubyte* pattern, ubyte* image, int stride, int width, int height, mat32* warp);
 
 #ifdef __cplusplus
 }  // namespace libmv
