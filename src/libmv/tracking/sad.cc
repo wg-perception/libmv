@@ -111,12 +111,17 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
   for(int p = 0; p < 4; p++) { //foreach precision level
     step /= 2;
     for(int i = 0; i < 2; i++) { // iterate twice per precision level
-      for(int d = 0; d < 6; d++) { // foreach dimension
-        for(float x = -step*2; x <= step*2; x+=step*2) { //test small steps
+      //TODO: other sweep pattern might converge better
+      for(int d = 0; d < 6; d++) { // iterate dimension sequentially (cyclic descent)
+        for(float x = -step*2; x <= step*2; x+=step*2) { //solve subproblem (evaluate only along one coordinate)
           mat32 t = m;
           t.data[d] += x;
-          if( d<4 && (t.data[d] > 2 || t.data[d] < -2) ) continue; // avoid big distortion
+          // avoid big distortion (TODO: improve matching to avoid these heuristics)
+          if( d<4 && (t.data[d] > 2 || t.data[d] < -2 || (t.data[d] < 0.125 && t.data[d] > -0.125)) ) {
+            continue;
+          }
           ubyte match[size*size];
+          //TODO: better performance would also allow a more exhaustive search
           SamplePattern(image,stride,t,match,size);
           uint sad = SAD(reference,match,size,size);
           if(sad < min) {
