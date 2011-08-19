@@ -222,11 +222,7 @@ void GLTexture::bind(int sampler) {
   glBindTexture(GL_TEXTURE_2D, id);
 }
 
-void glQuad(vec4 min, vec4 max) {
-  vec4 quad[] = { vec4(min.x, min.y, min.z, min.w),
-                  vec4(max.x, min.y, max.z, min.w),
-                  vec4(max.x, max.y, max.z, max.w),
-                  vec4(min.x, max.y, min.z, max.w) };
+void glQuad(vec4 quad[4]) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glVertexAttribPointer(0, 4, GL_FLOAT, 0, 0, quad);
   glEnableVertexAttribArray(0);

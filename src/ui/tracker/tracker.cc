@@ -218,9 +218,14 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   image_shader["image"] = 0;
   texture_.bind(0);
   if (image >= 0 && track >= 0) {
-    mat32 marker = tracks[track][image];
+    mat32 marker = tracks[track][image]; // reference -> current
+    float scale = kPatternSize/2;
     vec2 size( image_.width(), image_.height() );
-    glQuad(vec4(-1, 1, (marker*vec2(-kPatternSize/2,-kPatternSize/2))/size), vec4(1, -1, (marker*vec2(kPatternSize/2,kPatternSize/2))/size));
+    vec4 quad[] = { vec4(-1,  1, (marker*(scale*vec2(-1,-1)))/size),
+                    vec4( 1,  1, (marker*(scale*vec2(1,-1)))/size),
+                    vec4( 1, -1, (marker*(scale*vec2(1,1)))/size),
+                    vec4(-1, -1, (marker*(scale*vec2(-1,1)))/size) };
+    glQuad(quad);
     return;
   }
   float width = 0, height = 0;
@@ -232,7 +237,11 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
     height = 1;
     width = float(W*h)/(H*w);
   }
-  glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
+  vec4 quad[] = { vec4(-width, -height, 0, 1),
+                  vec4( width, -height, 1, 1),
+                  vec4( width,  height, 1, 0),
+                  vec4(-width,  height, 0, 0) };
+  glQuad(quad);
   //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_);
   W = image_.width(), H = image_.height();
   transform_ = mat4();
