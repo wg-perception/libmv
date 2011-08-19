@@ -168,7 +168,7 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
   delete[] match;
   const int N = size*size;
   sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
-  return (sXY-sX*sY)/sqrt(float((sXX-sX*sX)*(sYY-sY*sY)));
+  return (sXY-sX*sY)/sqrt(double((sXX-sX*sX)*(sYY-sY*sY)));
 }
 
 }  // namespace libmv
