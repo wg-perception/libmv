@@ -101,7 +101,7 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) 
 #endif
 
 float sq(float x) { return x*x; }
-float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int w, int h, mat32* warp) {
+float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int w, int h, mat32* warp, float areaPenalty, float conditionPenalty) {
   mat32 m=*warp;
   uint min=-1;
 
@@ -138,7 +138,7 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
           float area = t(0,0)*t(1,1)-t(0,1)*t(1,0);
           float x = sq(t(0,0))+sq(t(0,1)), y = sq(t(1,0))+sq(t(1,1));
           float condition = x>y ? x/y : y/x;
-          sad += 16*size*size*( sq(area-1) + sq(condition-1) );
+          sad += size*size*( areaPenalty*sq(area-1) + conditionPenalty*sq(condition-1) );
           if(sad < min) {
             min = sad;
             m = t;

@@ -124,7 +124,7 @@ void Tracker::Track(int previous, int next, QImage old, QImage search) {
     for(int i=0; i<size; i++) for(int j=0; j<size; j++) warped[i*size+j]=data[(y+i-size/2)*stride+x+j-size/2];
 
     marker(0,2) -= x0, marker(1,2) -= y0; // Translate to search region
-    libmv::Track(references[index], warped, size, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
+    libmv::Track(references[index], warped, size, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker, 16, 16);
     marker(0,2) += x0, marker(1,2) += y0; // Translate back to image
 
     if(track.count()<=next) track.resize(next+1);

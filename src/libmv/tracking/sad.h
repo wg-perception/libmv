@@ -81,6 +81,13 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
     On input, \a warp is the predicted affine transformation (e.g from previous frame)
     On return, \a warp is the affine transformation which best match the reference \a pattern
 
+    \a areaPenalty and conditionPenalty control the regularization and need to be tweaked depending on the motion.
+       Setting them to 0 will allow any transformation (including unrealistic distortions and scaling).
+       Good values are between 0-32. 16 can be used as a realistic default.
+       areaPenalty control scaling (decrease to allow pull/zoom, increase to allow only 2D rotation).
+       a large conditionPenalty avoid a large ratio between the largest and smallest axices.
+       It need to be decreased for non-2D rotation (when pattern appears to scale along an axis).
+
     \return Pearson product-moment correlation coefficient between reference and matched pattern.
             This measure of the linear dependence between the patterns
             ranges from −1 (negative correlation) to 1 (positive correlation).
@@ -92,7 +99,8 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
     \note \a stride allow you to reference your search region instead of copying.
     \note For a 16x speedup, compile this tracker with SSE2 support.
 */
-float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int width, int height, mat32* warp);
+float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int width, int height, mat32* warp,
+            float areaPenalty, float conditionPenalty);
 
 #ifdef __cplusplus
 }  // namespace libmv
