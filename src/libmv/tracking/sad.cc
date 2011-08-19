@@ -86,7 +86,7 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) 
 }
 #endif
 
-float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, mat32* warp) {
+float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int w, int h, mat32* warp) {
   mat32 m=*warp;
   uint min=-1;
 
@@ -95,9 +95,7 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
   for(int y = size/2; y < h-size/2; y++) {
     for(int x = size/2; x < w-size/2; x++) {
       m(0,2) = x, m(1,2) = y;
-      ubyte match[size*size];
-      SamplePattern(image,stride,m,match,size);
-      uint sad = SAD(reference,match,size,size);
+      uint sad = SAD(warped,&image[(y-size/2)*stride+(x-size/2)],stride,size);
       if(sad < min) {
         min = sad;
         ix = x, iy = y;
@@ -105,11 +103,11 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
     }
   }
   m(0,2) = ix, m(1,2) = iy;
+  min=-1; //reset score since direct warped search match too well (but the wrong pattern).
 
   // 6D coordinate descent to find affine transform
-  float step = 0.5;
-  for(int p = 0; p < 4; p++) { //foreach precision level
-    step /= 2;
+  float step = 1;
+  for(int p = 0; p < 16; p++) { //foreach precision level
     for(int i = 0; i < 2; i++) { // iterate twice per precision level
       //TODO: other sweep pattern might converge better
       for(int d = 0; d < 6; d++) { // iterate dimension sequentially (cyclic descent)
@@ -131,6 +129,7 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
         }
       }
     }
+    step /= 2;
   }
   *warp = m;
 

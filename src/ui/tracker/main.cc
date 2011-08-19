@@ -135,9 +135,11 @@ void MainWindow::open(QStringList files) {
 
   toolbar_->addAction(QIcon(":/detect"), "Detect features",this, SLOT(detect()));
 
+#if LENS_DISTORTION
   QAction* undistort_action_ = toolbar_->addAction(QIcon(":/undistort"), "Undistort footage");
   undistort_action_->setCheckable(true);
   connect(undistort_action_, SIGNAL(toggled(bool)), SLOT(toggleUndistort(bool)));
+#endif
 
   QToolButton* delete_button = new QToolButton();
   toolbar_->addWidget(delete_button);
@@ -240,7 +242,7 @@ void MainWindow::seek(int next) {
   slider_.setValue(next);
   spinbox_.setValue(next);
   if(previous >= 0 && track_action_->isChecked()) {
-    tracker_->Track(previous, next, clip_->Image(next));
+    tracker_->Track(previous, next, clip_->Image(previous), clip_->Image(next));
   }
   tracker_->SetImage(next, clip_->Image(next));
   //zoom_->SetImage(next);

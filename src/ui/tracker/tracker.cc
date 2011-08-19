@@ -99,8 +99,9 @@ void Tracker::SetOverlay(Scene* scene) {
   scene_ = scene;
 }
 
-void Tracker::Track(int previous, int next, QImage search) {
+void Tracker::Track(int previous, int next, QImage old, QImage search) {
   QTime time; time.start();
+  const ubyte* data = old.constBits();
   int width = search.width(), height = search.height(), stride = search.bytesPerLine();
   foreach(int index, selected_tracks_) {
     QVector<mat32>& track = tracks[index];
@@ -118,8 +119,12 @@ void Tracker::Track(int previous, int next, QImage search) {
     int y1 = qMin( y + kSearchSize/2, height);
     int w = x1-x0, h = y1-y0;
 
+    // Copy warped pattern from previous frame for fast unwarped integer search
+    ubyte warped[size*size];
+    for(int i=0; i<size; i++) for(int j=0; j<size; j++) warped[i*size+j]=data[(y+i-size/2)*stride+x+j-size/2];
+
     marker(0,2) -= x0, marker(1,2) -= y0; // Translate to search region
-    libmv::Track(references[index], size, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
+    libmv::Track(references[index], warped, size, (ubyte*)search.constBits()+y0*stride+x0, stride, w, h, &marker);
     marker(0,2) += x0, marker(1,2) += y0; // Translate back to image
 
     if(track.count()<=next) track.resize(next+1);

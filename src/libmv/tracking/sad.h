@@ -63,7 +63,9 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
     A similar method is used for motion estimation in video encoders.
 
     \a reference is the pattern to track.
-    the \a size of the pattern should be aligned to 16.
+    \a warped is a warped version of reference for fast unsampled integer search.
+       Best is to directly extract an already warped pattern from previous frame.
+    The \a size of the patterns should be aligned to 16.
     \a image is a reference to the region to search.
     \a stride is size of \a image lines.
 
@@ -81,7 +83,7 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
     \note \a stride allow you to reference your search region instead of copying.
     \note For a 16x speedup, compile this tracker with SSE2 support.
 */
-float Track(ubyte* reference, int size, ubyte* image, int stride, int width, int height, mat32* warp);
+float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int width, int height, mat32* warp);
 
 #ifdef __cplusplus
 }  // namespace libmv
