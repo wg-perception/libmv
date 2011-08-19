@@ -99,6 +99,20 @@ void Tracker::SetOverlay(Scene* scene) {
   scene_ = scene;
 }
 
+void Tracker::AddTrack(float x, float y) {
+  int new_track = tracks.count();
+  mat32 marker;
+  marker(0,2) = x, marker(1,2) = y;
+  tracks << QVector<mat32>(current_+1,marker);
+  ubyte* pattern = new ubyte[kPatternSize*kPatternSize];
+  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,pattern,kPatternSize);
+  references << pattern;
+  selected_tracks_ << new_track;
+  active_track_ = new_track;
+  emit trackChanged(selected_tracks_);
+  upload();
+}
+
 void Tracker::Track(int previous, int next, QImage old, QImage search) {
   QTime time; time.start();
   const ubyte* data = old.constBits();
@@ -110,7 +124,7 @@ void Tracker::Track(int previous, int next, QImage old, QImage search) {
     // Stop tracking near borders
     int x = marker(0,2), y = marker(1,2);
     int size = kPatternSize;
-    if( x < size/2 || y < size/2 || x >= width-size/2 || y >= height-size/2 ) continue;
+    if( x <= size/2 || y <= size/2 || x >= width-size/2-1 || y >= height-size/2-1 ) continue;
 
     // Compute clipped search region
     int x0 = qMax( x - kSearchSize/2, 0     );
@@ -182,10 +196,12 @@ void Tracker::upload() {
       lines << track[i]*vec2(0,0) <<  track[i+1]*vec2(0,0);
     }
     const mat32 marker = track[current_];
-    for (int i = 0; i < 4; i++) {
-      lines << marker*((kSearchSize/2)*quad[i]);
-      lines << marker*((kSearchSize/2)*quad[(i+1)%4]);
-    }
+    int x = marker(0,2), y = marker(1,2);
+    int x0 = qMax( x - kSearchSize/2, 0);
+    int y0 = qMax( y - kSearchSize/2, 0);
+    int x1 = qMin( x + kSearchSize/2, image_.width());
+    int y1 = qMin( y + kSearchSize/2, image_.height());
+    lines <<vec2(x0,y0)<<vec2(x1,y0) <<vec2(x1,y0)<<vec2(x1,y1) <<vec2(x1,y1)<<vec2(x0,y1) <<vec2(x0,y1)<<vec2(x0,y0);
   }
   markers_.primitiveType = 2;
   markers_.upload(lines.constData(), lines.count(), sizeof(vec2));
@@ -201,42 +217,35 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   image_shader.bind();
   image_shader["image"] = 0;
   texture_.bind(0);
-  mat4 transform;
   if (image >= 0 && track >= 0) {
-    //mat3 marker = tracks[track][image];
-    /*vec2 center(marker.x, marker.y);
-    vec2 min = (center-kSearchSize/2);
-    vec2 max = (center+kSearchSize/2);
-    vec2 size( image_.width, image_.height );
-    glQuad(vec4(-1, 1, min/size), vec4(1, -1, max/size));
-    transform.scale(vec3(1, -1, 0));
-    transform.translate(vec3(-1, -1, 0));
-    transform.scale(vec3(2/(max-min), 1));
-    transform.translate(vec3(-min, 0));*/
-  } else {
-    float width = 0, height = 0;
-    int W = intrinsics_->image_width(), H = intrinsics_->image_height();
-    if (W*h > H*w) {
-      width = 1;
-      height = static_cast<float>(H*w)/(W*h);
-    } else {
-      height = 1;
-      width = static_cast<float>(W*h)/(H*w);
-    }
-    glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
-    //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_);
-    W = image_.width(), H = image_.height();
-    transform.scale(vec3(2*width/W, -2*height/H, 1));
-    transform.translate(vec3(-W/2, -H/2, 0));
-    transform_ = transform;
+    mat32 marker = tracks[track][image];
+    vec2 size( image_.width(), image_.height() );
+    glQuad(vec4(-1, 1, (marker*vec2(-kPatternSize/2,-kPatternSize/2))/size), vec4(1, -1, (marker*vec2(kPatternSize/2,kPatternSize/2))/size));
+    return;
   }
+  float width = 0, height = 0;
+  int W = intrinsics_->image_width(), H = intrinsics_->image_height();
+  if (W*h > H*w) {
+    width = 1;
+    height = float(H*w)/(W*h);
+  } else {
+    height = 1;
+    width = float(W*h)/(H*w);
+  }
+  glQuad(vec4(-width, -height, 0, 1), vec4(width, height, 1, 0));
+  //if (scene_ && scene_->isVisible()) scene_->Render(w, h, current_);
+  W = image_.width(), H = image_.height();
+  transform_ = mat4();
+  transform_.scale(vec3(2*width/W, -2*height/H, 1));
+  transform_.translate(vec3(-W/2, -H/2, 0));
+
   static GLShader marker_shader;
   if (!marker_shader.id) {
     marker_shader.compile(glsl("vertex transform marker"),
                           glsl("fragment transform marker"));
   }
   marker_shader.bind();
-  marker_shader["transform"] = transform;
+  marker_shader["transform"] = transform_;
   markers_.bind();
   markers_.bindAttribute(&marker_shader, "position", 2);
   glSmooth();
@@ -263,17 +272,7 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
     }
     i++;
   }
-  int new_track = tracks.count();
-  mat32 marker;
-  marker(0,2) = pos.x, marker(1,2) = pos.y;
-  tracks << QVector<mat32>(current_+1,marker);
-  ubyte* pattern = new ubyte[kPatternSize*kPatternSize];
-  libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,pattern,kPatternSize);
-  references << pattern;
-  selected_tracks_ << new_track;
-  active_track_ = new_track;
-  emit trackChanged(selected_tracks_);
-  upload();
+  AddTrack(pos.x, pos.y);
 }
 
 void Tracker::mouseMoveEvent(QMouseEvent* e) {

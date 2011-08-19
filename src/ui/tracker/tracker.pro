@@ -1,8 +1,6 @@
 QT += opengl
-#HEADERS += clip.h        tracker.h  zoom.h  main.h
-#SOURCES += clip.cc gl.cc tracker.cc zoom.cc main.cc
-HEADERS += clip.h        tracker.h  main.h
-SOURCES += clip.cc gl.cc tracker.cc main.cc
+HEADERS += clip.h        tracker.h  zoom.h  main.h
+SOURCES += clip.cc gl.cc tracker.cc zoom.cc main.cc
 HEADERS += ../../libmv/tracking/sad.h
 SOURCES += ../../libmv/tracking/sad.cc
 HEADERS += ../../libmv/simple_pipeline/detect.h
@@ -44,8 +42,5 @@ RCC_DIR=build
 DESTDIR=build
 
 OTHER_FILES += CMakeLists.txt ../../libmv/simple_pipeline/CMakeLists.txt
-OTHER_FILES += ../../libmv/image/image_pyramid.cc ../../libmv/image/image_pyramid.h
-OTHER_FILES += ../../libmv/image/convolve.cc ../../libmv/image/convolve.h
 OTHER_FILES += ../../libmv/simple_pipeline/*.h ../../libmv/simple_pipeline/*.cc
-OTHER_FILES += ../../libmv/tracking/klt.h ../../libmv/tracking/klt.cc
 OTHER_FILES += ../../libmv/multiview/fundamental.cc ../../libmv/multiview/projection.cc

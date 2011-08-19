@@ -28,7 +28,7 @@
 
 Zoom::Zoom(Tracker *tracker)
   : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, tracker), tracker_(tracker) {
-  setMinimumHeight(64);
+  setMinimumHeight(kPatternSize); setMaximumHeight(8*kPatternSize);
 }
 
 void Zoom::SetImage(int image) {

@@ -47,7 +47,7 @@
 #include <QMenu>
 #include <QTime>
 
-MainWindow::MainWindow() : clip_(0), calibration_(0), tracker_(0), /*zoom_(0),*/ scene_(0) {
+MainWindow::MainWindow() : clip_(0), calibration_(0), tracker_(0), zoom_(0), scene_(0) {
   setWindowTitle("Tracker");
   toolbar_ = addToolBar("Main Toolbar");
   toolbar_->setObjectName("mainToolbar");
@@ -102,7 +102,7 @@ void MainWindow::open(QStringList files) {
           tracker_, SLOT(setVisible(bool)));
 
 // Zoom
-  /*zoom_ = new Zoom(tracker_);
+  zoom_ = new Zoom(tracker_);
   QDockWidget* zoom_dock = new QDockWidget("Zoom Grid");
   zoom_dock->setObjectName("zoomDock");
   zoom_dock->setTitleBarWidget(new QWidget());
@@ -111,7 +111,7 @@ void MainWindow::open(QStringList files) {
   zoom_dock->toggleViewAction()->setIcon(QIcon(":/view-zoom"));
   zoom_dock->toggleViewAction()->setChecked(false);
   toolbar_->addAction(zoom_dock->toggleViewAction());
-  connect(tracker_, SIGNAL(trackChanged(QVector<int>)), zoom_, SLOT(select(QVector<int>)));*/
+  connect(tracker_, SIGNAL(trackChanged(QVector<int>)), zoom_, SLOT(select(QVector<int>)));
 
 #if RECONSTRUCTION
   scene_ = new Scene(calibration_,tracker_);
@@ -245,7 +245,7 @@ void MainWindow::seek(int next) {
     tracker_->Track(previous, next, clip_->Image(previous), clip_->Image(next));
   }
   tracker_->SetImage(next, clip_->Image(next));
-  //zoom_->SetImage(next);
+  zoom_->SetImage(next);
 }
 
 void MainWindow::stop() {
@@ -316,16 +316,9 @@ void MainWindow::detect() {
   int count=16;
   libmv::Feature detected[count];
   libmv::Detect((libmv::ubyte*)image.constBits(), image.bytesPerLine(), image.width(), image.height(), detected, &count, 32, 0);
-
-  /*// Insert features
-  QVector<int> tracks;
   for(int i=0; i<count; i++) {
-    int track = tracker_->MaxTrack() + 1;
-    tracker_->Insert(current_frame_, track, detected[i].x, detected[i].y );
-    tracks << track;
+    tracker_->AddTrack(detected[i].x, detected[i].y );
   }
-  tracker_->select(tracks);
-  zoom_->select(tracks);*/
 }
 
 #ifdef RECONSTRUCTION

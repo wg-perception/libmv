@@ -66,7 +66,7 @@ class MainWindow : public QMainWindow {
   Clip *clip_;
   Calibration* calibration_;
   Tracker *tracker_;
-  //Zoom *zoom_;
+  Zoom *zoom_;
   Scene *scene_;
 
   QToolBar* toolbar_;

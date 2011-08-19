@@ -51,6 +51,7 @@ class Tracker : public QGLWidget {
   void SetImage(int id, QImage image);
   void SetUndistort(bool undistort);
   void SetOverlay(Scene* scene);
+  void AddTrack(float x, float y);
   void Track(int previous, int next, QImage old, QImage search);
   void Render(int x, int y, int w, int h, int image=-1, int track=-1);
 
@@ -70,8 +71,6 @@ class Tracker : public QGLWidget {
   void mouseReleaseEvent(QMouseEvent *event);
 
  private:
-  void DrawMarker(const libmv::mat32& marker, QVector<vec2> *lines);
-
   libmv::CameraIntrinsics* intrinsics_;
   Scene* scene_;
   int last_frame;
