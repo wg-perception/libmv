@@ -35,7 +35,7 @@
 
 // TODO(MatthiasF): custom pattern/search size
 static const int kPatternSize = 32;
-static const int kSearchSize = 64;
+static const int kSearchSize = 128;
 
 class Scene;
 

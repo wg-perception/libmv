@@ -32,6 +32,16 @@ namespace libmv {
 typedef unsigned char ubyte;
 typedef unsigned int uint;
 
+/*!
+    Convolve \a src into \a dst with the discrete laplacian operator.
+
+    \a src and \a dst should be \a width x \a height images.
+    \a strength is an interpolation coefficient (0-256) between original image and the laplacian.
+
+    \note Make sure the search region is filtered with the same strength as the pattern.
+*/
+void LaplaceFilter(ubyte* src, ubyte* dst, int width, int height, int strength);
+
 /// Affine transformation matrix in column major order.
 struct mat32 {
   float data[3*2];
@@ -44,7 +54,6 @@ struct mat32 {
   inline operator bool() const { for (int i=0; i<3*2; i++) if(data[i]!=0) return true; return false; }
 #endif
 };
-
 
 /*!
     Sample \a pattern from \a image.

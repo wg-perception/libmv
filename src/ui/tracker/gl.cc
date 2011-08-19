@@ -240,18 +240,12 @@ void glBindWindow(int x, int y, int w, int h, bool clear) {
 
 void glSmooth()  {
   glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-  glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
-  glEnable(GL_LINE_SMOOTH); glEnable(GL_POLYGON_SMOOTH);
-}
-void glHard() {
-  glDisable(GL_LINE_SMOOTH); glDisable(GL_POLYGON_SMOOTH);
-}
-
-void glAdditiveBlendMode() {
-  glBlendFunc(GL_ONE, GL_ONE);
+  glEnable(GL_LINE_SMOOTH);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
 }
-void glDisableBlend() {
+void glHard() {
+  glDisable(GL_LINE_SMOOTH);
   glDisable(GL_BLEND);
 }
 

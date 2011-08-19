@@ -110,7 +110,7 @@ void Tracker::Track(int previous, int next, QImage old, QImage search) {
     // Stop tracking near borders
     int x = marker(0,2), y = marker(1,2);
     int size = kPatternSize;
-    if( x < size || y < size || x >= width-size || y >= height-size ) continue;
+    if( x < size/2 || y < size/2 || x >= width-size/2 || y >= height-size/2 ) continue;
 
     // Compute clipped search region
     int x0 = qMax( x - kSearchSize/2, 0     );
@@ -157,25 +157,19 @@ void Tracker::deleteSelectedTracks() {
   emit trackChanged(selected_tracks_);
 }
 
-void Tracker::DrawMarker(const mat32& marker, QVector<vec2> *lines) {
-  vec2 quad[] = { vec2(-1, -1), vec2(1, -1), vec2(1, 1), vec2(-1, 1) };
-  for (int i = 0; i < 4; i++) {
-    *lines << marker*((kSearchSize/2)*quad[i]);
-    *lines << marker*((kSearchSize/2)*quad[(i+1)%4]);
-  }
-  for (int i = 0; i < 4; i++) {
-    *lines << marker*((kPatternSize/2)*quad[i]);
-    *lines << marker*((kPatternSize/2)*quad[(i+1)%4]);
-  }
-}
-
 void Tracker::upload() {
   makeCurrent();
   QVector<vec2> lines;
+  static const vec2 quad[] = { vec2(-1, -1), vec2(1, -1), vec2(1, 1), vec2(-1, 1) };
   foreach(QVector<mat32> track, tracks) {
     if (current_ < track.count()) {
-      const mat32 current = track[current_];
-      if(current) DrawMarker(current, &lines);
+      const mat32 marker = track[current_];
+      if(marker) {
+        for (int i = 0; i < 4; i++) {
+          lines << marker*((kPatternSize/2)*quad[i]);
+          lines << marker*((kPatternSize/2)*quad[(i+1)%4]);
+        }
+      }
     }
   }
   foreach (int index, selected_tracks_) {
@@ -187,10 +181,11 @@ void Tracker::upload() {
     for (int i = 0; i < track.size()-1; i++) {
       lines << track[i]*vec2(0,0) <<  track[i+1]*vec2(0,0);
     }
-    const mat32 current = track[current_];
-    DrawMarker(current, &lines);
-    DrawMarker(current, &lines);
-    DrawMarker(current, &lines);
+    const mat32 marker = track[current_];
+    for (int i = 0; i < 4; i++) {
+      lines << marker*((kSearchSize/2)*quad[i]);
+      lines << marker*((kSearchSize/2)*quad[(i+1)%4]);
+    }
   }
   markers_.primitiveType = 2;
   markers_.upload(lines.constData(), lines.count(), sizeof(vec2));
@@ -199,7 +194,6 @@ void Tracker::upload() {
 
 void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   glBindWindow(x, y, w, h, false);
-  glDisableBlend();
   static GLShader image_shader;
   if (!image_shader.id) {
     image_shader.compile(glsl("vertex image"), glsl("fragment image"));
@@ -245,9 +239,9 @@ void Tracker::Render(int x, int y, int w, int h, int image, int track) {
   marker_shader["transform"] = transform;
   markers_.bind();
   markers_.bindAttribute(&marker_shader, "position", 2);
-  glAdditiveBlendMode();
   glSmooth();
   markers_.draw();
+  glHard();
 }
 
 void Tracker::paintGL() {
