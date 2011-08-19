@@ -261,13 +261,13 @@ void Tracker::paintGL() {
 void Tracker::mousePressEvent(QMouseEvent* e) {
   vec2 pos = transform_.inverse()*vec2(2.0*e->x()/width()-1,
                                        1-2.0*e->y()/height());
-  last_position_ = pos;
   int i=0;
   foreach(QVector<mat32> track, tracks) {
     mat32 marker = track[current_];
     vec2 center = vec2(marker(0,2), marker(1,2));
     if (pos > center-kSearchSize/2 && pos < center+kSearchSize/2) {
       active_track_ = i;
+      delta_ = pos-vec2(marker(0,2), marker(1,2));
       return;
     }
     i++;
@@ -277,14 +277,13 @@ void Tracker::mousePressEvent(QMouseEvent* e) {
 
 void Tracker::mouseMoveEvent(QMouseEvent* e) {
   vec2 pos = transform_.inverse()*vec2(2.0*e->x()/width()-1,
-                                       1-2.0*e->y()/height());
-  vec2 delta = pos-last_position_;
+                                       1-2.0*e->y()/height())+delta_;
   mat32& marker = tracks[active_track_][current_];
-  marker(0,2) += delta.x;
-  marker(1,2) += delta.y;
+  int size = kPatternSize/2;
+  marker(0,2) = qBound<float>(size, pos.x, image_.width ()-size-1);
+  marker(1,2) = qBound<float>(size, pos.y, image_.height()-size-1);
   libmv::SamplePattern((ubyte*)image_.constBits(),image_.bytesPerLine(),marker,references[active_track_],kPatternSize);
   upload();
-  last_position_ = pos;
   dragged_ = true;
   emit trackChanged(selected_tracks_);
 }

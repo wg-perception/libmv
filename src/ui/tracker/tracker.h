@@ -84,7 +84,7 @@ class Tracker : public QGLWidget {
   GLBuffer markers_;
   int current_;
   QVector<int> selected_tracks_;
-  vec2 last_position_;
+  vec2 delta_;
   int active_track_;
   bool dragged_;
 };
