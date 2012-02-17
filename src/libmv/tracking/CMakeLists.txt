@@ -3,6 +3,10 @@ SET(TRACKING_SRC
     pyramid_region_tracker.cc
     retrack_region_tracker.cc
     trklt_region_tracker.cc
+    brute_region_tracker.cc
+    esm_region_tracker.cc
+    hybrid_region_tracker.cc
+    lmicklt_region_tracker.cc
     klt.cc
     sad.cc)
 
