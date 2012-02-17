@@ -3,7 +3,6 @@ SET(DETECTOR_SRC fast_detector.cc
                  surf_detector.cc
                  star_detector.cc
                  fast_detector_limited.cc
-                 mser_detector.cc
                  detector_factory.cc)
                
 # define the header files (make the headers appear in IDEs.)
@@ -11,7 +10,7 @@ FILE(GLOB DETECTOR_HDRS *.h)
 
 ADD_LIBRARY(detector ${DETECTOR_SRC} ${DETECTOR_HDRS})
 
-TARGET_LINK_LIBRARIES(detector image correspondence fast)
+TARGET_LINK_LIBRARIES(detector image fast)
 
 # make the name of debug libraries end in _d.
 SET_TARGET_PROPERTIES(detector PROPERTIES DEBUG_POSTFIX "_d")

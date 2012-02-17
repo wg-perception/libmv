@@ -1,31 +1,36 @@
-// Copyright (c) 2011 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
 
 #include "ui/tracker/scene.h"
 #include "ui/tracker/gl.h"
 
+// TODO(MatthiasF): develop and use simple API
 #include "libmv/base/vector.h"
 #include "libmv/multiview/projection.h"
-#include "libmv/simple_pipeline/camera_intrinsics.h"
-#include "libmv/simple_pipeline/reconstruction.h"
 
+#include <QFile>
+#include <QFileInfo>
 #include <QXmlStreamReader>
 #include <QMouseEvent>
 #include <QKeyEvent>
@@ -37,12 +42,12 @@ using libmv::Vec3;
 using libmv::Mat3;
 using libmv::Mat34;
 
-void Object::position(libmv::EuclideanReconstruction* reconstruction,
+void Object::position(const libmv::EuclideanReconstruction& reconstruction,
                       vec3* min, vec3* max) const {
   vec3 mean;
   if (!tracks.isEmpty()) {
     foreach (int track, tracks) {
-      EuclideanPoint point = *reconstruction->PointForTrack(track);
+      EuclideanPoint point = *reconstruction.PointForTrack(track);
       mean += vec3(point.X.x(), point.X.y(), point.X.z());
     }
     mean /= tracks.count();
@@ -51,26 +56,9 @@ void Object::position(libmv::EuclideanReconstruction* reconstruction,
   *max = mean+vec3(1, 1, 1);
 }
 
-QDataStream& operator>>(QDataStream& s, mat4& v) {
-  s.readRawData(reinterpret_cast<char*>(v.data), sizeof(v.data));
-  return s;
-}
-QDataStream& operator<<(QDataStream& s, const mat4& v) {
-  s.writeRawData(reinterpret_cast<const char*>(v.data), sizeof(v.data));
-  return s;
-}
-QDataStream& operator>>(QDataStream& s, Object& v) {
-  return s >> v.transform >> v.tracks;
-}
-QDataStream& operator<<(QDataStream& s, const Object& v) {
-  return s << v.transform << v.tracks;
-}
-
-Scene::Scene(libmv::CameraIntrinsics* intrinsics,
-             libmv::EuclideanReconstruction *reconstruction,
-             QGLWidget *shareWidget)
+Scene::Scene(libmv::CameraIntrinsics* intrinsics, QGLWidget *shareWidget)
   : QGLWidget(QGLFormat(QGL::SampleBuffers), 0, shareWidget),
-    intrinsics_(intrinsics), reconstruction_(reconstruction),
+    intrinsics_(intrinsics),
     grab_(0), pitch_(PI/2), yaw_(0), speed_(1), walk_(0), strafe_(0), jump_(0),
     current_image_(-1), active_object_(0) {
   setAutoFillBackground(false);
@@ -80,62 +68,22 @@ Scene::Scene(libmv::CameraIntrinsics* intrinsics,
 }
 Scene::~Scene() {}
 
-void Scene::LoadCOLLADA(QIODevice* file) {
-  QXmlStreamReader xml(file);
-  for(int nest=0,match=0;!xml.atEnd();) {
-    QXmlStreamReader::TokenType token = xml.readNext();
-    if(token == QXmlStreamReader::EndElement) { nest--; if(match>nest) match=nest; }
-    if(token == QXmlStreamReader::StartElement) {
-      const char* path[] = {"COLLADA","library_animations"};
-      //qDebug()<<xml.name()<<xml.attributes().value("id");
-      // TODO(MatthiasF): implement COLLADA import
-      if(match==nest && xml.name()==path[match] ) match++;
-      nest++;
+// TODO(MatthiasF): implement COLLADA IO
+void Scene::Load(QString path) {
+  QFile file(path + (QFileInfo(path).isDir()?"/":".") + "scene.dae");
+  if( file.open(QFile::ReadOnly) ) {
+    QXmlStreamReader xml(&file);
+    for(int nest=0,match=0;!xml.atEnd();) {
+      QXmlStreamReader::TokenType token = xml.readNext();
+      if(token == QXmlStreamReader::EndElement) { nest--; if(match>nest) match=nest; }
+      if(token == QXmlStreamReader::StartElement) {
+        const char* path[] = {"COLLADA","library_animations"};
+        //qDebug()<<xml.name()<<xml.attributes().value("id");
+        if(match==nest && xml.name()==path[match] ) match++;
+        nest++;
+      }
     }
   }
-}
-
-void Scene::LoadCameras(QByteArray data) {
-  const EuclideanCamera *cameras =
-      reinterpret_cast<const EuclideanCamera *>(data.constData());
-  for (size_t i = 0; i < data.size() / sizeof(EuclideanCamera); ++i) {
-    EuclideanCamera camera = cameras[i];
-    reconstruction_->InsertCamera(camera.image, camera.R, camera.t);
-  }
-}
-
-void Scene::LoadBundles(QByteArray data) {
-  const EuclideanPoint *points =
-      reinterpret_cast<const EuclideanPoint *>(data.constData());
-  for (size_t i = 0; i < data.size() / sizeof(EuclideanPoint); ++i) {
-    EuclideanPoint point = points[i];
-    reconstruction_->InsertPoint(point.track, point.X);
-  }
-}
-
-void Scene::LoadObjects(QByteArray data) {
-  QDataStream stream(data);
-  stream >> objects_;
-}
-
-QByteArray Scene::SaveCameras() {
-  vector<EuclideanCamera> cameras = reconstruction_->AllCameras();
-  return QByteArray(reinterpret_cast<char *>(cameras.data()),
-                    cameras.size() * sizeof(EuclideanCamera));
-}
-
-QByteArray Scene::SaveBundles() {
- vector<EuclideanPoint> points = reconstruction_->AllPoints();
- return QByteArray(reinterpret_cast<char *>(points.data()),
-                   points.size() * sizeof(EuclideanPoint));
-}
-
-QByteArray Scene::SaveObjects() {
-  if (objects_.isEmpty()) return QByteArray();
-  QByteArray data;
-  QDataStream stream(&data, QIODevice::WriteOnly);
-  stream << objects_;
-  return data;
 }
 
 void Scene::SetImage(int image) {
@@ -200,7 +148,7 @@ void Scene::DrawObject(const Object& object, QVector<vec3> *quads) {
 }
 
 void Scene::upload() {
-  vector<EuclideanPoint> all_points = reconstruction_->AllPoints();
+  vector<EuclideanPoint> all_points = reconstruction_.AllPoints();
   QVector<vec3> points;
   points.reserve(all_points.size());
   for (int i = 0; i < all_points.size(); i++) {
@@ -208,7 +156,7 @@ void Scene::upload() {
     DrawPoint(point, &points);
   }
   foreach (int track, selected_tracks_) {
-    EuclideanPoint point = *reconstruction_->PointForTrack(track);
+    EuclideanPoint point = *reconstruction_.PointForTrack(track);
     DrawPoint(point, &points);
     DrawPoint(point, &points);
     DrawPoint(point, &points);
@@ -216,7 +164,7 @@ void Scene::upload() {
   bundles_.primitiveType = 1;
   bundles_.upload(points.constData(), points.count(), sizeof(vec3));
 
-  vector<EuclideanCamera> all_cameras = reconstruction_->AllCameras();
+  vector<EuclideanCamera> all_cameras = reconstruction_.AllCameras();
   QVector<vec3> lines;
   lines.reserve(all_cameras.size()*16);
   for (int i = 0; i < all_cameras.size(); i++) {
@@ -224,9 +172,9 @@ void Scene::upload() {
     DrawCamera(camera, &lines);
   }
   if (current_image_ >= 0) {
-    DrawCamera(*reconstruction_->CameraForImage(current_image_), &lines);
-    DrawCamera(*reconstruction_->CameraForImage(current_image_), &lines);
-    DrawCamera(*reconstruction_->CameraForImage(current_image_), &lines);
+    DrawCamera(*reconstruction_.CameraForImage(current_image_), &lines);
+    DrawCamera(*reconstruction_.CameraForImage(current_image_), &lines);
+    DrawCamera(*reconstruction_.CameraForImage(current_image_), &lines);
   }
   cameras_.primitiveType = 2;
   cameras_.upload(lines.constData(), lines.count(), sizeof(vec3));
@@ -250,7 +198,7 @@ void Scene::upload() {
 void Scene::Render(int w, int h, int image) {
   /// Compute camera projection
   mat4 transform;
-  EuclideanCamera *camera = reconstruction_->CameraForImage(image);
+  EuclideanCamera *camera = reconstruction_.CameraForImage(image);
   if (camera) {
     Mat34 P;
     libmv::P_From_KRt(intrinsics_->K(), camera->R, camera->t, &P);
@@ -323,11 +271,12 @@ void Scene::Render(int w, int h, int image) {
   cubes_.draw();
 }
 
-
 void Scene::paintGL() {
-  glBindWindow(width(), height());
+  glBindWindow(0, 0, width(), height(), true);
   Render(width(), height());
 }
+
+// TODO(MatthiasF): change to orbit view
 
 void Scene::keyPressEvent(QKeyEvent* e) {
   if ( e->key() == Qt::Key_W && walk_ < 1 ) walk_++;
@@ -346,10 +295,34 @@ void Scene::keyReleaseEvent(QKeyEvent* e) {
   if ( e->key() == Qt::Key_D ) strafe_--;
   if ( e->key() == Qt::Key_Control ) jump_++;
   if ( e->key() == Qt::Key_Space ) jump_--;
+  if (timer_.isActive()) timer_.stop();
 }
 
 void Scene::mousePressEvent(QMouseEvent* e) {
   drag_ = e->pos();
+}
+
+void Scene::mouseMoveEvent(QMouseEvent *e) {
+  if (!grab_) {
+    if ((drag_-e->pos()).manhattanLength() < 16) return;
+    grab_ = true;
+    setCursor(QCursor(Qt::BlankCursor));
+    QCursor::setPos(mapToGlobal(QPoint(width()/2, height()/2)));
+    return;
+  }
+  QPoint delta = e->pos()-QPoint(width()/2, height()/2);
+  yaw_ = yaw_-delta.x()*PI/width();
+  pitch_ = qBound(0.0, pitch_-delta.y()*PI/width(), PI);
+  QCursor::setPos(mapToGlobal(QPoint(width()/2, height()/2)));
+  if (!timer_.isActive()) update();
+}
+
+void Scene::timerEvent(QTimerEvent* /*event*/) {
+  mat4 view;
+  view.rotateZ(yaw_);
+  view.rotateX(pitch_);
+  position_ += view*vec3(strafe_*speed_, 0, -walk_*speed_) + vec3(0, 0, jump_*speed_);
+  update();
 }
 
 // from "An Efficient and Robust Ray-Box Intersection Algorithm"
@@ -385,7 +358,7 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
                                                   1-2.0*e->y()/height(), 1));
     float min_distance = 1;
     int hit_track = -1, hit_image = -1, hit_object = -1;
-    vector<EuclideanPoint> points = reconstruction_->AllPoints();
+    vector<EuclideanPoint> points = reconstruction_.AllPoints();
     for (int i = 0; i < points.size(); i++) {
       const EuclideanPoint &point = points[i];
       vec3 o = vec3(point.X.x(), point.X.y(), point.X.z())-position_;
@@ -397,7 +370,7 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
         hit_track = point.track;
       }
     }
-    vector<EuclideanCamera> cameras = reconstruction_->AllCameras();
+    vector<EuclideanCamera> cameras = reconstruction_.AllCameras();
     for (int i = 0; i < cameras.size(); i++) {
       const EuclideanCamera &camera = cameras[i];
       vec3 o = vec3(camera.t.x(), camera.t.y(), camera.t.z())-position_;
@@ -448,31 +421,4 @@ void Scene::mouseReleaseEvent(QMouseEvent* e) {
     }
     upload();
   }
-}
-
-void Scene::mouseMoveEvent(QMouseEvent *e) {
-  if (!grab_) {
-    if ((drag_-e->pos()).manhattanLength() < 16) return;
-    grab_ = true;
-    setCursor(QCursor(Qt::BlankCursor));
-    QCursor::setPos(mapToGlobal(QPoint(width()/2, height()/2)));
-    return;
-  }
-  QPoint delta = e->pos()-QPoint(width()/2, height()/2);
-  yaw_ = yaw_-delta.x()*PI/width();
-  pitch_ = qBound(0.0, pitch_-delta.y()*PI/width(), PI);
-  QCursor::setPos(mapToGlobal(QPoint(width()/2, height()/2)));
-  if (!timer_.isActive()) update();
-}
-
-void Scene::timerEvent(QTimerEvent* /*event*/) {
-  mat4 view;
-  view.rotateZ(yaw_);
-  view.rotateX(pitch_);
-  velocity_ += view*vec3(strafe_*speed_, 0, -walk_*speed_)
-      + vec3(0, 0, jump_*speed_);
-  velocity_ *= 3.0/4;
-  position_ += velocity_;
-  if ( length(velocity_) < 0.01 ) timer_.stop();
-  update();
 }

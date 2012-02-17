@@ -28,9 +28,9 @@ namespace libmv {
 
 TEST(CameraIntrinsics, ApplyIsInvertibleSimple) {
   CameraIntrinsics intrinsics;
-  intrinsics.SetFocalLength(500.0);
-  intrinsics.set_principal_point(250.0, 125.0);
-  intrinsics.set_radial_distortion(0.034, 0.0, 0.0);
+  intrinsics.SetFocalLength(900.0,900.0);
+  intrinsics.SetPrincipalPoint(640.0, 540.0);
+  intrinsics.SetRadialDistortion(-0.3, 0.0, 0.0);
 
   // Scan over image coordinates, invert the intrinsics, then re-apply them to
   // make sure the cycle gets back where it started.

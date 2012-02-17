@@ -2,9 +2,12 @@
     <qresource prefix="/">
         <file>shader.glsl</file>
         <file alias="open">icons/document-open.png</file>
+        <file alias="view-calibration">icons/digikam.png</file>
         <file alias="view-image">icons/view-preview.png</file>
         <file alias="view-zoom">icons/document-preview.png</file>
         <file alias="view-scene">icons/view-scene.png</file>
+        <file alias="undistort">icons/unknown.png</file>
+        <file alias="detect">icons/tools-wizard.png</file>
         <file alias="record">icons/media-record.png</file>
         <file alias="delete">icons/edit-delete.png</file>
         <file alias="delete-row">icons/edit-table-delete-row.png</file>

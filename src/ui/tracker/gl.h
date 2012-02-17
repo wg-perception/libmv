@@ -1,22 +1,26 @@
-// Copyright (c) 2011 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
 
 #ifndef UI_TRACKER_GL_H_
 #define UI_TRACKER_GL_H_
@@ -32,7 +36,8 @@ class QImage;
 
 struct vec2 {
   float x, y;
-  inline vec2(float x = 0, float y = 0) : x(x), y(y) {}
+  inline vec2() : x(0), y(0) {}
+  inline vec2(float x, float y) : x(x), y(y) {}
   inline vec2(float v[2]) : x(v[0]), y(v[1]) {}
 #ifdef QSTRING_H
   inline QString toString() const {
@@ -40,12 +45,14 @@ struct vec2 {
   }
 #endif
 };
+inline vec2 operator -( vec2 a ) { return vec2( -a.x, -a.y ); }
 inline vec2 operator +( vec2 a, vec2 b ) { return vec2( a.x+b.x, a.y+b.y ); }
 inline vec2 operator +( vec2 a, float b ) { return vec2( a.x+b, a.y+b ); }
 inline vec2 operator -( vec2 a, vec2 b ) { return vec2( a.x-b.x, a.y-b.y ); }
 inline vec2 operator -( vec2 a, float b ) { return vec2( a.x-b, a.y-b ); }
 inline vec2 operator *( float b, vec2 a ) { return vec2( a.x*b, a.y*b ); }
 inline vec2 operator /( vec2 a, float b ) { return vec2( a.x/b, a.y/b ); }
+inline vec2 operator /( float a, vec2 b ) { return vec2( a/b.x, a/b.y ); }
 inline vec2 operator /( vec2 a, vec2 b ) { return vec2( a.x/b.x, a.y/b.y ); }
 inline bool operator <( vec2 a, vec2 b ) { return a.x < b.x && a.y < b.y; }
 inline bool operator >( vec2 a, vec2 b ) { return a.x > b.x && a.y > b.y; }
@@ -54,6 +61,7 @@ struct vec3 {
   float x, y, z;
   inline vec3() : x(0), y(0), z(0) {}
   inline vec3(float x, float y, float z) : x(x), y(y), z(z) {}
+  inline vec3(vec2 v, float z) : x(v.x), y(v.y), z(z) {}
   inline vec3(float v[3]) : x(v[0]), y(v[1]), z(v[2]) {}
   inline vec3 operator -() { return vec3(-x, -y, -z); }
   inline void operator +=(vec3 a) { x += a.x, y += a.y, z += a.z; }
@@ -110,8 +118,9 @@ inline vec3 normalize(vec3 a) { return a*(1.0/length(a)); }
 
 struct vec4 {
   float x, y, z, w;
-  inline vec4(float x = 0, float y = 0, float z = 0, float w = 0)
-    : x(x), y(y), z(z), w(w) {}
+  inline vec4() : x(0), y(0), z(0), w(0) {}
+  inline vec4(float x, float y , float z, float w) : x(x), y(y), z(z), w(w) {}
+  inline vec4(float x, float y , vec2 v) : x(x), y(y), z(v.x), w(v.y) {}
   inline float& operator[]( int i ) { return (&x)[i]; }
   inline vec3 xyz() { return vec3(x, y, z); }
   inline vec2 xy() { return vec2(x, y); }
@@ -126,16 +135,6 @@ inline vec4 normalize(vec4 a) {
   return a*(1.0/length(a.xyz()));
 }
 
-struct mat3 {
-  float data[3*3];
-  inline float& m(int i, int j) { return data[j*3+i]; }
-  inline float& operator()(int i, int j) { return m(i, j); }
-  inline vec3 operator*(vec3 v) {
-    vec3 r;
-    for (int i = 0; i < 3; i++) r[i] = v.x*m(i, 0)+v.y*m(i, 1)+v.z*m(i, 2);
-    return r;
-  }
-};
 struct mat4 {
   float data[4*4];
   inline mat4(int d = 1) {
@@ -220,20 +219,6 @@ struct mat4 {
         m(i0, j1) * (m(i1, j0) * m(i2, j2) - m(i2, j0) * m(i1, j2)) +
         m(i0, j2) * (m(i1, j0) * m(i2, j1) - m(i2, j0) * m(i1, j1));
   }
-  inline mat3 normalMatrix() const {
-    float det = 1 / det3(0, 1, 2, 0, 1, 2);
-    mat3 n;
-    n(0, 0) =  (m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1)) * det;
-    n(1, 0) = -(m(0, 1) * m(2, 2) - m(2, 1) * m(0, 2)) * det;
-    n(2, 0) =  (m(0, 1) * m(1, 2) - m(1, 1) * m(0, 2)) * det;
-    n(0, 1) = -(m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) * det;
-    n(1, 1) =  (m(0, 0) * m(2, 2) - m(2, 0) * m(0, 2)) * det;
-    n(2, 1) = -(m(0, 0) * m(1, 2) - m(1, 0) * m(0, 2)) * det;
-    n(0, 2) =  (m(1, 0) * m(2, 1) - m(2, 0) * m(1, 1)) * det;
-    n(1, 2) = -(m(0, 0) * m(2, 1) - m(2, 0) * m(0, 1)) * det;
-    n(2, 2) =  (m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0)) * det;
-    return n;
-  }
   inline mat4 inverse() const {
     float det = 1 / (m(0, 0) * det3(1, 2, 3, 1, 2, 3) -
                      m(0, 1) * det3(0, 2, 3, 1, 2, 3) +
@@ -278,7 +263,6 @@ struct GLUniform {
   void operator=(vec2);
   void operator=(vec3);
   void operator=(vec4);
-  void operator=(mat3);
   void operator=(mat4);
   void set(vec3*, int);
   void set(vec4*, int);
@@ -324,13 +308,14 @@ struct GLTexture {
   void bind(int sampler);
 
   uint id;
-  int width, height;
+  int width, height, depth;
 };
 
 void glInitialize();
-void glBindWindow(int w, int h);
-void glAdditiveBlendMode();
-void glQuad(vec4 min, vec4 max);
+void glBindWindow(int x, int y, int w, int h, bool clear);
+void glSmooth();
+void glHard();
+void glQuad(vec4 quad[4]);
 QString glsl(QString tags);
 
 #endif

@@ -1,52 +1,41 @@
-// Copyright (c) 2011 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
 
 #ifndef UI_TRACKER_MAIN_H_
 #define UI_TRACKER_MAIN_H_
 
 #include <QMainWindow>
+#include <QGridLayout>
 #include <QSpinBox>
 #include <QSlider>
-#include <QLabel>
-#include <QCache>
 #include <QTimer>
 
-namespace libmv {
-class Tracks;
-class EuclideanReconstruction;
-class CameraIntrinsics;
-}  // namespace libmv
-
+class Clip;
+class Calibration;
 class Tracker;
 class Zoom;
 class Scene;
-
-class Clip : public QObject, public QList<QString>   {
-  Q_OBJECT
- public:
-  explicit Clip(QObject* parent = 0) : QObject(parent) {}
-  void Open(QString path);
-  QImage Image(int frame);
- private:
-  QCache<int, QImage> cache_;
-};
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -56,7 +45,7 @@ class MainWindow : public QMainWindow {
 
  public slots:
   void open();
-  void open(QString);
+  void open(QStringList);
   void seek(int);
   void stop();
   void first();
@@ -64,40 +53,36 @@ class MainWindow : public QMainWindow {
   void next();
   void last();
   void toggleTracking(bool);
-  void toggleKeyframe(bool);
   void toggleBackward(bool);
   void toggleForward(bool);
-  void toggleZoom(bool);
-  void updateZooms(QVector<int>);
+  void toggleUndistort(bool);
+  void detect();
+#ifdef RECONSTRUCTION
   void solve();
+#endif
 
  private:
-  QByteArray Load(QString name);
-  void Save(QString name, QByteArray data);
-
   QString path_;
   Clip *clip_;
-  libmv::Tracks* tracks_;
-  QVector<int> keyframes_;
-  libmv::CameraIntrinsics* intrinsics_;
-  libmv::EuclideanReconstruction* reconstruction_;
-
-  Scene *scene_;
+  Calibration* calibration_;
   Tracker *tracker_;
-  QVector<Zoom*> zooms_;
-  QVector<QDockWidget*> zooms_docks_;
+  Zoom *zoom_;
+  Scene *scene_;
 
-  int current_frame_;
-  QAction *zoom_action_;
-  QAction *track_action_;
-  QAction *keyframe_action_;
+  QToolBar* toolbar_;
+
+  //-> Player : Clip
   QAction *backward_action_;
   QAction *forward_action_;
   QSpinBox spinbox_;
   QSlider slider_;
-  QLabel keyframe_label_;
   QTimer previous_timer_;
   QTimer next_timer_;
+  int current_frame_;
+
+  QAction *track_action_;
+  QAction *zoom_action_;
+
 };
 #endif
 

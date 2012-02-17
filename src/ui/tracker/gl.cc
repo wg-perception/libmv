@@ -1,22 +1,26 @@
-// Copyright (c) 2011 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
 
 #include "ui/tracker/gl.h"
 
@@ -74,9 +78,6 @@ void GLUniform::operator=(vec3 v) {
 void GLUniform::operator=(vec4 v) {
   if (id >= 0) glUniform4f(id, v.x, v.y, v.z, v.w);
 }
-void GLUniform::operator=(mat3 m) {
-  if (id >= 0) glUniformMatrix3fv(id, 1, 0, m.data);
-}
 void GLUniform::operator=(mat4 m) {
   if (id >= 0) glUniformMatrix4fv(id, 1, 0, m.data);
 }
@@ -87,52 +88,28 @@ void GLUniform::set(vec4* data, int size) {
   if (id >= 0) glUniform4fv(id, size, reinterpret_cast<float*>(data));
 }
 
+bool compileShader(int program, int type, QByteArray source) {
+  int shader = glCreateShader(type);
+  const char* string = source.constData(); glShaderSource(shader,1,&string,0);
+  glCompileShader(shader); glAttachShader(program,shader);
+  int status; glGetShaderiv(shader,GL_COMPILE_STATUS,&status);
+  if(status==GL_TRUE) return true;
+  int l=0; glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&l);
+  QByteArray msg(l,0); glGetShaderInfoLog(shader,l,0,msg.data());
+  qDebug()<<(type==GL_VERTEX_SHADER?"Vertex:\n":"Fragment:\n")<<msg;
+  return false;
+}
 bool GLShader::compile(QString vertex, QString fragment) {
-  if (!id) id = glCreateProgram();
-  QByteArray vertexSource = vertex.toAscii();
-  const char* vertexString = vertexSource.constData();
-  int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexString, 0);
-  glCompileShader(vertexShader);
-  glAttachShader(id, vertexShader);
-  {
-    int l = 0;
-    glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &l);
-    if (l > 1) {
-      QByteArray msg(l, 0);
-      glGetShaderInfoLog(vertexShader, l, 0, msg.data());
-      qDebug() << msg;
-      return false;
-    }
-  }
-  QByteArray fragmentSource = fragment.toAscii();
-  const char* fragmentString = fragmentSource.constData();
-  int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentString, 0);
-  glCompileShader(fragmentShader);
-  glAttachShader(id, fragmentShader);
-  {
-    int l = 0;
-    glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &l);
-    if (l > 1) {
-      QByteArray msg(l, 0);
-      glGetShaderInfoLog(fragmentShader, l, 0, msg.data());
-      qDebug() << msg;
-      return false;
-    }
-  }
-  glLinkProgram(id);
-  {
-    int l = 0;
-    glGetProgramiv(id, GL_INFO_LOG_LENGTH, &l);
-    if (l > 1) {
-      QByteArray msg(l, 0);
-      glGetProgramInfoLog(id, l, 0, msg.data());
-      qDebug() << msg;
-      return false;
-    }
-  }
-  return true;
+    if(!id) id = glCreateProgram();
+    compileShader(id,GL_VERTEX_SHADER,vertex.toAscii());
+    compileShader(id,GL_FRAGMENT_SHADER,fragment.toAscii());
+    glLinkProgram(id);
+    int status; glGetProgramiv(id,GL_LINK_STATUS,&status);
+    if(status==GL_TRUE) return true;
+    int l=0; glGetProgramiv(id,GL_INFO_LOG_LENGTH,&l);
+    QByteArray msg(l,0); glGetProgramInfoLog(id,l,0,msg.data());
+    qDebug()<<"Program:\n"<<msg;
+    return false;
 }
 
 void GLShader::bind() {
@@ -199,15 +176,45 @@ void GLBuffer::draw() {
   }
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0))
+#define constBits bits
+#endif
+
 void GLTexture::upload(QImage image) {
+  width = image.width();
+  height = image.height();
+  depth = image.depth();
+  int stride = image.bytesPerLine();
+#ifdef USE_PBO
+  GLuint pbo; glGenBuffers(1,&pbo);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo );
+  glBufferData(GL_PIXEL_UNPACK_BUFFER, width*height, 0, GL_STREAM_DRAW);
+  uchar* dst = (uchar*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER,GL_WRITE_ONLY);
+  Q_ASSERT(dst);
+  const uchar* src = image.constBits();
+  for(int y = 0; y < height; y++) {
+      memcpy(dst, src, width);
+      dst += width; src += stride;
+  }
+  glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+#else
+  if (stride != width*image.depth()) {
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
+  }
+#endif
   if (!id) glGenTextures(1, &id);
   glBindTexture(GL_TEXTURE_2D, id);
-  glTexImage2D(GL_TEXTURE_2D, 0, image.depth()/8, width = image.width(),
-               height = image.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE,
-               image.bits());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(GL_TEXTURE_2D, 0, depth/8, width, height, 0,
+               depth == 8 ? GL_LUMINANCE : GL_BGRA, GL_UNSIGNED_BYTE,
+#ifdef USE_PBO
+               0);
+  glDeleteBuffers(1, &pbo);
+#else
+               image.constBits());
+#endif
 }
 
 void GLTexture::bind(int sampler) {
@@ -215,25 +222,27 @@ void GLTexture::bind(int sampler) {
   glBindTexture(GL_TEXTURE_2D, id);
 }
 
-void glQuad(vec4 min, vec4 max) {
-  vec4 quad[] = { vec4(min.x, min.y, min.z, min.w),
-                  vec4(max.x, min.y, max.z, min.w),
-                  vec4(max.x, max.y, max.z, max.w),
-                  vec4(min.x, max.y, min.z, max.w) };
+void glQuad(vec4 quad[4]) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glVertexAttribPointer(0, 4, GL_FLOAT, 0, 0, quad);
   glEnableVertexAttribArray(0);
   glDrawArrays(GL_QUADS, 0, 4);
 }
 
-void glBindWindow(int w, int h) {
-  glViewport(0, 0, w, h);
-  glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+void glBindWindow(int x, int y, int w, int h, bool clear) {
+  glViewport(x, y, w, h);
+  if(clear) glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 }
 
-void glAdditiveBlendMode() {
-  glBlendFunc(GL_ONE, GL_ONE);
+void glSmooth()  {
+  glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+  glEnable(GL_LINE_SMOOTH);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
+}
+void glHard() {
+  glDisable(GL_LINE_SMOOTH);
+  glDisable(GL_BLEND);
 }
 
 static QString filterGLSL(QFile* file, QStringList tags) {

@@ -21,16 +21,20 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 #define LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 
-#include "libmv/numeric/numeric.h"
+#include <Eigen/Core>
+typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
+
+struct Offset;
 
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
-  virtual ~CameraIntrinsics() {}
+  ~CameraIntrinsics();
 
   const Mat3 &K()                 const { return K_;            }
+  // FIXME(MatthiasF): these should be CamelCase methods
   double      focal_length()      const { return K_(0, 0);      }
   double      focal_length_x()    const { return K_(0, 0);      }
   double      focal_length_y()    const { return K_(1, 1);      }
@@ -45,35 +49,23 @@ class CameraIntrinsics {
   double      p2()                const { return p2_; }
 
   /// Set the entire calibration matrix at once.
-  void SetK(const Mat3 new_k) {
-    K_ = new_k;
-  }
+  void SetK(const Mat3 new_k);
 
   /// Set both x and y focal length in pixels.
-  void SetFocalLength(double focal) {
-    K_(0, 0) = K_(1, 1) = focal;
-  }
+  void SetFocalLength(double focal_x, double focal_y);
 
-  void set_principal_point(double cx, double cy) {
-    K_(0, 2) = cx;
-    K_(1, 2) = cy;
-  }
+  void SetPrincipalPoint(double cx, double cy);
 
-  void set_image_size(int width, int height) {
-    image_width_ = width;
-    image_height_ = height;
-  }
+  void SetImageSize(int width, int height);
 
-  void set_radial_distortion(double k1, double k2, double k3) {
-    k1_ = k1;
-    k2_ = k2;
-    k3_ = k3;
-  }
+  void SetRadialDistortion(double k1, double k2, double k3 = 0);
+
+  void SetTangentialDistortion(double p1, double p2);
 
   /*!
       Apply camera intrinsics to the normalized point to get image coordinates.
 
-      This applies the camera intrinsics to a point which is in normalized
+      This applies the lens distortion to a point which is in normalized
       camera coordinates (i.e. the principal point is at (0, 0)) to get image
       coordinates in pixels.
   */
@@ -83,13 +75,57 @@ class CameraIntrinsics {
   /*!
       Invert camera intrinsics on the image point to get normalized coordinates.
 
-      This reverses the effect of camera intrinsics on a point which is in image
+      This reverses the effect of lens distortion on a point which is in image
       coordinates to get normalized camera coordinates.
   */
   void InvertIntrinsics(double image_x, double image_y,
                         double *normalized_x, double *normalized_y) const;
 
+  /*!
+      Distort an image using the current camera instrinsics
+
+      The distorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This is the reference implementation using floating point images.
+  */
+  void Distort(const float* src, float* dst,
+               int width, int height, int channels);
+  /*!
+      Distort an image using the current camera instrinsics
+
+      The distorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This version is much faster.
+  */
+  void Distort(const unsigned char* src, unsigned char* dst,
+               int width, int height, int channels);
+  /*!
+      Undistort an image using the current camera instrinsics
+
+      The undistorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This is the reference implementation using floating point images.
+  */
+  void Undistort(const float* src, float* dst,
+                 int width, int height, int channels);
+  /*!
+      Undistort an image using the current camera instrinsics
+
+      The undistorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This version is much faster.
+  */
+  void Undistort(const unsigned char* src, unsigned char* dst,
+                 int width, int height, int channels);
+
  private:
+  template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
+  void FreeLookupGrid();
+
   // The traditional intrinsics matrix from x = K[R|t]X.
   Mat3 K_;
 
@@ -103,6 +139,9 @@ class CameraIntrinsics {
   // the normalized coordinates before the focal length, which makes them
   // independent of image size.
   double k1_, k2_, k3_, p1_, p2_;
+
+  Offset* distort_;
+  Offset* undistort_;
 };
 
 }  // namespace libmv

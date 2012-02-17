@@ -1,34 +1,31 @@
-Libmv multiview reconstruction and tracking library
-===================================================
+== Qt OpenCV calibration tool ==
 
-Libmv is a simple multiview reconstruction library.
+We need artists to test the new Qt OpenCV calibration tool.
+This tool takes calibration footage and output lens parameters.
+You'll need these parameters for accurate reconstruction.
 
-It is not ready yet. If you're interested in contributing, see:
 
-  http://code.google.com/p/libmv
+=== How to Build ===
 
-The short story:
+Install Qt, OpenCV and FFmpeg.
+git pull https://github.com/Matthias-Fauconneau/libmv.git
+cd libmv
+ 
+Method #1: This will also build libmv, its dependencies and Qt Tracker
+ 
+ make && bin-opt/bin/qt-calibration
 
- $ git pull git://github.com/Matthias-Fauconneau/libmv.git
- $ make
- $ bin-opt/bin/qt-tracker
+Or Method #2: Build only the calibration tool
 
-Try loading an image sequence and start tracking. This UI may crash on you.
-There's a reason we claim libmv is not finished !
+ cd src/ui/calibration && qmake && make && build/calibration
 
-Building
---------
 
-Before building, make sure you have the following:
+If you encounter problems, please mail me or ask for help on irc://irc.freenode.net/libmv
 
-* CMake 2.4 or newer.
-* Qt4.
 
-Then run 
+=== Links ===
 
- $ make
-
-Problems
---------
-
-If you encounter problems, please mail the branch author or ask for help on irc://irc.freenode.net/libmv
+Windows and OSX require you to fetch and install packages manually:
+ Qt SDK -> http://qt.nokia.com/downloads
+ OpenCV -> http://opencv.willowgarage.com/wiki/
+ FFmpeg -> http://www.ffmpeg.org/

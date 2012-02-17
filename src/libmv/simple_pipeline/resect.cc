@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include <cstdio>
+
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/euclidean_resection.h"
@@ -98,7 +100,7 @@ struct EuclideanResectCostFunction {
 }  // namespace
 
 bool EuclideanResect(const vector<Marker> &markers,
-                     EuclideanReconstruction *reconstruction) {
+                     EuclideanReconstruction *reconstruction, bool final_pass) {
   if (markers.size() < 5) {
     return false;
   }
@@ -112,9 +114,10 @@ bool EuclideanResect(const vector<Marker> &markers,
   Mat3 R;
   Vec3 t;
   if (0 || !euclidean_resection::EuclideanResection(points_2d, points_3d, &R, &t)) {
+    // printf("Resection for image %d failed\n", markers[0].image);
     LG << "Resection for image " << markers[0].image << " failed;"
        << " trying fallback projective resection.";
-    return false;
+    if (!final_pass) return false;
     // Euclidean resection failed. Fall back to projective resection, which is
     // less reliable but better conditioned when there are many points.
     Mat34 P;

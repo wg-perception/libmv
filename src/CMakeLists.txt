@@ -114,7 +114,7 @@ ENDIF (BUILD_TESTS)
 
 OPTION(BUILD_GUI "Build Qt Tracker" ON)
 IF (BUILD_GUI)
- MESSAGE(STATUS "GUI enabled. You need to install Qt SDK to build Qt Tracker")
+ MESSAGE(STATUS "GUI enabled. Make sure you have Qt (and qt-devel for binary distributions)")
  ADD_SUBDIRECTORY(ui)
 ENDIF (BUILD_GUI)
 

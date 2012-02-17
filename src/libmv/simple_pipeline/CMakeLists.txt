@@ -1,4 +1,5 @@
 SET(SIMPLE_PIPELINE_SRC
+    detect.cc
     resect.cc
     intersect.cc
     bundle.cc
@@ -15,7 +16,7 @@ FILE(GLOB SIMPLE_PIPELINE_HDRS *.h)
 
 ADD_LIBRARY(simple_pipeline ${SIMPLE_PIPELINE_SRC} ${SIMPLE_PIPELINE_HDRS})
 
-TARGET_LINK_LIBRARIES(simple_pipeline V3D multiview)
+TARGET_LINK_LIBRARIES(simple_pipeline V3D multiview fast)
 
 # Make the name of debug libraries end in _d.
 SET_TARGET_PROPERTIES(simple_pipeline PROPERTIES DEBUG_POSTFIX "_d")
@@ -27,3 +28,5 @@ MACRO (SIMPLE_PIPELINE_TEST NAME)
 ENDMACRO (SIMPLE_PIPELINE_TEST)
 
 SIMPLE_PIPELINE_TEST(camera_intrinsics)
+SIMPLE_PIPELINE_TEST(resect)
+SIMPLE_PIPELINE_TEST(intersect)

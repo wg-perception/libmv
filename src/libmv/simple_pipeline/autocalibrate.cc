@@ -275,7 +275,7 @@ void UpgradeProjectiveReconstructionToEuclidean(
   // Set the intrinsics to the best one. Since the reconstruction is
   // quasicalibrated, only the focal length needs setting.
   camera_intrinsics->SetK(Mat3::Identity());
-  camera_intrinsics->SetFocalLength(best_focal_length);
+  camera_intrinsics->SetFocalLength(best_focal_length,best_focal_length);
 
   // Make the Euclidean cameras.
   for (int i = 0; i < all_cameras.size(); i++) {

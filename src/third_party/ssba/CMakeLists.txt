@@ -27,6 +27,6 @@ add_library(V3D
     Geometry/v3d_metricbundle.cpp)
 target_link_libraries(V3D ldl colamd)
 
-add_subdirectory(Apps)
+#add_subdirectory(Apps)
 
 LIBMV_INSTALL_THIRD_PARTY_LIB(V3D)

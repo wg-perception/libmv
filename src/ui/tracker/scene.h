@@ -1,22 +1,26 @@
-// Copyright (c) 2011 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+/****************************************************************************
+**
+** Copyright (c) 2011 libmv authors.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to
+** deal in the Software without restriction, including without limitation the
+** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+** sell copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
+**
+****************************************************************************/
 
 #ifndef UI_TRACKER_SCENE_H_
 #define UI_TRACKER_SCENE_H_
@@ -25,35 +29,27 @@
 #include <QTimer>
 #include "ui/tracker/gl.h"
 
-namespace libmv {
-class CameraIntrinsics;
-class EuclideanCamera;
-class EuclideanPoint;
-class EuclideanReconstruction;
-}  // namespace libmv
+#include "libmv/simple_pipeline/camera_intrinsics.h"
+#include "libmv/simple_pipeline/reconstruction.h"
 
 struct Object {
   mat4 transform;
   QVector<int> tracks;
-  void position(libmv::EuclideanReconstruction* reconstruction,
+  void position(const libmv::EuclideanReconstruction& reconstruction,
                 vec3* min, vec3* max) const;
 };
 
 class Scene : public QGLWidget {
   Q_OBJECT
  public:
-  Scene(libmv::CameraIntrinsics* intrinsics,
-        libmv::EuclideanReconstruction* reconstruction, QGLWidget *shareWidget = 0);
+  Scene(libmv::CameraIntrinsics* intrinsics, QGLWidget *shareWidget = 0);
   ~Scene();
-  void LoadCOLLADA(QIODevice* file);
-  void LoadCameras(QByteArray data);
-  void LoadBundles(QByteArray data);
-  void LoadObjects(QByteArray data);
-  QByteArray SaveCameras();
-  QByteArray SaveBundles();
-  QByteArray SaveObjects();
+  void Load(QString path);
   void SetImage(int image);
   void Render(int w, int h, int image = -1);
+  void SetReconstruction(const libmv::EuclideanReconstruction& reconstruction) {
+    reconstruction_ = reconstruction;
+  }
 
  public slots:
   void select(QVector<int>);
@@ -81,7 +77,7 @@ class Scene : public QGLWidget {
   void DrawObject(const Object& object, QVector<vec3> *quads);
 
   libmv::CameraIntrinsics* intrinsics_;
-  libmv::EuclideanReconstruction* reconstruction_;
+  libmv::EuclideanReconstruction reconstruction_;
   QVector<Object> objects_;
   GLBuffer bundles_;
   GLBuffer cameras_;
@@ -91,8 +87,6 @@ class Scene : public QGLWidget {
   float pitch_, yaw_, speed_;
   int walk_, strafe_, jump_;
   vec3 position_;
-  vec3 velocity_;
-  vec3 momentum_;
   QBasicTimer timer_;
   mat4 projection_;
   mat4 view_;

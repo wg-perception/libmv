@@ -25,7 +25,7 @@
 
 namespace libmv {
 
-class Marker;
+struct Marker;
 class EuclideanReconstruction;
 class ProjectiveReconstruction;
 

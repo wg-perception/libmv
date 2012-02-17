@@ -33,7 +33,8 @@ namespace {
 
 // These are "strategy" classes which make it possible to use the same code for
 // both projective and euclidean reconstruction.
-
+// FIXME(MatthiasF): OOP would achieve the same goal while avoiding
+// template bloat and making interface changes much easier.
 struct EuclideanPipelineRoutines {
   typedef EuclideanReconstruction Reconstruction;
   typedef EuclideanCamera Camera;
@@ -45,8 +46,8 @@ struct EuclideanPipelineRoutines {
   }
 
   static bool Resect(const vector<Marker> &markers,
-                     EuclideanReconstruction *reconstruction) {
-    return EuclideanResect(markers, reconstruction);
+                     EuclideanReconstruction *reconstruction, bool final_pass) {
+    return EuclideanResect(markers, reconstruction, final_pass);
   }
 
   static bool Intersect(const vector<Marker> &markers,
@@ -83,7 +84,7 @@ struct ProjectivePipelineRoutines {
   }
 
   static bool Resect(const vector<Marker> &markers,
-                     ProjectiveReconstruction *reconstruction) {
+                     ProjectiveReconstruction *reconstruction, bool final_pass) {
     return ProjectiveResect(markers, reconstruction);
   }
 
@@ -116,8 +117,6 @@ template<typename PipelineRoutines>
 void InternalCompleteReconstruction(
     const Tracks &tracks,
     typename PipelineRoutines::Reconstruction *reconstruction) {
-  LG << "Waiting on input..."; getchar();
-
   int max_track = tracks.MaxTrack();
   int max_image = tracks.MaxImage();
   int num_resects = -1;
@@ -128,7 +127,7 @@ void InternalCompleteReconstruction(
   while (num_resects != 0 || num_intersects != 0) {
     // Do all possible intersections.
     num_intersects = 0;
-    for (int track = 0; track < max_track; ++track) {
+    for (int track = 0; track <= max_track; ++track) {
       if (reconstruction->PointForTrack(track)) {
         LG << "Skipping point: " << track;
         continue;
@@ -155,14 +154,10 @@ void InternalCompleteReconstruction(
       LG << "Ran Bundle() after intersections.";
     }
     LG << "Did " << num_intersects << " intersects.";
-    LG << "Waiting on input..."; getchar();
-
-    LG << "Bailing on rest of reconstruction early.";
-    return;
 
     // Do all possible resections.
     num_resects = 0;
-    for (int image = 0; image < max_image; ++image) {
+    for (int image = 0; image <= max_image; ++image) {
       if (reconstruction->CameraForImage(image)) {
         LG << "Skipping frame: " << image;
         continue;
@@ -179,7 +174,7 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
-        if (PipelineRoutines::Resect(reconstructed_markers, reconstruction)) {
+        if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, false)) {
           num_resects++;
           LG << "Ran Resect() for image " << image;
         } else {
@@ -191,7 +186,34 @@ void InternalCompleteReconstruction(
       PipelineRoutines::Bundle(tracks, reconstruction);
     }
     LG << "Did " << num_resects << " resects.";
-    LG << "Waiting on input..."; getchar();
+  }
+
+  // One last pass...
+  num_resects = 0;
+  for (int image = 0; image <= max_image; ++image) {
+    if (reconstruction->CameraForImage(image)) {
+      LG << "Skipping frame: " << image;
+      continue;
+    }
+    vector<Marker> all_markers = tracks.MarkersInImage(image);
+
+    vector<Marker> reconstructed_markers;
+    for (int i = 0; i < all_markers.size(); ++i) {
+      if (reconstruction->PointForTrack(all_markers[i].track)) {
+        reconstructed_markers.push_back(all_markers[i]);
+      }
+    }
+    if (reconstructed_markers.size() >= 5) {
+      if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, true)) {
+        num_resects++;
+        LG << "Ran Resect() for image " << image;
+      } else {
+        LG << "Failed Resect() for image " << image;
+      }
+    }
+  }
+  if (num_resects) {
+    PipelineRoutines::Bundle(tracks, reconstruction);
   }
 }
 
