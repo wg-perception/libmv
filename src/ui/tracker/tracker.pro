@@ -8,12 +8,26 @@ SOURCES += ../../libmv/simple_pipeline/detect.cc
 #TODO: Qt Tracker should be independent from libmv to be able to use new lens distortion API
 HEADERS += calibration.h ../../libmv/simple_pipeline/camera_intrinsics.h
 SOURCES += calibration.cc ../../libmv/simple_pipeline/camera_intrinsics.cc
+
+#TODO: we don't actually need glog stuff in tracker, but to prevent linking errors for now...
+SOURCES += ../../third_party/glog/src/demangle.cc \
+    ../../third_party/glog/src/logging.cc \
+    ../../third_party/glog/src/raw_logging.cc \
+    ../../third_party/glog/src/signalhandler.cc \
+    ../../third_party/glog/src/symbolize.cc \
+    ../../third_party/glog/src/utilities.cc \
+    ../../third_party/glog/src/vlog_is_on.cc \
+    ../../third_party/gflags/gflags.cc \
+    ../../third_party/gflags/gflags_completions.cc \
+    ../../third_party/gflags/gflags_reporting.cc
+INCLUDEPATH += ../../third_party/glog/src
+
 #HEADERS += scene.h
 #SOURCES += scene.cc
 OTHER_FILES += shader.glsl
 RESOURCES = tracker.qrc
 INCLUDEPATH += ../..
-INCLUDEPATH += /usr/include/eigen3/
+INCLUDEPATH += ../../third_party/eigen
 #LIBS += -L../../../bin-opt/lib/ -lsimple_pipeline -lmultiview
 QMAKE_CXXFLAGS_RELEASE += -Ofast -march=native
 
