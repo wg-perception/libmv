@@ -194,6 +194,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   double v3d_inlier_threshold = 500000.0;
 
   // Finally, run the bundle adjustment.
+  V3D::optimizerVerbosenessLevel = 1;
   V3D::CommonInternalsMetricBundleOptimizer opt(v3d_bundle_intrinsics,
                                                 v3d_inlier_threshold,
                                                 v3d_K,
