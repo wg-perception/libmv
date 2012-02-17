@@ -131,10 +131,12 @@
 #define PACKAGE_VERSION "0.3.1"
 
 /* How to access the PC from a struct ucontext */
-#if defined(_M_X64) || defined(__amd64__)
+#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
+  #define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP]
+#elif defined(_M_IX86) || defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__)
   #define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP]
 #else
-  #define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_EIP]
+  #undef PC_FROM_UCONTEXT
 #endif
 
 /* Define to necessary symbol if this constant uses a non-standard name on
