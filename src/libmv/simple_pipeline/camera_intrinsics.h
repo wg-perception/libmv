@@ -26,11 +26,12 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
 
-struct Offset;
+struct Grid;
 
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
+  CameraIntrinsics(const CameraIntrinsics &from);
   ~CameraIntrinsics();
 
   const Mat3 &K()                 const { return K_;            }
@@ -90,7 +91,7 @@ class CameraIntrinsics {
       \note This is the reference implementation using floating point images.
   */
   void Distort(const float* src, float* dst,
-               int width, int height, int channels);
+               int width, int height, double overscan, int channels);
   /*!
       Distort an image using the current camera instrinsics
 
@@ -100,7 +101,7 @@ class CameraIntrinsics {
       \note This version is much faster.
   */
   void Distort(const unsigned char* src, unsigned char* dst,
-               int width, int height, int channels);
+               int width, int height, double overscan, int channels);
   /*!
       Undistort an image using the current camera instrinsics
 
@@ -110,7 +111,7 @@ class CameraIntrinsics {
       \note This is the reference implementation using floating point images.
   */
   void Undistort(const float* src, float* dst,
-                 int width, int height, int channels);
+                 int width, int height, double overscan, int channels);
   /*!
       Undistort an image using the current camera instrinsics
 
@@ -120,10 +121,12 @@ class CameraIntrinsics {
       \note This version is much faster.
   */
   void Undistort(const unsigned char* src, unsigned char* dst,
-                 int width, int height, int channels);
+                 int width, int height, double overscan, int channels);
 
  private:
-  template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
+  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid, int width, int height, double overscan);
+  void CheckUndistortLookupGrid(int width, int height, double overscan);
+  void CheckDistortLookupGrid(int width, int height, double overscan);
   void FreeLookupGrid();
 
   // The traditional intrinsics matrix from x = K[R|t]X.
@@ -140,8 +143,8 @@ class CameraIntrinsics {
   // independent of image size.
   double k1_, k2_, k3_, p1_, p2_;
 
-  Offset* distort_;
-  Offset* undistort_;
+  struct Grid *distort_;
+  struct Grid *undistort_;
 };
 
 }  // namespace libmv
