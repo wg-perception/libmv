@@ -315,7 +315,7 @@ void MainWindow::detect() {
   QImage image = clip_->Image(current_frame_);
   int count=16;
   libmv::Feature detected[count];
-  libmv::Detect((libmv::ubyte*)image.constBits(), image.bytesPerLine(), image.width(), image.height(), detected, &count, 32, 0);
+  libmv::DetectMORAVEC((libmv::ubyte*)image.constBits(), image.bytesPerLine(), image.width(), image.height(), detected, &count, 32, 0);
   for(int i=0; i<count; i++) {
     tracker_->AddTrack(detected[i].x, detected[i].y );
   }
