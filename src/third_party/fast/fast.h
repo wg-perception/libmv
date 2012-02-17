@@ -1,6 +1,10 @@
 #ifndef FAST_H
 #define FAST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct { int x, y; } xy; 
 typedef unsigned char byte;
 
@@ -27,5 +31,9 @@ xy* fast12_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b
 
 xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, int* ret_num_nonmax);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
