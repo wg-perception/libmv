@@ -28,6 +28,10 @@
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 
+#ifdef _MSC_VER
+#  define snprintf _snprintf
+#endif
+
 namespace libmv {
 namespace {
 
