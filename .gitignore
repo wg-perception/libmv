@@ -4,5 +4,5 @@ bin-opt
 src/libmv/tools/revision.h
 doc/html/
 Makefile
-build/
+build*/
 *.pro.user

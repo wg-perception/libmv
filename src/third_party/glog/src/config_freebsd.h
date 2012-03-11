@@ -11,7 +11,7 @@
 #define HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the <execinfo.h> header file. */
-#define HAVE_EXECINFO_H 1
+#undef HAVE_EXECINFO_H
 
 /* Define if you have the `fcntl' function */
 #define HAVE_FCNTL 1
@@ -122,13 +122,13 @@
 #define PACKAGE_NAME "glog"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "glog 0.3.1"
+#define PACKAGE_STRING "glog 0.3.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "glog"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.3.1"
+#define PACKAGE_VERSION "0.3.2"
 
 /* How to access the PC from a struct ucontext */
 /* #define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP] */
@@ -151,7 +151,7 @@
 #define TEST_SRC_DIR "."
 
 /* Version number of package */
-#define VERSION "0.3.1"
+#define VERSION "0.3.2"
 
 /* Stops putting the code inside the Google namespace */
 #define _END_GOOGLE_NAMESPACE_ }
@@ -159,3 +159,8 @@
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
 
+/* isn't getting defined by configure script when clang compilers are used
+   and cuases compilation errors in stactrace/unwind modules */
+#ifdef __clang__
+#  define NO_FRAME_POINTER
+#endif
