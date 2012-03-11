@@ -34,7 +34,7 @@
 #include "utilities.h"
 #include "stacktrace.h"
 #include "symbolize.h"
-#include "glog/logging.h"
+#include <glog/logging.h>
 
 #include <signal.h>
 #include <time.h>

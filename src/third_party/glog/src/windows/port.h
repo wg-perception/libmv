@@ -108,7 +108,9 @@ extern int snprintf(char *str, size_t size,
 extern int safe_vsnprintf(char *str, size_t size,
                           const char *format, va_list ap);
 #define vsnprintf(str, size, format, ap)  safe_vsnprintf(str, size, format, ap)
+#if !defined(__MINGW32__)
 #define va_copy(dst, src)  (dst) = (src)
+#endif
 
 /* Windows doesn't support specifying the number of buckets as a
  * hash_map constructor arg, so we leave this blank.
@@ -130,13 +132,30 @@ enum { PTHREAD_ONCE_INIT = 0 };   // important that this be 0! for SpinLock
 #define pthread_equal(pthread_t_1, pthread_t_2)  ((pthread_t_1)==(pthread_t_2))
 
 inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
+#if __MINGW32__
+   struct tm *local_result;
+   local_result = localtime (timep);
+
+   if (local_result == NULL || result == NULL)
+     return NULL;
+
+   memcpy (result, local_result, sizeof (result));
+
+   return result;
+#else
   localtime_s(result, timep);
   return result;
+#endif
 }
 
 inline char* strerror_r(int errnum, char* buf, size_t buflen) {
+#if __MINGW32__
+  strncpy(buf, "Not implemented yet", buflen);
+  return buf;
+#else
   strerror_s(buf, buflen, errnum);
   return buf;
+#endif
 }
 
 #ifndef __cplusplus

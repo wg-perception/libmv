@@ -79,7 +79,7 @@
 #endif
 
 #if 1
-#include <gflags/gflags.h>
+#include "third_party/gflags/gflags/gflags.h"
 #endif
 
 namespace google {

@@ -79,7 +79,7 @@
 #endif
 
 #include "config.h"
-#include "glog/logging.h"
+#include <glog/logging.h>
 
 // There are three different ways we can try to get the stack trace:
 //
@@ -101,7 +101,9 @@
 // correctly when GetStackTrace() is called with max_depth == 0.
 // Some code may do that.
 
-#if defined(HAVE_LIB_UNWIND)
+#if defined(__MINGW32__) || defined(__FreeBSD__)
+# undef STACKTRACE_H
+#elif defined(HAVE_LIB_UNWIND)
 # define STACKTRACE_H "stacktrace_libunwind-inl.h"
 #elif !defined(NO_FRAME_POINTER)
 # if defined(__i386__) && __GNUC__ >= 2
