@@ -21,7 +21,7 @@
 #ifndef LIBMV_LOGGING_LOGGING_H
 #define LIBMV_LOGGING_LOGGING_H
 
-#include "third_party/glog/src/glog/logging.h"
+#include <glog/logging.h>
 
 #define LG LOG(INFO)
 #define V0 LOG(INFO)
