@@ -7,8 +7,7 @@ SET(TRACKING_SRC
     esm_region_tracker.cc
     hybrid_region_tracker.cc
     lmicklt_region_tracker.cc
-    klt.cc
-    sad.cc)
+    klt.cc)
 
 # Define the header files so that they appear in IDEs.
 FILE(GLOB TRACKING_HDRS *.h)
