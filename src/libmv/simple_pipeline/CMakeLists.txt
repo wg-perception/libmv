@@ -5,6 +5,7 @@ SET(SIMPLE_PIPELINE_SRC
     bundle.cc
     initialize_reconstruction.cc
     iterative_closest_points.cc
+    modal_solver.cc
     pipeline.cc
     reconstruction.cc
     camera_intrinsics.cc
