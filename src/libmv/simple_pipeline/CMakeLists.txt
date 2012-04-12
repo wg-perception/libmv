@@ -4,12 +4,14 @@ SET(SIMPLE_PIPELINE_SRC
     intersect.cc
     bundle.cc
     initialize_reconstruction.cc
+    iterative_closest_points.cc
     pipeline.cc
     reconstruction.cc
     camera_intrinsics.cc
     tracks.cc
     uncalibrated_reconstructor.cc
     autocalibrate.cc
+    rigid_registration.cc
     callbacks.cc)
 
 # Define the header files so that they appear in IDEs.
