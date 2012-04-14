@@ -31,15 +31,23 @@
 
 //TODO: Qt Tracker should be independent from libmv to be able to use new lens distortion API
 #include "libmv/simple_pipeline/camera_intrinsics.h"
-#include "libmv/tracking/sad.h"
+#include "libmv/simple_pipeline/tracks.h"
+#include "libmv/numeric/numeric.h"
 
 // TODO(MatthiasF): custom pattern/search size
-static const int kPatternSize = 32;
-static const int kSearchSize = 128;
+static const double kSigma = 0.9;
+static const int kHalfPatternSize = 5;
+static const int kPatternSize = kHalfPatternSize * 2;
+static const int kHalfSearchSize = 31;
+static const int kSearchSize = kHalfSearchSize * 2;
+static const int kMaxIterations = 100;
+static const int kMinimumCorrelation = 0.76;
+
+// KLT tracker settings
+//static const int kPyramidLevelCount = 2;
+//static const int kHalfSearchSize = kHalfPatternSize << kPyramidLevelCount;
 
 class Scene;
-
-typedef unsigned char ubyte;
 
 class Tracker : public QGLWidget {
   Q_OBJECT
@@ -74,8 +82,7 @@ class Tracker : public QGLWidget {
   libmv::CameraIntrinsics* intrinsics_;
   Scene* scene_;
   int last_frame;
-  QVector< ubyte* > references;
-  QVector< QVector<libmv::mat32> > tracks; //[track][image]
+  QVector< QVector<vec2> > tracks; //[track][image]
 
   bool undistort_;
   QImage image_;
