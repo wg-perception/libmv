@@ -156,8 +156,8 @@ MainWindow::~MainWindow() {
 
 void MainWindow::open() {
   FileDialog dialog(this,"Load Calibration Footage");
-  dialog.exec();
-  open(dialog.selectedFiles());
+  if (dialog.exec())
+    open(dialog.selectedFiles());
 }
 
 void MainWindow::open(QStringList files) {
@@ -243,7 +243,16 @@ void MainWindow::open(QStringList files) {
       QImage grayscale(image.width(),image.height(),QImage::Format_Indexed8);
       QRgb *src = (QRgb*)image.constBits();
       uchar *dst = grayscale.bits();
-      for(int i = 0; i < grayscale.byteCount(); i++) dst[i] = qGray(src[i]);
+
+      // create grayscale palette
+      QVector<QRgb> colors(256);
+      for(int i = 0; i < 256; i++)
+        colors.replace(i, qRgb(i,i,i));
+      grayscale.setColorTable(colors);
+
+      for(int i = 0; i < grayscale.byteCount(); i++)
+        dst[i] = qGray(src[i]);
+
       image = grayscale;
     }
     images << image;
@@ -414,6 +423,7 @@ int main(int argc, char *argv[]) {
   app.setApplicationName("calibration");
   MainWindow window;
   window.show();
-  window.open(app.arguments().mid(1));
+  if (app.arguments().size() == 2)
+    window.open(app.arguments().mid(1));
   return app.exec();
 }

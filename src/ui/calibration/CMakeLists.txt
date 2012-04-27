@@ -9,5 +9,7 @@ TARGET_LINK_LIBRARIES(qt-calibration
                       ${QT_LIBRARIES}
                       ${FFMPEG_LIBRARIES}
                       opencv_highgui
+                      opencv_imgproc
+                      opencv_core
                       opencv_calib3d)
 LIBMV_INSTALL_EXE(qt-calibration)
