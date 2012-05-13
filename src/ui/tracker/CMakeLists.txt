@@ -14,5 +14,6 @@ TARGET_LINK_LIBRARIES(qt-tracker
                       simple_pipeline
                       tracking
                       multiview
-                      image)
+                      image
+                      ceres)
 LIBMV_INSTALL_EXE(qt-tracker)

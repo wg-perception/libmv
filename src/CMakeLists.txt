@@ -82,6 +82,7 @@ INCLUDE_DIRECTORIES(
   third_party/glog/src
   third_party/OpenExif/src
   third_party/OpenExif/src/OpenExifJpeg
+  third_party/ceres/include
 )
 
 IF (WIN32)
