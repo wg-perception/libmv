@@ -29,6 +29,9 @@ As mentioned by Keir last year, SfM should be divided as follows:
 libmv tackles all levels and we want to split the core out. We could also have applications during our port but that will not be our focus. Maybe some tests/samples
 will look like those apps.
 
+More information: `Keir's mails <https://groups.google.com/d/msg/libmv-devel/akyJX4jfIu8/8Y9Q5EeKEnkJ/>`_
+
+
 Docs on what has been done
 ==========================
 
