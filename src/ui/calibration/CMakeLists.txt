@@ -1,5 +1,5 @@
 FIND_PACKAGE(Qt4 REQUIRED)
-#FIND_PACKAGE(OpenCV REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE(${QT_USE_FILE})
 SET(SOURCES main.cc)
 QT4_ADD_RESOURCES(SOURCES calibration.qrc)
@@ -8,8 +8,5 @@ ADD_EXECUTABLE(qt-calibration ${SOURCES})
 TARGET_LINK_LIBRARIES(qt-calibration
                       ${QT_LIBRARIES}
                       ${FFMPEG_LIBRARIES}
-                      opencv_highgui
-                      opencv_imgproc
-                      opencv_core
-                      opencv_calib3d)
+                      ${OpenCV_LIBS})
 LIBMV_INSTALL_EXE(qt-calibration)
