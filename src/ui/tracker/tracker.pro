@@ -1,8 +1,12 @@
 QT += opengl
 HEADERS += clip.h        tracker.h  zoom.h  main.h
 SOURCES += clip.cc gl.cc tracker.cc zoom.cc main.cc
-HEADERS += ../../libmv/tracking/sad.h
-SOURCES += ../../libmv/tracking/sad.cc
+HEADERS += ../../libmv/tracking/brute_region_tracker.h \
+    ../../libmv/tracking/esm_region_tracker.h \
+    ../../libmv/tracking/hybrid_region_tracker.h
+SOURCES += ../../libmv/tracking/brute_region_tracker.cc \
+    ../../libmv/tracking/esm_region_tracker.cc \
+    ../../libmv/tracking/hybrid_region_tracker.cc
 HEADERS += ../../libmv/simple_pipeline/detect.h
 SOURCES += ../../libmv/simple_pipeline/detect.cc
 #TODO: Qt Tracker should be independent from libmv to be able to use new lens distortion API
@@ -21,6 +25,15 @@ SOURCES += ../../third_party/glog/src/demangle.cc \
     ../../third_party/gflags/gflags_completions.cc \
     ../../third_party/gflags/gflags_reporting.cc
 INCLUDEPATH += ../../third_party/glog/src
+
+SOURCES += ../../third_party/fast/fast_10.c \
+    ../../third_party/fast/fast_11.c \
+    ../../third_party/fast/fast_12.c \
+    ../../third_party/fast/fast_9.c \
+    ../../third_party/fast/fast.c \
+    ../../third_party/fast/nonmax.c
+
+SOURCES += ../../libmv/image/convolve.cc
 
 #HEADERS += scene.h
 #SOURCES += scene.cc
@@ -47,7 +60,7 @@ glew {
 exists(/usr/include/libavcodec/avcodec.h):CONFIG+=ffmpeg
 ffmpeg {
  DEFINES += USE_FFMPEG
- LIBS += -lavcodec -lavformat
+ LIBS += -lavcodec -lavformat -lavutil
 }
 
 OBJECTS_DIR=build

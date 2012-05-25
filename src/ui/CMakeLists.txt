@@ -2,7 +2,7 @@ OPTION(USE_FFMPEG "Add video support to Qt Tracker using ffmpeg" ON)
 IF (USE_FFMPEG)
  MESSAGE(STATUS "Video support enabled. Make sure you have FFMpeg (and ffmpeg-devel for binary distributions)")
  ADD_DEFINITIONS(-DUSE_FFMPEG)
- SET(FFMPEG_LIBRARIES avformat avcodec)
+ SET(FFMPEG_LIBRARIES avformat avcodec avutil)
 ENDIF (USE_FFMPEG)
 
 ADD_SUBDIRECTORY(tracker)
