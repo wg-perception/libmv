@@ -1,6 +1,5 @@
 # define the source files
-SET(CORRESPONDENCE_SRC klt.cc 
-                       feature.cc 
+SET(CORRESPONDENCE_SRC feature.cc 
                        matches.cc 
                        feature_matching.cc
 #                      feature_matching_FLANN.cc

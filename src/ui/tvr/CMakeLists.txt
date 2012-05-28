@@ -7,8 +7,10 @@ ADD_EXECUTABLE(tvr ${SOURCES})
 TARGET_LINK_LIBRARIES(tvr
                       image
                       correspondence
+					  tracking
                       numeric
                       multiview
+                      simple_pipeline
                       flann
                       glog
                       gflags

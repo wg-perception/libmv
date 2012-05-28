@@ -1,3 +1,15 @@
+#########################
+# Qt
+FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+SET(QT_USE_QTOPENGL ON)
+INCLUDE(${QT_USE_FILE})
+#########################
+
+ADD_SUBDIRECTORY(tvr)
+#ADD_SUBDIRECTORY(nvr)
+
+
 OPTION(USE_FFMPEG "Add video support to Qt Tracker using ffmpeg" ON)
 IF (USE_FFMPEG)
  MESSAGE(STATUS "Video support enabled. Make sure you have FFMpeg (and ffmpeg-devel for binary distributions)")
