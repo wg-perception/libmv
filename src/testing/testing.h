@@ -23,7 +23,7 @@
 
 #include "libmv/numeric/numeric.h"
 #include "third_party/gtest/include/gtest/gtest.h"
-#include "third_party/gflags/gflags.h"
+#include "third_party/gflags/gflags/gflags.h"
 
 DECLARE_string(test_tmpdir);
 

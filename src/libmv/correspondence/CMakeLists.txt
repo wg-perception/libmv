@@ -22,7 +22,6 @@ SET_TARGET_PROPERTIES(correspondence PROPERTIES DEBUG_POSTFIX "_d")
 # installation rules for the library
 LIBMV_INSTALL_LIB(correspondence)
             
-LIBMV_TEST(klt "correspondence;image;numeric")
 LIBMV_TEST(bipartite_graph "")
 LIBMV_TEST(kdtree "")
 LIBMV_TEST(feature_set "correspondence;image;numeric")

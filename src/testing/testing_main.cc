@@ -20,7 +20,7 @@
 
 // All libmv tests should use this main unless there is a good reason not to.
 
-#include "third_party/gflags/gflags.h"
+#include "third_party/gflags/gflags/gflags.h"
 #include "third_party/gtest/include/gtest/gtest.h"
 #include "libmv/logging/logging.h"
 

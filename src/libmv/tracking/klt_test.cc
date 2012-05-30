@@ -21,7 +21,7 @@
 #include "libmv/image/image.h"
 #include "libmv/image/image_pyramid.h"
 #include "libmv/image/convolve.h"
-#include "libmv/correspondence/klt.h"
+#include "libmv/tracking/klt.h"
 #include "testing/testing.h"
 
 using std::vector;
