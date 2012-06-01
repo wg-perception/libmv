@@ -31,6 +31,12 @@ will look like those apps.
 
 More information: `Keir's mails <https://groups.google.com/d/msg/libmv-devel/akyJX4jfIu8/8Y9Q5EeKEnkJ/>`_
 
+Notes on compiling libmv:
+
+.. toctree::
+   :maxdepth: 1
+
+   compile_libmv.rst
 
 Docs on what has been done
 ==========================
