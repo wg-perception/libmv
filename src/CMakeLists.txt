@@ -124,3 +124,10 @@ IF (BUILD_TOOLS)
 ENDIF (BUILD_TOOLS)
 
 INCLUDE(Packaging)
+
+# opencv code
+ADD_SUBDIRECTORY(libmv_opencv)
+INCLUDE_DIRECTORIES(
+  .
+  libmv_opencv/mvr
+)
