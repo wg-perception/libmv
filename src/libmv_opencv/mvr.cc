@@ -50,24 +50,99 @@
 //    and projective. For orthographic, Tomasi-Kanade has to be implemented (if not in libmv)
 //    , and for projective, start by counting the number of points/views (for below 2, libmv
 //    has stuff, not sure of what they implement for the rest)
-
-
-// Reconstructs 3d points from a series of 2d pts from multiple views
+//
+//
+//
+// Reconstructs 3d points from a series of 2d points from multiple views
+//
 void
-reconstruct3d(InputArrayOfArrays points, OutputArray points, bool isProj)
+reconstruct3d(InputArrayOfArrays points, OutputArray points, bool isProj,
+    bool isCalib)
+
 {
 
-//  Two view reconstruction
+//  get camera matrices
+//  triangulate points
 
-//  N(>2) view reconstruction
+//  Projective camera
+  if (isProj)
+    {
 
+      // Calibrated
+      if (isCalib)
+        {
+          // TODO
+        }
+
+      // Uncalibrated
+      else
+        {
+
+          //  Two views only
+          if (1)
+            {
+//ReconstructFromTwoUncalibratedViews            (const Matches &matches,
+//                CameraID image_id1,
+//                CameraID image_id2,
+//                Matches *matches_inliers,
+//                Reconstruction *reconstruction);
+            }
+
+          //  More than two views
+          else
+            {
+              // TODO
+
+            }
+
+        }
+
+    }
+
+  //  Orthographic camera
+  else
+    {
+      // Calibrated
+      if (isCalib)
+        {
+          // TODO
+        }
+
+      // Uncalibrated
+      else
+        {
+
+          //  Two views only
+          if (1)
+            {
+//ReconstructFromTwoUncalibratedViews            (const Matches &matches,
+//                CameraID image_id1,
+//                CameraID image_id2,
+//                Matches *matches_inliers,
+//                Reconstruction *reconstruction);
+            }
+
+          //  More than two views
+          else
+            {
+              // TODO
+
+            }
+
+        }
+    }
 }
 
-//  Roint triangulation
-//  (multiview 2d pts) + (multiview projMatrices) ==> 3d points
+//  Triangulate known 2D points and camera matrices from several views
+//  to obtain the 3D points
 void
 triangulatePoints(InputArrayOfArrays projMatrices, InputArrayOfArrays points,
-    OutputArray points);
+    OutputArray points)
+{
+
+//  Two view
+
+}
 
 // The above masking outliers
 void
