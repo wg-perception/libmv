@@ -59,7 +59,7 @@ namespace libmv_opencv
   {
 
   }
-
+#if 1
 //  Triangulate known 2D points and camera matrices from several views
 //  to obtain the 3D points
 //
@@ -148,6 +148,7 @@ namespace libmv_opencv
 //                          Vec3 *X_euclidean);
       }
   }
+#endif
 
 // TODO:
 #if 0

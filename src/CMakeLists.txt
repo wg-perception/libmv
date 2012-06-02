@@ -127,7 +127,3 @@ INCLUDE(Packaging)
 
 # opencv code
 ADD_SUBDIRECTORY(libmv_opencv)
-INCLUDE_DIRECTORIES(
-  .
-  libmv_opencv/mvr
-)
