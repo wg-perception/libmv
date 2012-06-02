@@ -16,7 +16,7 @@ LIBMV_INSTALL_LIB(mvr)
 ADD_LIBRARY(multiview_test_data2 ../../libmv/multiview/test_data_sets.cc)
 TARGET_LINK_LIBRARIES(multiview_test_data2 multiview)
 SET_TARGET_PROPERTIES(multiview_test_data2 PROPERTIES DEBUG_POSTFIX "_d")
-LIBMV_TEST(mvr "mvr;multiview_test_data2")
+# LIBMV_TEST(mvr "mvr;multiview_test_data2")
 
 # # define the source files
 # SET(CORRESPONDENCE_SRC feature.cc 
