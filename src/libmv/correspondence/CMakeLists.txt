@@ -1,3 +1,5 @@
+FIND_PACKAGE( OpenCV REQUIRED )
+
 # define the source files
 SET(CORRESPONDENCE_SRC feature.cc 
                        matches.cc 
