@@ -71,8 +71,9 @@ OPTION(BUILD_SHARED_LIBS "Build dynamic shared libraries (.dll/.so)." ON)
 
 INCLUDE(ConfigureBuild)
 
-INCLUDE_DIRECTORIES(
-  .
+INCLUDE_DIRECTORIES(.)
+
+INCLUDE_DIRECTORIES(SYSTEM
   third_party/daisy/include
   third_party/gtest
   third_party/gtest/include

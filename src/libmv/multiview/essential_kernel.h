@@ -22,6 +22,7 @@
 #define LIBMV_MULTIVIEW_ESSENTIAL_KERNEL_H_
 
 #include <vector>
+#include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/fundamental_kernel.h"
 #include "libmv/multiview/two_view_kernel.h"
 #include "libmv/numeric/numeric.h"

@@ -5,4 +5,6 @@ SET(SOURCES flann.cpp util/Random.cpp nn/Testing.cpp algorithms/NNIndex.cpp algo
 
 ADD_LIBRARY(flann STATIC ${SOURCES})
 
+SET_TARGET_PROPERTIES(flann PROPERTIES COMPILE_FLAGS -fPIC)
+
 LIBMV_INSTALL_THIRD_PARTY_LIB(flann)
