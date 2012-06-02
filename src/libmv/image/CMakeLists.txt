@@ -1,6 +1,8 @@
 # TODO(julien) remove this line, what's that for?
 ADD_DEFINITIONS(-DTHIS_SOURCE_DIR="\\"${CMAKE_CURRENT_SOURCE_DIR}\\"")
 
+FIND_PACKAGE( OpenCV REQUIRED )
+
 IF(WIN32)
   INCLUDE_DIRECTORIES(
     ${JPEG_SOURCE_DIR}
@@ -19,7 +21,7 @@ SET(IMAGE_SRC image.cc image_io.cc convolve.cc image_pyramid.cc array_nd.cc
 FILE(GLOB IMAGE_HDRS *.h)
 
 ADD_LIBRARY(image ${IMAGE_SRC} ${IMAGE_HDRS})
-TARGET_LINK_LIBRARIES(image png jpeg glog gflags ${PTHREAD})
+TARGET_LINK_LIBRARIES(image png jpeg glog gflags ${PTHREAD} ${OpenCV_LIBS} )
 
 ADD_LIBRARY(image_io image_io.cc image_io.h)
 TARGET_LINK_LIBRARIES(image_io image png jpeg glog)

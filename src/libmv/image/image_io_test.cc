@@ -23,6 +23,9 @@
 
 #include "libmv/image/image.h"
 #include "libmv/image/image_io.h"
+#include "libmv/image/image_converter.h"
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
 #include "testing/testing.h"
 
 using libmv::Array3Df;
@@ -168,6 +171,25 @@ TEST(ReadPng, PngFloat) {
   EXPECT_EQ(1, image.Depth());
   EXPECT_EQ(image(0,0), 1);
   EXPECT_EQ(image(0,1), 0);
+
+  cv::Mat cvImg;
+  Image2Mat(image, cvImg);
+
+  EXPECT_EQ(2, cvImg.cols);
+  EXPECT_EQ(1, cvImg.rows);
+  EXPECT_EQ(CV_32FC(1), cvImg.depth());
+  EXPECT_EQ(cvImg.at<float>(0,0), 1);
+  EXPECT_EQ(cvImg.at<float>(0,1), 0);
+
+//   FloatImage image2;
+//   cvImg = cv::imread( png_filename );
+//   Mat2Image(cvImg, image2);
+//
+//   EXPECT_EQ(2, image2.Width());
+//   EXPECT_EQ(1, image2.Height());
+//   EXPECT_EQ(1, image2.Depth());
+//   EXPECT_EQ(image2(0,0), 1);
+//   EXPECT_EQ(image2(0,1), 0);
 }
 
 TEST_F(ImageIOTest, Png) {
