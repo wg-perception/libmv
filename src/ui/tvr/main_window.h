@@ -31,6 +31,7 @@
 #include <QAction>
 #include <QMdiArea>
 #include <qgl.h>
+#include <GL/glu.h>
 
 #include "ui/tvr/features.h"
 #include "ui/tvr/tvr_document.h"
