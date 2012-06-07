@@ -18,6 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+//#include "mvr.h"
+#include "mvr.h"
+
+// libmv includes
 //Todo: Do something about relative paths later
 #include "../../libmv/logging/logging.h"
 #include "../../libmv/multiview/fundamental.h"
@@ -26,17 +30,15 @@
 #include "../../libmv/numeric/numeric.h"
 #include "../../libmv/multiview/twoviewtriangulation.h"
 
-//#include "mvr.h"
-#include "mvr.h"
-
+// gtest headers
 #include "testing/testing.h"
 
 //namespace {
 using namespace libmv;
 using namespace libmv_opencv;
 
-// TODO: modify this to test mvr.cc stuff
 
+#if 0
 TEST(Mvr, TwoViewTriangulationIdeal)
 {
   TwoViewDataSet d = TwoRealisticCameras();
@@ -69,16 +71,49 @@ TEST(Mvr, TwoViewTriangulationIdeal)
 
       Vec3 X_estimated, X_gt;
       MatrixColumn(d.X, i, &X_gt);
-//      TwoViewTriangulationIdeal(x1, x2, P2, E, &X_estimated);
 
       triangulatePoints(x1, x2, P2, E, &X_estimated, true);
-//    libmv_opencv::test(); // mvr.h is not included? complains undefined func?
 
       X_estimated = Hcanonical * X_estimated;
       EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
-//      EXPECT_EQ(1,2);
     }
 }
+#else
 
+TEST(Mvr, NViewTriangulationRealistc_FivewViews)
+{
+  int nviews = 5;
+  int npoints = 6;
+  NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
+
+  // Collect P matrices together.
+  vector<Mat34> Ps(nviews);
+  for (int j = 0; j < nviews; ++j)
+    {
+      Ps[j] = d.P(j);
+    }
+
+  for (int i = 0; i < npoints; ++i)
+    {
+      // Collect the image of point i in each frame.
+      Mat2X xs(2, nviews);
+      for (int j = 0; j < nviews; ++j)
+        {
+          xs.col(j) = d.x[j].col(i);
+        }
+      Vec4 X;
+      triangulatePoints(xs, Ps, &X, false);
+
+      // Check reprojection error. Should be nearly zero.
+      for (int j = 0; j < nviews; ++j)
+        {
+          Vec3 x_reprojected = Ps[j] * X;
+          x_reprojected /= x_reprojected(2);
+          double error = (x_reprojected.head(2) - xs.col(j)).norm();
+          EXPECT_NEAR(error, 0.0, 1e-9);
+        }
+    }
+}
+#endif
 //} // namespace
 
