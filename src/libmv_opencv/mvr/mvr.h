@@ -81,10 +81,43 @@
 
 //remove later
 #include<iostream>
+
 namespace libmv_opencv
 {
 
   using namespace libmv;
+
+  // TODO:
+//  reconstruct3d(InputArrayOfArrays points, OutputArray points, bool isProj)
+//  libmv funcs:
+//  ../src/libmv/simple_pipeline/initialize_reconstruction.cc
+//  ../src/libmv/simple_pipeline/uncalibrated_reconstructor.cc
+//  ../src/libmv/simple_pipeline/reconstruction.cc
+//  ../src/libmv/reconstruction/reconstruction_test.cc
+//  ../src/libmv/reconstruction/projective_reconstruction.cc
+//  ../src/libmv/reconstruction/euclidean_reconstruction.cc
+//  ../src/libmv/reconstruction/reconstruction.cc
+//  ../src/libmv/reconstruction/euclidean_reconstruction_test.cc
+  void
+  reconstruct3d(bool isProj, bool isOrtho)
+  {
+
+    // Projective reconstruction - Uncalibrated Cameras
+    if (isProj)
+      {
+        // 2 view - libmv code exists - no need?
+        // n view - libmv code exists
+      }
+
+    // Eucledian reconstruction - Calibrated Cameras
+    else
+      {
+        // 2 view - libmv code exists - no need?
+        // n view
+      }
+
+    // Orthographic cameras ?
+  }
 
   // TODO: Test this
   // Triangulates a single 3D using 2D points from 2 or more views
@@ -127,7 +160,7 @@ namespace libmv_opencv
       //
 
       if (0)
-//  TODO:
+//  TODO:- no need?
 //  if (nviews == 2)
 //  OK This is a bit tricky because the libmv Two View Functions
 //  expect the essential matrix between the two cameras.
