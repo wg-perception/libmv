@@ -38,7 +38,58 @@ using namespace libmv;
 using namespace libmv_opencv;
 
 #if 0
-TEST(Mvr, TwoViewTriangulationIdeal)
+TEST(Mvr, TwoViewTriangulationIdealHomogenous)
+{
+  TwoViewDataSet d = TwoRealisticCameras();
+
+  // Compute essential matrix.
+  Mat3 E;
+  EssentialFromFundamental(d.F, d.K1, d.K2, &E);
+  Mat3 K1_inverse = d.K1.inverse();
+  Mat3 K2_inverse = d.K2.inverse();
+
+  //Transform the system so that camera 1 is in its canonical form [I|0]
+  Eigen::Transform<double, 3, Eigen::Affine> Hcanonical = Eigen::Translation3d(
+      d.t1) * d.R1;
+  Hcanonical = Hcanonical.inverse();
+
+  Mat34 P2;
+  P2.block<3, 3>(0, 0) = d.R2;
+  P2.block<3, 1>(0, 3) = d.t2;
+
+  P2 = P2 * Hcanonical.matrix();
+
+  for (int i = 0; i < d.X.cols(); ++i)
+    {
+
+      Vec2 x1, x2;
+      MatrixColumn(d.x1, i, &x1);
+      MatrixColumn(d.x2, i, &x2);
+      x1 = ImageToNormImageCoordinates(K1_inverse, x1);
+      x2 = ImageToNormImageCoordinates(K2_inverse, x2);
+
+      Vec3 X_estimated, X_gt;
+      MatrixColumn(d.X, i, &X_gt);
+
+//          TwoViewTriangulationIdeal(x1, x2, P2, E, &X_estimated);
+
+      // Convert to general format
+      int nviews = 2;
+      Mat2X xs(2, nviews);
+      xs.col(1) = x1;
+      xs.col(2) = x2;
+      vector<Mat34> Ps(nviews);
+
+      // Check the order here
+      Ps[0] = d.
+
+      X_estimated = Hcanonical * X_estimated;
+      EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
+    }
+}
+
+
+TEST(Mvr, TwoViewTriangulationIdealEucledian)
   {
     TwoViewDataSet d = TwoRealisticCameras();
 
@@ -88,7 +139,7 @@ TEST(Mvr, TwoViewTriangulationIdeal)
   }
 #endif
 
-TEST(Mvr, FiveViews)
+TEST(Mvr, FiveViewsHomogeneous)
 {
   int nviews = 5;
   int npoints = 6;
@@ -122,7 +173,6 @@ TEST(Mvr, FiveViews)
         }
     }
 }
-
 
 //} // namespace
 

@@ -86,17 +86,35 @@ namespace libmv_opencv
 
   using namespace libmv;
 
-//
-// Triangulates a single 3D using 2D points from 2 or more views
-//
+  // TODO: Test this
+  // Triangulates a single 3D using 2D points from 2 or more views
+  // Returns 3D point in euclidean coordinates
   template<typename T>
     void
-    triangulatePoints(const Matrix<T, 2, Dynamic> &x,
+    triangulatePoints(const Matrix<T, 2, Dynamic> &xs,
+        const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 3, 1> *X, bool isIdeal)
+    {
+      Vec4 X_homogenous;
+      triangulatePoints(xs, Ps, &X_homogenous, isIdeal);
+      HomogeneousToEuclidean(X_homogenous, &X);
+    }
+
+//
+// Triangulates a single 3D using 2D points from 2 or more views
+// Returns 3D point in homogeneous coordinates
+//
+//  libmv functions:
+//  ../src/libmv/multiview/triangulation.cc             -- DLT Triang. // HZ 12.2 pag.312
+//  ../src/libmv/multiview/nviewtriangulation.cc        -- nview triang (DONE)
+//  ../src/libmv/multiview/twoviewtriangulation.cc      -- 2 view - ideal and by planes??
+  template<typename T>
+    void
+    triangulatePoints(const Matrix<T, 2, Dynamic> &xs,
         const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 4, 1> *X, bool isIdeal)
     {
 
       // Get number of views
-      int nviews = x.cols();
+      int nviews = xs.cols();
 
       // Should have a 'P' for each view
       assert(Ps.size()==nviews);
@@ -104,75 +122,51 @@ namespace libmv_opencv
       //Need at least 2 views
       assert(nviews>2);
 
-      // debug info - use opencv logging?
-      std::cout << "nviews=" << nviews << "\n ";
-
+      //
       //  Two view case
-      if (nviews == 2)
+      //
 
-      // Find fundamental matrices
+      if (0)
+//  TODO:
+//  if (nviews == 2)
+//  OK This is a bit tricky because the libmv Two View Functions
+//  expect the essential matrix between the two cameras.
+//  This pattern is different from the nview case which does not
+//  expect this.
+//  What do we do?? Do we need this here at all???
+
         {
-          // Ideal points
-          if (isIdeal)
-            {
-              /**
-               * The same algorithm as above generalized for ideal points,
-               * e.i. where x1*E*x2' = 0. This will not work if the points are
-               * not ideal. In the case of measured image points it is best to
-               * either use the TwoViewTriangulationByPlanes function or correct
-               * the points so that they lay on the corresponding epipolar lines.
-               *
-               * \param x1 The normalized image point in the first camera
-               *          (inv(K1)*x1_image)
-               * \param x2 The normalized image point in the second camera
-               *           (inv(K2)*x2_image)
-               * \param P  The second camera matrix in the form [R|t]
-               * \param E  The essential matrix between the two cameras
-               * \param X  The 3D homogeneous point
-               */
 
-              //TODO: Workout Get P and E - or just take as args to this func?
-              //TODO: handle both 3 vecs  - no need here???
-              //              TwoViewTriangulationIdeal(x1, x2, P, E, X);
-              //void          TwoViewTriangulationIdeal(const Vec2 &x1, const Vec2 &x2,
-              //              const Mat34 &P, const Mat3 &E, Vec3 *X);
+          if (isIdeal)
+          //
+          // Ideal points
+          //
+
+            {
+              // TODO:
+//              void TwoViewTriangulationIdeal(const Vec3 &x1, const Vec3 &x2,
+//              const Mat34 &P, const Mat3 &E,
+//              Vec4 *X){X);
             }
 
-          // Realistic points
           else
+
+          // Realistic points
+
             {
-              /**
-               * Two view triangulation for cameras in canonical form,
-               * where the reference camera is in the form [I|0] and P is in
-               * the form [R|t]. The algorithm minimizes the re-projection error
-               * in the first image only, i.e. the error in the second image is 0
-               * while the point in the first image is the point lying on the
-               * epipolar line that is closest to x1.
-               *
-               * \param x1 The normalized image point in the first camera
-               *          (inv(K1)*x1_image)
-               * \param x2 The normalized image point in the second camera
-               *           (inv(K2)*x2_image)
-               * \param P  The second camera matrix in the form [R|t]
-               * \param E  The essential matrix between the two cameras
-               * \param X  The 3D homogeneous point
-               *
-               * This is the algorithm described in Appendix A in:
-               * "An efficient solution to the five-point relative pose problem",
-               * by D. Nist\'er, IEEE PAMI, vol. 26
-               */
+              // TODO:
               //          void
               //          TwoViewTriangulationByPlanes(const Vec3 &x1, const Vec3 &x2,
               //              const Mat34 &P, const Mat3 &E, Vec4 *X);
-              //          void
-              //          TwoViewTriangulationByPlanes(const Vec2 &x1, const Vec2 &x2,
-              //              const Mat34 &P, const Mat3 &E, Vec3 *X);
             }
         }
+
+      else
+
       //
       //  Multi view (>2) case
       //
-      else
+
         {
 
           // Ideal points
@@ -184,7 +178,9 @@ namespace libmv_opencv
           // Realistic points
           else
             {
-              NViewTriangulate(x, Ps, X);
+              NViewTriangulate(xs, Ps, X);
+
+              // Do we need this one?
               //  void NViewTriangulateAlgebraic(const Matrix<T, 2, Dynamic> &x,
               //                                 const vector<Matrix<T, 3, 4> > &Ps,
               //                                 Matrix<T, 4, 1> *X)
