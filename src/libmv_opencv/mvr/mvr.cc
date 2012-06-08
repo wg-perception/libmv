@@ -134,6 +134,7 @@ reconstruct3d(InputArrayOfArrays points, OutputArray points, bool isProj,
 
 // TODO: libmv has euclidean_reconstruction.cc --- do we need this?
   }
+}
+
 #endif
 
-}

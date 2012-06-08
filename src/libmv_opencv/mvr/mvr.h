@@ -43,7 +43,6 @@
 #ifndef MVR_H
 #define MVR_H
 
-
 //    Multiview Reconstruction Functions
 //
 //    WIP
@@ -60,10 +59,6 @@
 //TODO: Complete overall skeleton
 //TODO: Convert data types to opencv
 //Combine nview and 2 view to triangulatePoints() - unit tests - visualise???
-#include "mvr.h"
-namespace libmv_opencv
-{
-
 
 //  Triangulate known 2D points and camera matrices from several views
 //  to obtain the 3D points
@@ -76,6 +71,7 @@ namespace libmv_opencv
 
 //Todo: Do something about relative paths later
 #include "../../libmv/logging/logging.h"
+#include "../../libmv/base/vector.h"
 #include "../../libmv/multiview/fundamental.h"
 #include "../../libmv/multiview/projection.h"
 #include "../../libmv/multiview/test_data_sets.h"
@@ -83,21 +79,36 @@ namespace libmv_opencv
 #include "../../libmv/multiview/twoviewtriangulation.h"
 #include "../../libmv/multiview/nviewtriangulation.h"
 
+//remove later
+#include<iostream>
 namespace libmv_opencv
 {
 
   using namespace libmv;
 
-  //void  triangulatePoints(const Vec2 &x1, const Vec2 &x2, const Mat34 &P,
-  //      const Mat3 &E, Vec3 *X, bool isIdeal)
+//
+// Triangulates a single 3D using 2D points from 2 or more views
+//
   template<typename T>
     void
     triangulatePoints(const Matrix<T, 2, Dynamic> &x,
         const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 4, 1> *X, bool isIdeal)
     {
 
+      // Get number of views
+      int nviews = x.cols();
+
+      // Should have a 'P' for each view
+      assert(Ps.size()==nviews);
+
+      //Need at least 2 views
+      assert(nviews>2);
+
+      // debug info - use opencv logging?
+      std::cout << "nviews=" << nviews << "\n ";
+
       //  Two view case
-      if (0)
+      if (nviews == 2)
 
       // Find fundamental matrices
         {
@@ -173,8 +184,7 @@ namespace libmv_opencv
           // Realistic points
           else
             {
-              NViewTriangulate(x, Ps, &X);
-
+              NViewTriangulate(x, Ps, X);
               //  void NViewTriangulateAlgebraic(const Matrix<T, 2, Dynamic> &x,
               //                                 const vector<Matrix<T, 3, 4> > &Ps,
               //                                 Matrix<T, 4, 1> *X)
@@ -184,6 +194,7 @@ namespace libmv_opencv
               //             and not NViewTriangulateAlgebraic()????
             }
         }
-    }
+    } // triangulatePoints
+
 }
 #endif  // MVR_H
