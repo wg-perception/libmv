@@ -64,20 +64,20 @@ void Rgb2Gray(const ImageIn &imaIn, ImageOut *imaOut) {
 // Find a better location for these functions
 // ToDo (pablo): maybe use the 'uchar* data' (Mat member)
 // to convert instead of individual element assigments
-void Image2Mat( const Array3Df &imaIn, cv::Mat &imaOut ) {
+template<class T>
+void Image2Mat( const Array3D<T> &imaIn, cv::Mat &imaOut ) {
   int k, n, m;
 
-//   k = imaIn.Depth();
-  k = 3; // Array3Df has 3 channels
+  k = imaIn.Depth();
   n = imaIn.Height();
   m = imaIn.Width();
 
-  imaOut.create( n, m, CV_32FC(k) );
+  imaOut.create(n, m, CV_32FC(k));
 
-  for(int c = 0; c < k; ++c) {
+  for(int ch = 0; ch < k; ++ch) {
     for(int i = 0; i < n; ++i) {
-      for(int j = 0; j < m; ++j)  {
-        imaOut.at<float>(i,j,c) = imaIn(i,j,c);
+      for(int j = 0; j < m; ++j) {
+        imaOut.at<T>(i,j,ch) = imaIn(i,j,ch);
       }
     }
   }
@@ -85,25 +85,24 @@ void Image2Mat( const Array3Df &imaIn, cv::Mat &imaOut ) {
 //   cv::cvtColor(tmp, imaOut, CV_RGB2BGR);
 }
 
-// void Mat2Image( const cv::Mat &imaIn, Array3Df &imaOut ) {
-//   int k, n, m;
-// 
-//   k = imaIn.channels();
-//   n = imaIn.rows;
-//   m = imaIn.cols;
-// 
-//   imaOut.Resize(n, m, k);
-// 
-//   for(int c = 0; c < k; ++c) {
-//     for(int i = 0; i < n; ++i) {
-//       for(int j = 0; j < m; ++j)  {
-//         cout << "imaIn.at<float>(i,j,c)  = " << imaIn.at<float>(i,j,c) << endl;
-//         cout << "imaOut(i,j,c)  = " << imaOut(i,j,c) << endl;
-//         imaOut(i,j,c) = imaIn.at<float>(i,j,c);
-//       }
-//     }
-//   }
-// }
+template<class T>
+void Mat2Image( const cv::Mat &imaIn, Array3D<T> &imaOut ) {
+  int k, n, m;
+
+  k = imaIn.channels();
+  n = imaIn.rows;
+  m = imaIn.cols;
+
+  imaOut.Resize(n, m, k);
+
+  for(int ch = 0; ch < k; ++ch) {
+    for(int i = 0; i < n; ++i) {
+      for(int j = 0; j < m; ++j) {
+        imaOut(i,j,ch) = imaIn.at<T>(i,j,ch);
+      }
+    }
+  }
+}
 
 } // namespace libmv
 

@@ -171,25 +171,6 @@ TEST(ReadPng, PngFloat) {
   EXPECT_EQ(1, image.Depth());
   EXPECT_EQ(image(0,0), 1);
   EXPECT_EQ(image(0,1), 0);
-
-  cv::Mat cvImg;
-  Image2Mat(image, cvImg);
-
-  EXPECT_EQ(2, cvImg.cols);
-  EXPECT_EQ(1, cvImg.rows);
-  EXPECT_EQ(CV_32FC(1), cvImg.depth());
-  EXPECT_EQ(cvImg.at<float>(0,0), 1);
-  EXPECT_EQ(cvImg.at<float>(0,1), 0);
-
-//   FloatImage image2;
-//   cvImg = cv::imread( png_filename );
-//   Mat2Image(cvImg, image2);
-//
-//   EXPECT_EQ(2, image2.Width());
-//   EXPECT_EQ(1, image2.Height());
-//   EXPECT_EQ(1, image2.Depth());
-//   EXPECT_EQ(image2(0,0), 1);
-//   EXPECT_EQ(image2(0,1), 0);
 }
 
 TEST_F(ImageIOTest, Png) {
@@ -258,6 +239,42 @@ TEST(GetFormat, filenames) {
   EXPECT_EQ(GetFormat(".s/o.m/e.t/h.i/n.g.JPG"), libmv::Jpg);
   EXPECT_EQ(GetFormat(".s/o.m/e.t/h.i/n.g.PNG"), libmv::Png);
   EXPECT_EQ(GetFormat(".s/o.m/e.t/h.i/n.g.PNM"), libmv::Pnm);
+}
+
+TEST(Conversion, UChar) {
+  Array3Du image(2,2,2);
+  image(0,0,0) = 0;
+  image(0,1,0) = 75;
+  image(1,0,0) = 125;
+  image(1,1,0) = 250;
+  image(0,0,1) = 1;
+  image(0,1,1) = 76;
+  image(1,0,1) = 126;
+  image(1,1,1) = 251;
+
+  cv::Mat cvImg;
+  Image2Mat(image, cvImg);
+
+  Array3Du out_image;
+  Mat2Image(cvImg, out_image);
+
+  EXPECT_TRUE(image == out_image);
+}
+
+TEST(Conversion, Float) {
+  Array3Df image(2,2,1);
+  image(0,0,0) = 0.1;
+  image(0,1,0) = 0.2;
+  image(1,0,0) = 0.3;
+  image(1,1,0) = 0.4;
+
+  cv::Mat cvImg;
+  Image2Mat(image, cvImg);
+
+  Array3Df out_image;
+  Mat2Image(cvImg, out_image);
+
+  EXPECT_TRUE(image == out_image);
 }
 
 }  // namespace
