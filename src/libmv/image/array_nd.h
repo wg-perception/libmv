@@ -63,7 +63,8 @@ class ArrayND : public BaseArray {
 
   /// Destructor deletes pixel data.
   ~ArrayND() {
-    delete [] data_;
+    if (own_data)
+      delete [] data_;
   }
 
   /// Assignation copies pixel data.
