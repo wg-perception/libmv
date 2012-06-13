@@ -255,6 +255,23 @@ TEST(Conversion, UChar) {
   cv::Mat cvImg;
   Image2Mat(image, cvImg);
 
+  // check individual values
+  int k, n, m;
+
+  k = image.Depth();
+  n = image.Height();
+  m = image.Width();
+
+  for(int ch = 0; ch < k; ++ch) {
+    for(int i = 0; i < n; ++i) {
+      for(int j = 0; j < m; ++j) {
+//         EXPECT_EQ( image(i,j,ch), cvImg.at<unsigned char>(i,j,ch) );
+        printf("i=%d, j=%d, ch=%d, imaIn(i,j,c) = %d\n", i, j, ch, (unsigned char) image(i,j,ch) );
+        printf("i=%d, j=%d, ch=%d, cvImg(i,j,c) = %d\n", i, j, ch, (unsigned char) cvImg.at<unsigned char>(i,j,ch) );
+      }
+    }
+  }
+
   Array3Du out_image;
   Mat2Image(cvImg, out_image);
 
