@@ -72,17 +72,11 @@ void Image2Mat( const Array3D<T> &imaIn, cv::Mat &imaOut ) {
   n = imaIn.Height();
   m = imaIn.Width();
 
-  imaOut.create(n, m, CV_32FC(k));
-
-  for(int ch = 0; ch < k; ++ch) {
-    for(int i = 0; i < n; ++i) {
-      for(int j = 0; j < m; ++j) {
-        imaOut.at<T>(i,j,ch) = imaIn(i,j,ch);
-      }
-    }
-  }
-//   cv::Mat tmp = imaOut.clone();
-//   cv::cvtColor(tmp, imaOut, CV_RGB2BGR);
+  // Create a bogus matrix referencing to the data, no copy is made
+  cv::Mat_<T> imgTmp(n, m*k, const_cast<T*>(imaIn.Data()));
+  // We could have a non-copy function for efficiency but that could create random bugs and we would need to count
+  // references in both type. This function Image2Mat is not meant for speed anyway but for compatibility
+  imgTmp.reshape(k,n).copyTo(imaOut);
 }
 
 template<class T>
@@ -93,15 +87,16 @@ void Mat2Image( const cv::Mat &imaIn, Array3D<T> &imaOut ) {
   n = imaIn.rows;
   m = imaIn.cols;
 
-  imaOut.Resize(n, m, k);
-
-  for(int ch = 0; ch < k; ++ch) {
-    for(int i = 0; i < n; ++i) {
-      for(int j = 0; j < m; ++j) {
-        imaOut(i,j,ch) = imaIn.at<T>(i,j,ch);
-      }
-    }
-  }
+  // Check if we need to deep copy and convert imaIn or not
+  cv::Mat_<T> imaInT;
+  if (imaInT.depth() == imaIn.depth())
+    imaInT = imaIn;
+  else
+    imaIn.convertTo(imaInT, imaInT.depth());
+  // Create an array without a deep copy
+  Array3D<T> array(reinterpret_cast<T*>(const_cast<unsigned char*>(imaInT.data)), n, m, k);
+  // And deep copy just for sure
+  imaOut.CopyFrom(array);
 }
 
 } // namespace libmv
