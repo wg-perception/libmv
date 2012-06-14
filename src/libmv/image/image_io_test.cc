@@ -254,6 +254,9 @@ TEST(Conversion, UChar) {
 
   cv::Mat cvImg;
   Image2Mat(image, cvImg);
+  EXPECT_EQ( image.Height(), cvImg.rows);
+  EXPECT_EQ( image.Width(), cvImg.cols);
+  EXPECT_EQ( image.Depth(), cvImg.channels() );
 
   // check individual values
   int k, n, m;
@@ -266,8 +269,8 @@ TEST(Conversion, UChar) {
     for(int i = 0; i < n; ++i) {
       for(int j = 0; j < m; ++j) {
 //         EXPECT_EQ( image(i,j,ch), cvImg.at<unsigned char>(i,j,ch) );
-        printf("i=%d, j=%d, ch=%d, imaIn(i,j,c) = %d\n", i, j, ch, (unsigned char) image(i,j,ch) );
-        printf("i=%d, j=%d, ch=%d, cvImg(i,j,c) = %d\n", i, j, ch, (unsigned char) cvImg.at<unsigned char>(i,j,ch) );
+        printf("i=%d, j=%d, ch=%d, imaIn(i,j,c) = %d\n", i, j, ch, int(image(i,j,ch)) );
+        printf("i=%d, j=%d, ch=%d, cvImg(i,j,c) = %d\n", i, j, ch, cvImg.at<cv::Vec3b>(i,j)[ch]);
       }
     }
   }
