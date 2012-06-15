@@ -78,6 +78,8 @@
 #include "../../libmv/numeric/numeric.h"
 #include "../../libmv/multiview/twoviewtriangulation.h"
 #include "../../libmv/multiview/nviewtriangulation.h"
+#include "../../libmv/reconstruction/euclidean_reconstruction.h"
+#include "../../libmv/reconstruction/projective_reconstruction.h"
 
 //remove later
 #include<iostream>
@@ -85,11 +87,12 @@
 namespace libmv_opencv
 {
 
-  using namespace libmv;
+using namespace libmv;
 
-  // TODO:
+// TODO:
 //  reconstruct3d(InputArrayOfArrays points, OutputArray points, bool isProj)
-//  libmv funcs:
+//
+//  Relevant libmv functions:
 //  ../src/libmv/simple_pipeline/initialize_reconstruction.cc
 //  ../src/libmv/simple_pipeline/uncalibrated_reconstructor.cc
 //  ../src/libmv/simple_pipeline/reconstruction.cc
@@ -97,40 +100,57 @@ namespace libmv_opencv
 //  ../src/libmv/reconstruction/projective_reconstruction.cc
 //  ../src/libmv/reconstruction/euclidean_reconstruction.cc
 //  ../src/libmv/reconstruction/reconstruction.cc
-//  ../src/libmv/reconstruction/euclidean_reconstruction_test.cc
-  void
-  reconstruct3d(bool isProj, bool isOrtho)
-  {
+//  ../src/libmv/reconstruction/euclidean_reconstruction_test.cc - Make won't build this???
 
-    // Projective reconstruction - Uncalibrated Cameras
-    if (isProj)
-      {
-        // 2 view - libmv code exists - no need?
-        // n view - libmv code exists
-      }
+// TODO: Two view reconstruction for the moment - combined libmv  projective and eucledian funcs
+// TODO: check multiview in libmv
+bool reconstruct3d(const Matches &matches, Matches::ImageID image1,
+		Matches::ImageID image2, const Mat3 &K1, const Mat3 &K2,
+		const Vec2u &image_size1, const Vec2u &image_size2,
+		Reconstruction *recons, bool isProj, bool isOrtho)
+{
 
-    // Eucledian reconstruction - Calibrated Cameras
-    else
-      {
-        // 2 view - libmv code exists - no need?
-        // n view
-      }
+	// Noise free case - i.e matches=matches_inliers
 
-    // Orthographic cameras ?
-  }
+	// Projective reconstruction - Uncalibrated Cameras
+	if (isProj)
+	{
+		// two view
+		return ReconstructFromTwoUncalibratedViews(matches, image1, image2, &matches,
+				recons);
 
-  // TODO: Test this
-  // Triangulates a single 3D using 2D points from 2 or more views
-  // Returns 3D point in euclidean coordinates
-  template<typename T>
-    void
-    triangulatePoints(const Matrix<T, 2, Dynamic> &xs,
-        const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 3, 1> *X, bool isIdeal)
-    {
-      Vec4 X_homogenous;
-      triangulatePoints(xs, Ps, &X_homogenous, isIdeal);
-      HomogeneousToEuclidean(X_homogenous, &X);
-    }
+		// n view - libmv code exists? check
+	}
+
+	// Eucledian reconstruction - Calibrated Cameras
+	else
+	{
+		// two view
+		return InitialReconstructionTwoViews(matches, image1, image2, K1, K2,
+				image_size1, image_size2, recons);
+
+
+		// n view - not yet in libmv
+		// TODO(julien) implement me.
+		// bool EuclideanReconstructionFromImageSet
+	}
+
+	// Orthographic cameras ?
+	return false; //
+
+}
+
+// TODO: Test this
+// Triangulates a single 3D using 2D points from 2 or more views
+// Returns 3D point in euclidean coordinates
+template<typename T>
+void triangulatePoints(const Matrix<T, 2, Dynamic> &xs,
+		const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 3, 1> *X, bool isIdeal)
+{
+	Vec4 X_homogenous;
+	triangulatePoints(xs, Ps, &X_homogenous, isIdeal);
+	HomogeneousToEuclidean(X_homogenous, &X);
+}
 
 //
 // Triangulates a single 3D using 2D points from 2 or more views
@@ -140,26 +160,25 @@ namespace libmv_opencv
 //  ../src/libmv/multiview/triangulation.cc             -- DLT Triang. // HZ 12.2 pag.312
 //  ../src/libmv/multiview/nviewtriangulation.cc        -- nview triang (DONE)
 //  ../src/libmv/multiview/twoviewtriangulation.cc      -- 2 view - ideal and by planes??
-  template<typename T>
-    void
-    triangulatePoints(const Matrix<T, 2, Dynamic> &xs,
-        const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 4, 1> *X, bool isIdeal)
-    {
+template<typename T>
+void triangulatePoints(const Matrix<T, 2, Dynamic> &xs,
+		const vector<Matrix<T, 3, 4> > &Ps, Matrix<T, 4, 1> *X, bool isIdeal)
+{
 
-      // Get number of views
-      int nviews = xs.cols();
+	// Get number of views
+	int nviews = xs.cols();
 
-      // Should have a 'P' for each view
-      assert(Ps.size()==nviews);
+	// Should have a 'P' for each view
+	assert(Ps.size() == nviews);
 
-      //Need at least 2 views
-      assert(nviews>2);
+	//Need at least 2 views
+	assert(nviews > 2);
 
-      //
-      //  Two view case
-      //
+	//
+	//  Two view case
+	//
 
-      if (0)
+	if (0)
 //  TODO:- no need?
 //  if (nviews == 2)
 //  OK This is a bit tricky because the libmv Two View Functions
@@ -168,62 +187,62 @@ namespace libmv_opencv
 //  expect this.
 //  What do we do?? Do we need this here at all???
 
-        {
+	{
 
-          if (isIdeal)
-          //
-          // Ideal points
-          //
+		if (isIdeal)
+		//
+		// Ideal points
+		//
 
-            {
-              // TODO:
+		{
+			// TODO:
 //              void TwoViewTriangulationIdeal(const Vec3 &x1, const Vec3 &x2,
 //              const Mat34 &P, const Mat3 &E,
 //              Vec4 *X){X);
-            }
+		}
 
-          else
+		else
 
-          // Realistic points
+		// Realistic points
 
-            {
-              // TODO:
-              //          void
-              //          TwoViewTriangulationByPlanes(const Vec3 &x1, const Vec3 &x2,
-              //              const Mat34 &P, const Mat3 &E, Vec4 *X);
-            }
-        }
+		{
+			// TODO:
+			//          void
+			//          TwoViewTriangulationByPlanes(const Vec3 &x1, const Vec3 &x2,
+			//              const Mat34 &P, const Mat3 &E, Vec4 *X);
+		}
+	}
 
-      else
+	else
 
-      //
-      //  Multi view (>2) case
-      //
+	//
+	//  Multi view (>2) case
+	//
 
-        {
+	{
 
-          // Ideal points
-          if (isIdeal)
-            {
-              //TODO:
-            }
+		// Ideal points
+		if (isIdeal)
+		{
+			//TODO:
+		}
 
-          // Realistic points
-          else
-            {
-              NViewTriangulate(xs, Ps, X);
+		// Realistic points
+		else
+		{
+			NViewTriangulate(xs, Ps, X);
 
-              // Do we need this one?
-              //  void NViewTriangulateAlgebraic(const Matrix<T, 2, Dynamic> &x,
-              //                                 const vector<Matrix<T, 3, 4> > &Ps,
-              //                                 Matrix<T, 4, 1> *X)
-              //        What about this method?? No unit test in libmv
-              //        TEST(NViewTriangulateAlgebraic, FiveViews) {
-              //            uses     NViewTriangulate(xs, Ps, &X);
-              //             and not NViewTriangulateAlgebraic()????
-            }
-        }
-    } // triangulatePoints
+			// Do we need this one?
+			//  void NViewTriangulateAlgebraic(const Matrix<T, 2, Dynamic> &x,
+			//                                 const vector<Matrix<T, 3, 4> > &Ps,
+			//                                 Matrix<T, 4, 1> *X)
+			//        What about this method?? No unit test in libmv
+			//        TEST(NViewTriangulateAlgebraic, FiveViews) {
+			//            uses     NViewTriangulate(xs, Ps, &X);
+			//             and not NViewTriangulateAlgebraic()????
+		}
+	}
+} // triangulatePoints
 
 }
 #endif  // MVR_H
