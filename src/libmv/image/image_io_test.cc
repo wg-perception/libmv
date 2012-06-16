@@ -252,7 +252,7 @@ TEST(Conversion, UChar) {
   image(1,0,1) = 126;
   image(1,1,1) = 251;
 
-  cv::Mat cvImg;
+  cv::Mat_<cv::Vec2b> cvImg;
   Image2Mat(image, cvImg);
   EXPECT_EQ( image.Height(), cvImg.rows);
   EXPECT_EQ( image.Width(), cvImg.cols);
@@ -268,9 +268,8 @@ TEST(Conversion, UChar) {
   for(int ch = 0; ch < k; ++ch) {
     for(int i = 0; i < n; ++i) {
       for(int j = 0; j < m; ++j) {
-        EXPECT_EQ( image(i,j,ch), cvImg.at<cv::Vec2b >(i,j)[ch]);
-        printf("i=%d, j=%d, ch=%d, imaIn(i,j,c) = %d\n", i, j, ch, int(image(i,j,ch)) );
-        printf("i=%d, j=%d, ch=%d, cvImg(i,j,c) = %d\n", i, j, ch, cvImg.at<cv::Vec2b >(i,j)[ch]);
+        EXPECT_EQ( image(i,j,ch), cvImg(i,j)[ch]);
+//         printf("imaIn(%d,%d,%d) = %d\tcvImg(%d,%d,%d) = %d\n", i, j, ch, image(i,j,ch), i, j, ch, cvImg(i,j)[ch]);
       }
     }
   }

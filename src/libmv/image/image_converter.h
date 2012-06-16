@@ -61,11 +61,9 @@ void Rgb2Gray(const ImageIn &imaIn, ImageOut *imaOut) {
   }
 }
 
-// Find a better location for these functions
-// ToDo (pablo): maybe use the 'uchar* data' (Mat member)
-// to convert instead of individual element assigments
+// Convert from libmv's type to Mat (opencv type)
 template<class T>
-void Image2Mat( const Array3D<T> &imaIn, cv::Mat &imaOut ) {
+void Image2Mat( const Array3D<T> &imaIn, cv::OutputArray imaOut ) {
   int k, n, m;
 
   k = imaIn.Depth();
@@ -74,6 +72,7 @@ void Image2Mat( const Array3D<T> &imaIn, cv::Mat &imaOut ) {
 
   // Create a bogus matrix referencing to the data, no copy is made
   cv::Mat_<T> imgTmp(n, m*k, const_cast<T*>(imaIn.Data()));
+
   // We could have a non-copy function for efficiency but that could create random bugs and we would need to count
   // references in both type. This function Image2Mat is not meant for speed anyway but for compatibility
   imgTmp.reshape(k,n).copyTo(imaOut);
@@ -93,8 +92,10 @@ void Mat2Image( const cv::Mat &imaIn, Array3D<T> &imaOut ) {
     imaInT = imaIn;
   else
     imaIn.convertTo(imaInT, imaInT.depth());
+
   // Create an array without a deep copy
   Array3D<T> array(reinterpret_cast<T*>(const_cast<unsigned char*>(imaInT.data)), n, m, k);
+
   // And deep copy just for sure
   imaOut.CopyFrom(array);
 }
