@@ -1,3 +1,6 @@
+# Require OpenCV
+FIND_PACKAGE( OpenCV REQUIRED )
+
 # define the source files
 SET(MVR_SRC mvr.cc)
 
@@ -6,7 +9,7 @@ FILE(GLOB MVR_HDRS *.h)
 
 ADD_LIBRARY(mvr ${MVR_SRC} ${MVR_HDRS})
 
-TARGET_LINK_LIBRARIES(mvr multiview glog numeric V3D)
+TARGET_LINK_LIBRARIES(mvr multiview glog numeric V3D ${OpenCV_LIBS})
 
 # make the name of debug libraries end in _d.
 SET_TARGET_PROPERTIES(mvr PROPERTIES DEBUG_POSTFIX "_d")

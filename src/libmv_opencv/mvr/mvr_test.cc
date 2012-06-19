@@ -19,10 +19,9 @@
 // IN THE SOFTWARE.
 
 //#include "mvr.h"
-#include "mvr.h"
-
-// libmv includes
-//Todo: Do something about relative paths later
+//
+//// libmv includes
+////Todo: Do something about relative paths later
 #include "../../libmv/logging/logging.h"
 #include "../../libmv/multiview/fundamental.h"
 #include "../../libmv/multiview/projection.h"
@@ -33,146 +32,166 @@
 // gtest headers
 #include "testing/testing.h"
 
+#include <opencv2/core/core.hpp>
+#include <iostream>
+#include <string>
+using namespace cv;
+using namespace std;
+
 //namespace {
-using namespace libmv;
-using namespace libmv_opencv;
+//using namespace libmv;
+//using namespace libmv_opencv;
+using namespace cv;
+
+TEST(Mvr, TestYAML)
+{
+	{ //write
+		Mat R = Mat_ < uchar > ::eye(3, 3), T = Mat_<double>::zeros(3, 1);
+		FileStorage fs("test.yml", FileStorage::WRITE);
+
+		fs << "R" << R; // cv::Mat
+		fs << "T" << T;
+
+		fs.release(); // explicit close
+		cout << "Write Done." << endl;
+	}
+}
 
 #if 0
 TEST(Mvr, TwoViewTriangulationIdealHomogenous)
 {
-  TwoViewDataSet d = TwoRealisticCameras();
+	TwoViewDataSet d = TwoRealisticCameras();
 
-  // Compute essential matrix.
-  Mat3 E;
-  EssentialFromFundamental(d.F, d.K1, d.K2, &E);
-  Mat3 K1_inverse = d.K1.inverse();
-  Mat3 K2_inverse = d.K2.inverse();
+	// Compute essential matrix.
+	Mat3 E;
+	EssentialFromFundamental(d.F, d.K1, d.K2, &E);
+	Mat3 K1_inverse = d.K1.inverse();
+	Mat3 K2_inverse = d.K2.inverse();
 
-  //Transform the system so that camera 1 is in its canonical form [I|0]
-  Eigen::Transform<double, 3, Eigen::Affine> Hcanonical = Eigen::Translation3d(
-      d.t1) * d.R1;
-  Hcanonical = Hcanonical.inverse();
+	//Transform the system so that camera 1 is in its canonical form [I|0]
+	Eigen::Transform<double, 3, Eigen::Affine> Hcanonical = Eigen::Translation3d(
+			d.t1) * d.R1;
+	Hcanonical = Hcanonical.inverse();
 
-  Mat34 P2;
-  P2.block<3, 3>(0, 0) = d.R2;
-  P2.block<3, 1>(0, 3) = d.t2;
+	Mat34 P2;
+	P2.block<3, 3>(0, 0) = d.R2;
+	P2.block<3, 1>(0, 3) = d.t2;
 
-  P2 = P2 * Hcanonical.matrix();
+	P2 = P2 * Hcanonical.matrix();
 
-  for (int i = 0; i < d.X.cols(); ++i)
-    {
+	for (int i = 0; i < d.X.cols(); ++i)
+	{
 
-      Vec2 x1, x2;
-      MatrixColumn(d.x1, i, &x1);
-      MatrixColumn(d.x2, i, &x2);
-      x1 = ImageToNormImageCoordinates(K1_inverse, x1);
-      x2 = ImageToNormImageCoordinates(K2_inverse, x2);
+		Vec2 x1, x2;
+		MatrixColumn(d.x1, i, &x1);
+		MatrixColumn(d.x2, i, &x2);
+		x1 = ImageToNormImageCoordinates(K1_inverse, x1);
+		x2 = ImageToNormImageCoordinates(K2_inverse, x2);
 
-      Vec3 X_estimated, X_gt;
-      MatrixColumn(d.X, i, &X_gt);
+		Vec3 X_estimated, X_gt;
+		MatrixColumn(d.X, i, &X_gt);
 
 //          TwoViewTriangulationIdeal(x1, x2, P2, E, &X_estimated);
 
-      // Convert to general format
-      int nviews = 2;
-      Mat2X xs(2, nviews);
-      xs.col(1) = x1;
-      xs.col(2) = x2;
-      vector<Mat34> Ps(nviews);
+// Convert to general format
+		int nviews = 2;
+		Mat2X xs(2, nviews);
+		xs.col(1) = x1;
+		xs.col(2) = x2;
+		vector<Mat34> Ps(nviews);
 
-      // Check the order here
-      Ps[0] = d.
+// Check the order here
+		Ps[0] = d.
 
-      X_estimated = Hcanonical * X_estimated;
-      EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
-    }
+		X_estimated = Hcanonical * X_estimated;
+		EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
+	}
 }
 
-
 TEST(Mvr, TwoViewTriangulationIdealEucledian)
-  {
-    TwoViewDataSet d = TwoRealisticCameras();
+{
+	TwoViewDataSet d = TwoRealisticCameras();
 
-    // Compute essential matrix.
-    Mat3 E;
-    EssentialFromFundamental(d.F, d.K1, d.K2, &E);
-    Mat3 K1_inverse = d.K1.inverse();
-    Mat3 K2_inverse = d.K2.inverse();
+	// Compute essential matrix.
+	Mat3 E;
+	EssentialFromFundamental(d.F, d.K1, d.K2, &E);
+	Mat3 K1_inverse = d.K1.inverse();
+	Mat3 K2_inverse = d.K2.inverse();
 
-    //Transform the system so that camera 1 is in its canonical form [I|0]
-    Eigen::Transform<double, 3, Eigen::Affine> Hcanonical = Eigen::Translation3d(
-        d.t1) * d.R1;
-    Hcanonical = Hcanonical.inverse();
+	//Transform the system so that camera 1 is in its canonical form [I|0]
+	Eigen::Transform<double, 3, Eigen::Affine> Hcanonical = Eigen::Translation3d(
+			d.t1) * d.R1;
+	Hcanonical = Hcanonical.inverse();
 
-    Mat34 P2;
-    P2.block<3, 3>(0, 0) = d.R2;
-    P2.block<3, 1>(0, 3) = d.t2;
+	Mat34 P2;
+	P2.block<3, 3>(0, 0) = d.R2;
+	P2.block<3, 1>(0, 3) = d.t2;
 
-    P2 = P2 * Hcanonical.matrix();
+	P2 = P2 * Hcanonical.matrix();
 
-    for (int i = 0; i < d.X.cols(); ++i)
-      {
+	for (int i = 0; i < d.X.cols(); ++i)
+	{
 
-        Vec2 x1, x2;
-        MatrixColumn(d.x1, i, &x1);
-        MatrixColumn(d.x2, i, &x2);
-        x1 = ImageToNormImageCoordinates(K1_inverse, x1);
-        x2 = ImageToNormImageCoordinates(K2_inverse, x2);
+		Vec2 x1, x2;
+		MatrixColumn(d.x1, i, &x1);
+		MatrixColumn(d.x2, i, &x2);
+		x1 = ImageToNormImageCoordinates(K1_inverse, x1);
+		x2 = ImageToNormImageCoordinates(K2_inverse, x2);
 
-        Vec3 X_estimated, X_gt;
-        MatrixColumn(d.X, i, &X_gt);
+		Vec3 X_estimated, X_gt;
+		MatrixColumn(d.X, i, &X_gt);
 
-        // Consilidate data to multiview format
-        // used in triangulatePoints()
-        int nviews=2;
-        Mat2X xs(2, nviews);
-        xs.col(1)=x1;
-        xs.col(2)=x2;
-        // Ok X_estimated is Vec3 but NViewTriangulate has Vec4 ... now what?
+		// Consilidate data to multiview format
+		// used in triangulatePoints()
+		int nviews=2;
+		Mat2X xs(2, nviews);
+		xs.col(1)=x1;
+		xs.col(2)=x2;
+		// Ok X_estimated is Vec3 but NViewTriangulate has Vec4 ... now what?
 
-        triangulatePoints(x1, x2, P2, E, &X_estimated, true);
-        triangulatePoints(xs, Ps, &X, false);
+		triangulatePoints(x1, x2, P2, E, &X_estimated, true);
+		triangulatePoints(xs, Ps, &X, false);
 
-        X_estimated = Hcanonical * X_estimated;
-        EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
-      }
-  }
-#endif
+		X_estimated = Hcanonical * X_estimated;
+		EXPECT_NEAR(0, DistanceLInfinity(X_estimated, X_gt), 1e-8);
+	}
+}
 
 TEST(Mvr, FiveViewsHomogeneous)
 {
-  int nviews = 5;
-  int npoints = 6;
-  NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
+	int nviews = 5;
+	int npoints = 6;
+	NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
 
-  // Collect P matrices together.
-  vector<Mat34> Ps(nviews);
-  for (int j = 0; j < nviews; ++j)
-    {
-      Ps[j] = d.P(j);
-    }
+	// Collect P matrices together.
+	vector<Mat34> Ps(nviews);
+	for (int j = 0; j < nviews; ++j)
+	{
+		Ps[j] = d.P(j);
+	}
 
-  for (int i = 0; i < npoints; ++i)
-    {
-      // Collect the image of point i in each frame.
-      Mat2X xs(2, nviews);
-      for (int j = 0; j < nviews; ++j)
-        {
-          xs.col(j) = d.x[j].col(i);
-        }
-      Vec4 X;
-      triangulatePoints(xs, Ps, &X, false);
+	for (int i = 0; i < npoints; ++i)
+	{
+		// Collect the image of point i in each frame.
+		Mat2X xs(2, nviews);
+		for (int j = 0; j < nviews; ++j)
+		{
+			xs.col(j) = d.x[j].col(i);
+		}
+		Vec4 X;
+		triangulatePoints(xs, Ps, &X, false);
 
-      // Check reprojection error. Should be nearly zero.
-      for (int j = 0; j < nviews; ++j)
-        {
-          Vec3 x_reprojected = Ps[j] * X;
-          x_reprojected /= x_reprojected(2);
-          double error = (x_reprojected.head(2) - xs.col(j)).norm();
-          EXPECT_NEAR(error, 0.0, 1e-9);
-        }
-    }
+		// Check reprojection error. Should be nearly zero.
+		for (int j = 0; j < nviews; ++j)
+		{
+			Vec3 x_reprojected = Ps[j] * X;
+			x_reprojected /= x_reprojected(2);
+			double error = (x_reprojected.head(2) - xs.col(j)).norm();
+			EXPECT_NEAR(error, 0.0, 1e-9);
+		}
+	}
 }
 
+#endif
 //} // namespace
 

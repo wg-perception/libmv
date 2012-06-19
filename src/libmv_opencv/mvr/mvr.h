@@ -116,8 +116,8 @@ bool reconstruct3d(const Matches &matches, Matches::ImageID image1,
 	if (isProj)
 	{
 		// two view
-		return ReconstructFromTwoUncalibratedViews(matches, image1, image2, &matches,
-				recons);
+//		return ReconstructFromTwoUncalibratedViews(matches, image1, image2, &matches,
+//				recons);
 
 		// n view - libmv code exists? check
 	}
@@ -126,8 +126,8 @@ bool reconstruct3d(const Matches &matches, Matches::ImageID image1,
 	else
 	{
 		// two view
-		return InitialReconstructionTwoViews(matches, image1, image2, K1, K2,
-				image_size1, image_size2, recons);
+//		return InitialReconstructionTwoViews(matches, image1, image2, K1, K2,
+//				image_size1, image_size2, recons);
 
 
 		// n view - not yet in libmv
