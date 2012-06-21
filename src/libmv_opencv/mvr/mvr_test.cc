@@ -45,15 +45,44 @@ using namespace cv;
 
 TEST(Mvr, TestYAML)
 {
-	{ //write
-		Mat R = Mat_ < uchar > ::eye(3, 3), T = Mat_<double>::zeros(3, 1);
-		FileStorage fs("test.yml", FileStorage::WRITE);
+//	{ //write
+//		Mat R = Mat_ < uchar > ::eye(3, 3), T = Mat_<double>::zeros(3, 1);
+//		FileStorage fs("opencv.yml", FileStorage::WRITE);
+//
+//		fs << "R" << R; // cv::Mat
+//		fs << "T" << T;
+//
+//		fs.release(); // explicit close
+//		cout << "Write Done." << endl;
+//	}
+//
+//	{ //read
+//		string filename = "opencv.yml";
+//		cout << endl << "Reading: " << endl;
+//		FileStorage fs;
+//		fs.open(filename, FileStorage::READ);
+//		Mat R, T;
+//
+//		fs["R"] >> R; // Read cv::Mat
+//		fs["T"] >> T;
+//
+//		cout << endl << "R = " << R << endl;
+//		cout << "T = " << T << endl << endl;
+//	}
+	{ //test
+		string filename = "rnd_N5_F3.yml";
+		cout << endl << "Reading: " << endl;
+		FileStorage fs;
+		fs.open(filename, FileStorage::READ);
+		cv::Mat P1,P2,P3;
+		fs["P1"] >> P1;
+		fs["P2"] >> P2;
+		fs["P3"] >> P3;
 
-		fs << "R" << R; // cv::Mat
-		fs << "T" << T;
+		cout << endl << "P1 = " << P1 << endl;
+		cout << endl << "P2 = " << P2 << endl;
+		cout << endl << "P3 = " << P3 << endl;
 
-		fs.release(); // explicit close
-		cout << "Write Done." << endl;
 	}
 }
 

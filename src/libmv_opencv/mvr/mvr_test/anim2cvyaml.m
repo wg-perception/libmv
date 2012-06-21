@@ -1,11 +1,29 @@
+% Function to save Matrices from anim object as opencv yaml
+
 function [ ] = anim2cvyaml(filename, anim )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
 
 f=fopen(filename,'w');
 fprintf(f,'%s\n','%YAML:1.0');
 
-addArray('P1',anim.P(:,:,1),f)
+% Save 3D pts S
+addArray(['S'],anim.S,f);
+
+% save each frame
+for n=1:anim.nFrame
+    
+    % W
+    addArray(['W' num2str(n)],anim.W(:,:,n),f);
+    
+    % P
+    addArray(['P' num2str(n)],anim.P(:,:,n),f);
+    
+    % R
+    addArray(['R' num2str(n)],anim.R(:,:,n),f);
+    
+    % t
+    addArray(['t' num2str(n)],anim.t(:,n),f);
+    
+end
 
 fclose(f);
 
