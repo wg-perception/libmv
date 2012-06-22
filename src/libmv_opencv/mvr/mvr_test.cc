@@ -74,19 +74,24 @@ TEST(Mvr, TestYAML)
 		cout << endl << "Reading: " << endl;
 		FileStorage fs;
 		fs.open(filename, FileStorage::READ);
-		cv::Mat S,W1,W2,P1,P2;
+		cv::Mat S, W1, W2, P1, P2;
 		fs["S"] >> S;
 		fs["W1"] >> W1;
 		fs["W2"] >> W2;
 		fs["P1"] >> P1;
 		fs["P2"] >> P2;
 
-
 		cout << endl << "P1 = " << P1 << endl;
 		cout << endl << "P2 = " << P2 << endl;
 		cout << endl << "W1 = " << W1 << endl;
 		cout << endl << "W2 = " << W2 << endl;
 		cout << endl << "S = " << S << endl;
+
+		// libmv api
+
+		Matches matches;
+		InitialReconstructionTwoViews(matches, image1, image2, K1, K2,
+				image_size1, image_size2, recons);
 
 	}
 }
