@@ -46,7 +46,9 @@ using namespace cv;
 using namespace std;
 
 using namespace libmv;
+using namespace Eigen;
 using namespace cv;
+
 //using namespace libmv_opencv;
 TEST(Mvr, TestYAML) {
 //	{ //write
@@ -101,6 +103,7 @@ TEST(Mvr, TestYAML) {
 
 		// libmv api
 
+		// Matching pts
 		Matches matches;
 		for (int v = 0; v < nviews; ++v) {
 			for (int p = 0; p < npts; ++p) {
@@ -109,26 +112,18 @@ TEST(Mvr, TestYAML) {
 				matches.Insert(v, p, feature);
 			}
 		}
-//		cv::Mat K1 = Mat_<double>::eye(3, 3);
-//		cv::Mat K2 = Mat_<double>::eye(3, 3);
-//		libmv::vector<Mat3> K1_libmv, K2_libmv;
-//
-////		K1_libmv=Matrix::Identitiy<double>(3,3);
-//		for(int r=0;r<3;++r)
-//			for(int c=0;c<3;++c)
-//				K1_libmv(r,c)=0.0;
-//		K1_libmv(0,0)=1.0;
-//		K1_libmv(1,1)=1.0;
-//		K1_libmv(2,2)=1.0;
-//
-//
-//		// Set this from data
-//		Vec2u image_size1(1, 1);
-//		Vec2u image_size2(1.0, 1.0);
-//
-//		Reconstruction recons;
-//		InitialReconstructionTwoViews(matches, 0, 1, K1_libmv, K1_libmv,
-//				image_size1, image_size2, &recons);
+
+		// Camera matrices
+		Eigen::MatrixXf K1_libmv = Eigen::MatrixXf::Identity(3, 3);
+		Eigen::MatrixXf K2_libmv = Eigen::MatrixXf::Identity(3, 3);
+
+		// Image size -- has probs
+		Vec2u image_size1;
+		image_size1 << 1, 1;
+
+		Reconstruction recons;
+		InitialReconstructionTwoViews(matches, 0, 1, K1_libmv, K1_libmv,
+				image_size1, image_size1, &recons);
 
 	}
 }
