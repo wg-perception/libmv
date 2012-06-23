@@ -104,10 +104,7 @@ using namespace libmv;
 
 // TODO: Two view reconstruction for the moment - combined libmv  projective and eucledian funcs
 // TODO: check multiview in libmv
-bool reconstruct3d(const Matches &matches, Matches::ImageID image1,
-		Matches::ImageID image2, const Mat3 &K1, const Mat3 &K2,
-		const Vec2u &image_size1, const Vec2u &image_size2,
-		Reconstruction *recons, bool isProj, bool isOrtho)
+bool reconstruct3d( bool isProj, bool isOrtho)
 {
 
 	// Noise free case - i.e matches=matches_inliers

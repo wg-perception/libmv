@@ -28,6 +28,13 @@
 #include "../../libmv/multiview/test_data_sets.h"
 #include "../../libmv/numeric/numeric.h"
 #include "../../libmv/multiview/twoviewtriangulation.h"
+#include "../../libmv/reconstruction/reconstruction.h"
+#include "../../libmv/reconstruction/euclidean_reconstruction.h"
+
+#include "../../libmv/correspondence/matches.h"
+#include "../../libmv/image/image_converter.h"
+
+#include <Eigen/Core>
 
 // gtest headers
 #include "testing/testing.h"
@@ -38,13 +45,10 @@
 using namespace cv;
 using namespace std;
 
-//namespace {
-//using namespace libmv;
-//using namespace libmv_opencv;
+using namespace libmv;
 using namespace cv;
-
-TEST(Mvr, TestYAML)
-{
+//using namespace libmv_opencv;
+TEST(Mvr, TestYAML) {
 //	{ //write
 //		Mat R = Mat_ < uchar > ::eye(3, 3), T = Mat_<double>::zeros(3, 1);
 //		FileStorage fs("opencv.yml", FileStorage::WRITE);
@@ -71,6 +75,9 @@ TEST(Mvr, TestYAML)
 //	}
 	{ //test
 		string filename = "rnd_N5_F3.yml";
+		int nviews = 3;
+		int npts = 5;
+
 		cout << endl << "Reading: " << endl;
 		FileStorage fs;
 		fs.open(filename, FileStorage::READ);
@@ -81,6 +88,11 @@ TEST(Mvr, TestYAML)
 		fs["P1"] >> P1;
 		fs["P2"] >> P2;
 
+		cv::Mat W[3];
+		fs["W1"] >> W[0];
+		fs["W2"] >> W[1];
+		fs["W2"] >> W[2];
+
 		cout << endl << "P1 = " << P1 << endl;
 		cout << endl << "P2 = " << P2 << endl;
 		cout << endl << "W1 = " << W1 << endl;
@@ -90,8 +102,33 @@ TEST(Mvr, TestYAML)
 		// libmv api
 
 		Matches matches;
-		InitialReconstructionTwoViews(matches, image1, image2, K1, K2,
-				image_size1, image_size2, recons);
+		for (int v = 0; v < nviews; ++v) {
+			for (int p = 0; p < npts; ++p) {
+				PointFeature * feature = new PointFeature(W[v].at<double>(0, p),
+						W[v].at<double>(0, p));
+				matches.Insert(v, p, feature);
+			}
+		}
+//		cv::Mat K1 = Mat_<double>::eye(3, 3);
+//		cv::Mat K2 = Mat_<double>::eye(3, 3);
+//		libmv::vector<Mat3> K1_libmv, K2_libmv;
+//
+////		K1_libmv=Matrix::Identitiy<double>(3,3);
+//		for(int r=0;r<3;++r)
+//			for(int c=0;c<3;++c)
+//				K1_libmv(r,c)=0.0;
+//		K1_libmv(0,0)=1.0;
+//		K1_libmv(1,1)=1.0;
+//		K1_libmv(2,2)=1.0;
+//
+//
+//		// Set this from data
+//		Vec2u image_size1(1, 1);
+//		Vec2u image_size2(1.0, 1.0);
+//
+//		Reconstruction recons;
+//		InitialReconstructionTwoViews(matches, 0, 1, K1_libmv, K1_libmv,
+//				image_size1, image_size2, &recons);
 
 	}
 }
@@ -232,5 +269,4 @@ TEST(Mvr, FiveViewsHomogeneous)
 }
 
 #endif
-//} // namespace
 
