@@ -119,7 +119,7 @@ TEST(Mvr, TestYAML) {
 
 		// Image size -- has probs
 		Vec2u image_size1;
-		image_size1 << 1, 1;
+		image_size1 << (unsigned int) 100, (unsigned int)100;//this is an unsinged int???
 
 		Reconstruction recons;
 		InitialReconstructionTwoViews(matches, 0, 1, K1_libmv, K1_libmv,
