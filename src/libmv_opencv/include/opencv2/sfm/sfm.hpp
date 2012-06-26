@@ -41,9 +41,8 @@
 #include <opencv2/core/core.hpp>
 
 /* libmv headers */
-#include <libmv/reconstruction/reconstruction.h>
-#include <libmv/reconstruction/reconstruction.h>
-#include <libmv/correspondence/matches.h>
+#include "libmv/reconstruction/reconstruction.h"
+
 
 namespace cv
 {

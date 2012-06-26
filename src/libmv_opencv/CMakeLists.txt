@@ -13,6 +13,11 @@ add_library(opencv_sfm src/reconstruct.cpp
 
 target_link_libraries(opencv_sfm ${OpenCV_LIBS}
                                   ${OpenCV_LIBRARIES}
+                                  reconstruction
+                                  correspondence
+                                  camera
+                                  multiview 
+                                  numeric
 )
 
 install(TARGETS opencv_sfm

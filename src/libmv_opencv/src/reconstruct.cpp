@@ -44,8 +44,9 @@ void reconstruct(const InputArrayOfArrays points2d,
 
 	/*	Data types used in libmv functions*/
 	Matches matches;
-	Matches *matches_inliers;
-	Reconstruction reconstruction;
+
+//	Matches *matches_inliers;
+//	Reconstruction reconstruction;
 
 	/*	Convert to libmv compatible data types */
 
