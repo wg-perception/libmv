@@ -41,10 +41,6 @@
 #include <opencv2/core/core.hpp>
 #include <iostream>
 
-/* libmv headers */
-#include <libmv/reconstruction/reconstruction.h>
-
-
 namespace cv
 {
   /** Triangulates the 3d position of 2d correspondences between several images

@@ -34,12 +34,15 @@
  */
 
 #include <opencv2/sfm/sfm.hpp>
+
+/* libmv headers */
+#include <libmv/reconstruction/reconstruction.h>
+
+using namespace cv;
 using namespace libmv;
 using namespace std;
 
 
-namespace cv
-{
 
 void reconstruct(const InputArrayOfArrays points2d,
 		OutputArrayOfArrays projection_matrices, OutputArray points3d, bool,
@@ -47,7 +50,7 @@ void reconstruct(const InputArrayOfArrays points2d,
 {
 	std::vector<double> v;
 	int n=v.size();
-	int nviews=points2d.size();
+// 	int nviews=points2d.size();
 
 	/*	Variables for libmv functions */
 	Matches matches;
@@ -78,5 +81,3 @@ void reconstruct(const InputArrayOfArrays points2d,
 
 	}
 }
-}
-
