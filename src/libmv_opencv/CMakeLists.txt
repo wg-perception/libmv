@@ -9,6 +9,7 @@ include_directories(include)
 
 add_library(opencv_sfm src/reconstruct.cpp
                        src/triangulate.cpp
+                       src/projection.cpp
 )
 
 target_link_libraries(opencv_sfm ${OpenCV_LIBS}
