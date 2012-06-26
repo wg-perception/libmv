@@ -34,4 +34,34 @@
  */
 
 #include <opencv2/sfm/sfm.hpp>
+namespace cv
+{
+
+void reconstruct(const InputArrayOfArrays points2d,
+		OutputArrayOfArrays projection_matrices, OutputArray points3d, bool,
+		bool is_projective, bool has_outliers, bool is_sequence)
+{
+
+	/*	Data types used in libmv functions*/
+	Matches matches;
+	Matches *matches_inliers;
+	Reconstruction reconstruction;
+
+	/*	Convert to libmv compatible data types */
+
+	if (is_projective)
+	{
+//ReconstructFromTwoUncalibratedViews	(const Matches &matches,
+//			CameraID image_id1,
+//			CameraID image_id2,
+//			Matches *matches_inliers,
+//			Reconstruction *reconstruction);
+
+	}
+	else // Eucledian?
+	{
+
+	}
+}
+}
 

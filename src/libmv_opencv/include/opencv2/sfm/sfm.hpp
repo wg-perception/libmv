@@ -40,6 +40,11 @@
 
 #include <opencv2/core/core.hpp>
 
+/* libmv headers */
+#include <libmv/reconstruction/reconstruction.h>
+#include <libmv/reconstruction/reconstruction.h>
+#include <libmv/correspondence/matches.h>
+
 namespace cv
 {
   /** Triangulates the 3d position of 2d correspondences between several images
@@ -79,7 +84,7 @@ namespace cv
   CV_EXPORTS
   void
   reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
-              OutputArray points3d, bool, bool is_projective = false, bool has_outliers = false, bool is_sequence =
+              OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
                   false);
 } /* namespace cv */
 

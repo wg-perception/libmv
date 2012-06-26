@@ -100,7 +100,7 @@ using namespace libmv;
 //  ../src/libmv/reconstruction/projective_reconstruction.cc
 //  ../src/libmv/reconstruction/euclidean_reconstruction.cc
 //  ../src/libmv/reconstruction/reconstruction.cc
-//  ../src/libmv/reconstruction/euclidean_reconstruction_test.cc - Make won't build this???
+//  ../src/libmv/reconstruction/euclidean_reconstruction_test.cc
 
 // TODO: Two view reconstruction for the moment - combined libmv  projective and eucledian funcs
 // TODO: check multiview in libmv
