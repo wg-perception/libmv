@@ -39,9 +39,10 @@
 #ifdef __cplusplus
 
 #include <opencv2/core/core.hpp>
+#include <iostream>
 
 /* libmv headers */
-#include "libmv/reconstruction/reconstruction.h"
+#include <libmv/reconstruction/reconstruction.h>
 
 
 namespace cv

@@ -34,6 +34,10 @@
  */
 
 #include <opencv2/sfm/sfm.hpp>
+using namespace libmv;
+using namespace std;
+
+
 namespace cv
 {
 
@@ -41,14 +45,24 @@ void reconstruct(const InputArrayOfArrays points2d,
 		OutputArrayOfArrays projection_matrices, OutputArray points3d, bool,
 		bool is_projective, bool has_outliers, bool is_sequence)
 {
+	std::vector<double> v;
+	int n=v.size();
+	int nviews=points2d.size();
 
-	/*	Data types used in libmv functions*/
+	/*	Variables for libmv functions */
 	Matches matches;
-
-//	Matches *matches_inliers;
-//	Reconstruction reconstruction;
+	Matches *matches_inliers;
+	Reconstruction reconstruction;
 
 	/*	Convert to libmv compatible data types */
+//	for (int v = 0; v < nviews; ++v)
+//	{
+//		for (int p = 0; p < npts; ++p) {
+//			PointFeature * feature = new PointFeature(W[v].at<double>(0, p),
+//					W[v].at<double>(1, p));
+//			matches.Insert(v, p, feature);
+//		}
+//	}
 
 	if (is_projective)
 	{
