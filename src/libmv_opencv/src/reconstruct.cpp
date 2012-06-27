@@ -83,4 +83,7 @@ void reconstruct(const InputArrayOfArrays points2d,
 	{
 
 	}
+
+	/* Give error if reconstruction failed */
+	CV_Assert(result==true);
 }
