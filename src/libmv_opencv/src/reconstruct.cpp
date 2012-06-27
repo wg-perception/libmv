@@ -37,46 +37,49 @@
 
 /* libmv headers */
 #include <libmv/reconstruction/reconstruction.h>
+#include <libmv/reconstruction/projective_reconstruction.h>
 
 using namespace cv;
 using namespace libmv;
 using namespace std;
 
-
-
 void reconstruct(const InputArrayOfArrays points2d,
 		OutputArrayOfArrays projection_matrices, OutputArray points3d, bool,
 		bool is_projective, bool has_outliers, bool is_sequence)
 {
-	std::vector<double> v;
-	int n=v.size();
-// 	int nviews=points2d.size();
+	bool result = false;
 
-	/*	Variables for libmv functions */
+	/* Data types needed by libmv functions */
 	Matches matches;
 	Matches *matches_inliers;
 	Reconstruction reconstruction;
 
-	/*	Convert to libmv compatible data types */
-//	for (int v = 0; v < nviews; ++v)
-//	{
-//		for (int p = 0; p < npts; ++p) {
-//			PointFeature * feature = new PointFeature(W[v].at<double>(0, p),
-//					W[v].at<double>(1, p));
-//			matches.Insert(v, p, feature);
-//		}
-//	}
+	/* Convert OpenCV types to libmv types */
+	unsigned int nviews = (unsigned) points2d.total();
+	for (int v = 0; v < nviews; ++v)
+	{
+		std::vector<cv::Point2d> imgpts = points2d.getMat(v);
+		for (int p = 0; p < imgpts.size(); ++p)
+		{
+			cv::Point2d pt = imgpts[p];
+			PointFeature * feature = new PointFeature(pt.x, pt.y);
+			matches.Insert(v, p, feature);
+		}
+	}
 
+	/* Projective reconstruction*/
 	if (is_projective)
 	{
-//ReconstructFromTwoUncalibratedViews	(const Matches &matches,
-//			CameraID image_id1,
-//			CameraID image_id2,
-//			Matches *matches_inliers,
-//			Reconstruction *reconstruction);
+		/* Two view reconstruction */
+		if (nviews == 2)
+			result = ReconstructFromTwoUncalibratedViews(matches, 0, 1,
+					matches_inliers, &reconstruction);
+		// set output data
 
 	}
-	else // Eucledian?
+
+	/* Euclidian reconstruction*/
+	else
 	{
 
 	}
