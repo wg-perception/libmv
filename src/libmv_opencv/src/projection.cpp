@@ -38,37 +38,38 @@
 using namespace cv;
 
 template<typename T>
-void HomogeneousToEuclidean_(const InputArray _X, OutputArray _x)
+void HomogeneousToEuclidean_(const cv::Mat & _X, cv::Mat & _x)
 {
-    Mat X = _X.getMat();
+    int d = _X.rows - 1;
 
-    unsigned d = X.rows - 1;
-    unsigned n = X.cols;
+    const cv::Mat_<T> & X_rows = _X.rowRange(0,d);
+    const Mat_<T> h = _X.row(d);
 
-    Mat_<T> x_tmp = X( Range(0,d), Range(0,n) );
-    Mat_<T> h = X.row(d);
-
-    for (unsigned i = 0; i < d; ++i)
+    const T * h_ptr = h[0], *h_ptr_end = h_ptr + h.cols;
+    const T * X_ptr = X_rows[0];
+    T * x_ptr = _x.ptr<T>(0);
+    for (; h_ptr != h_ptr_end; ++h_ptr, ++X_ptr, ++x_ptr)
     {
-        for (unsigned j = 0; j < n; ++j)
+        const T * X_col_ptr = X_ptr;
+        T * x_col_ptr = x_ptr, *x_col_ptr_end = x_col_ptr + d * _x.step;
+        for (; x_col_ptr != x_col_ptr_end; X_col_ptr+=X_rows.step, x_col_ptr+=_x.step )
         {
-            x_tmp(i,j) = x_tmp(i,j) / h(j);
+            *x_col_ptr = (*X_col_ptr) / (*h_ptr);
         }
     }
-
-    x_tmp.copyTo(_x);
 }
 
 void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
 {
-    Mat X = _X.getMat();
+    const Mat X = _X.getMat();
+    cv::Mat x = _x.getMat();
 
     if( X.depth() == CV_32F )
     {
-        HomogeneousToEuclidean_<float>(_X,_x);
+        HomogeneousToEuclidean_<float>(X,x);
     }
     else
     {
-        HomogeneousToEuclidean_<double>(_X,_x);
+        HomogeneousToEuclidean_<double>(X,x);
     }
 }
