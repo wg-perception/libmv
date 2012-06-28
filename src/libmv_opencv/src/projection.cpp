@@ -47,8 +47,10 @@ void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
     Mat_<double> x_tmp = X( Range(0,d), Range(0,n) );
     Mat_<double> h = X.row(d);
 
-    for (unsigned i = 0; i < d; ++i) {
-      for (unsigned j = 0; j < n; ++j) {
+    for (unsigned i = 0; i < d; ++i)
+    {
+        for (unsigned j = 0; j < n; ++j)
+        {
             x_tmp(i,j) = x_tmp(i,j) / h(j);
         }
     }
