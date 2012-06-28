@@ -37,15 +37,16 @@
 
 using namespace cv;
 
-void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
+template<typename T>
+void HomogeneousToEuclidean_(const InputArray _X, OutputArray _x)
 {
     Mat X = _X.getMat();
 
     unsigned d = X.rows - 1;
     unsigned n = X.cols;
 
-    Mat_<double> x_tmp = X( Range(0,d), Range(0,n) );
-    Mat_<double> h = X.row(d);
+    Mat_<T> x_tmp = X( Range(0,d), Range(0,n) );
+    Mat_<T> h = X.row(d);
 
     for (unsigned i = 0; i < d; ++i)
     {
@@ -56,4 +57,18 @@ void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
     }
 
     x_tmp.copyTo(_x);
+}
+
+void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
+{
+    Mat X = _X.getMat();
+
+    if( X.depth() == CV_32F )
+    {
+        HomogeneousToEuclidean_<float>(_X,_x);
+    }
+    else
+    {
+        HomogeneousToEuclidean_<double>(_X,_x);
+    }
 }
