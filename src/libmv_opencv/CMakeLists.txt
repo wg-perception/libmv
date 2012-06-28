@@ -33,14 +33,14 @@ install(DIRECTORY include/opencv2/sfm
 # Add some tests
 include_directories(${GTEST_INCLUDE_DIRS})
 
-#add_executable(sfm_tests test/test_main.cpp
-#)
+add_executable(sfm_tests test/test_main.cpp
+                         test/test_reconstruct.cpp
+)
 
-#find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})
-#target_link_libraries(sfm_tests ${GTEST_BOTH_LIBRARIES}
-#                                 ${OpenCV_LIBRARIES}
-#                                 opencv_rgbd
-#                                 ${OPENCV_TS_LIBRARY}
-#)
+find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})
+target_link_libraries(sfm_tests ${GTEST_BOTH_LIBRARIES}
+                                 ${OpenCV_LIBRARIES}
+                                 ${OPENCV_TS_LIBRARY}
+)
 
-#add_test(rgbd_tests sfm_tests)
+add_test(sfm_tests sfm_tests)

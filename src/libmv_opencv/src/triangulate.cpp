@@ -34,7 +34,7 @@
  */
 
 #include "opencv2/sfm/sfm.hpp"
-#include <opencv-2.3.1/opencv2/core/core.hpp>
+//#include <opencv-2.3.1/opencv2/core/core.hpp>
 
 using namespace cv;
 
