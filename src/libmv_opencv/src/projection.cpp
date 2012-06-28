@@ -40,22 +40,18 @@ using namespace cv;
 void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
 {
     Mat X = _X.getMat();
-    Mat x = _x.getMat();
 
     unsigned d = X.rows - 1;
     unsigned n = X.cols;
-  
-    Mat_<double> x_tmp = X( Range(0,d), Range(0,n) );
 
-    CV_Assert( x_tmp.rows == d && x_tmp.cols == n );
-    
-    for (unsigned i = 0; i < n; ++i) {
-        double h = X.at<double>(d, i);
-        for (int j = 0; j < d; ++j) {
-            x_tmp(j, i) = x_tmp(j, i) / h;
+    Mat_<double> x_tmp = X( Range(0,d), Range(0,n) );
+    Mat_<double> h = X.row(d);
+
+    for (unsigned i = 0; i < d; ++i) {
+      for (unsigned j = 0; j < n; ++j) {
+            x_tmp(i,j) = x_tmp(i,j) / h(j);
         }
     }
 
-//     x.clear();
-    x_tmp.copyTo(x);
+    x_tmp.copyTo(_x);
 }

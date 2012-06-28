@@ -33,5 +33,33 @@
  *
  */
 
-#include <opencv2/sfm/sfm.hpp>
+#include "opencv2/sfm/sfm.hpp"
+#include <opencv-2.3.1/opencv2/core/core.hpp>
+
+using namespace cv;
+
+
+// ToDo (pablo): try to use SVD::SolveZ()
+void
+null(const InputArray _src, OutputArray _dst)
+{
+    Mat A, w, u, vt;
+
+    A = _src.getMat();
+    SVD::compute( A.t()*A, w, u, vt);
+
+    Mat dst = vt.t().col(A.cols-1);
+    dst.copyTo(_dst);
+}
+
+
+void
+triangulatePoints(const InputArrayOfArrays points2d, const InputArrayOfArrays projection_matrices,
+                  OutputArray points3d, bool has_outliers = false)
+{
+    unsigned i, nviews = (unsigned)points2d.total();
+
+//     for( i = 0; i < nviews; i++ )
+//           ... points2d.getMat(i) ... ;
+}
 
