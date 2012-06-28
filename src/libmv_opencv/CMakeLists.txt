@@ -33,9 +33,9 @@ install(DIRECTORY include/opencv2/sfm
 # Add some tests
 include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(sfm_tests	test/test_main.cpp
-				test/test_reconstruct.cpp
-				test/test_projection.cpp
+add_executable(sfm_tests test/test_main.cpp
+                         test/test_reconstruct.cpp
+                         test/test_projection.cpp
 
 )
 
@@ -44,5 +44,8 @@ target_link_libraries(sfm_tests ${GTEST_BOTH_LIBRARIES}
                                  ${OpenCV_LIBRARIES}
                                  ${OPENCV_TS_LIBRARY}
 )
+
+set_target_properties(sfm_tests PROPERTIES
+                      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/tests)
 
 add_test(sfm_tests sfm_tests)
