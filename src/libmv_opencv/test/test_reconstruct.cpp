@@ -61,9 +61,9 @@ TEST(Sfm_reconstruct, twoViewProjective)
   fs["W2"] >> W[1];
   fs["W2"] >> W[2];
 
-  cout << endl << "P1 = " << P1 << endl;
+/*  cout << endl << "P1 = " << P1 << endl;
   cout << endl << "P2 = " << P2 << endl;
   cout << endl << "W1 = " << W1 << endl;
   cout << endl << "W2 = " << W2 << endl;
-  cout << endl << "S = " << S << endl;
+  cout << endl << "S = " << S << endl;*/
 }
