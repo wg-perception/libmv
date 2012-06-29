@@ -36,8 +36,34 @@
 #include "test_precomp.hpp"
 
 using namespace cv;
+using namespace std;
 
 TEST(Sfm_reconstruct, twoViewProjective)
 {
-    std::cout << "testing!!!" << std::endl;
+
+  string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
+
+  int nviews = 3;
+  int npts = 10;
+
+  cout << endl << "Reading: " << endl;
+  FileStorage fs;
+  fs.open(filename, FileStorage::READ);
+  cv::Mat S, W1, W2, P1, P2;
+  fs["S"] >> S;
+  fs["W1"] >> W1;
+  fs["W2"] >> W2;
+  fs["P1"] >> P1;
+  fs["P2"] >> P2;
+
+  cv::Mat W[3];
+  fs["W1"] >> W[0];
+  fs["W2"] >> W[1];
+  fs["W2"] >> W[2];
+
+  cout << endl << "P1 = " << P1 << endl;
+  cout << endl << "P2 = " << P2 << endl;
+  cout << endl << "W1 = " << W1 << endl;
+  cout << endl << "W2 = " << W2 << endl;
+  cout << endl << "S = " << S << endl;
 }
