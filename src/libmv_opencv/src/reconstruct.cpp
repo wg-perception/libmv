@@ -77,14 +77,18 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
     /* Set output data */
     /* Get Cameras */
     CV_Assert(recon.GetNumberCameras()==nviews);
-    PinholeCamera *cam;
-    Mat34 P;
+    libmv::PinholeCamera *cam;
+    libmv::Mat34 P;
+    projection_matrices.create(3, 4, CV_32FC1, nviews);
+
     for (int i = 0; i < nviews; ++i)
     {
       cam = (PinholeCamera *) recon.GetCamera(i);
       P = cam->GetPoseMatrix();
-      cout << P << endl; // not impl? - print
-      // Convert from this
+      cv::Mat Pcv = projection_matrices.getMat(i);
+      eigen2cv(P, Pcv);
+//      cout << Pcv << endl; // not impl? - print
+
     }
 
     /*    3D structure*/
