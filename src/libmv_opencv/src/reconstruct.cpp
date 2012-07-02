@@ -33,11 +33,16 @@
  *
  */
 
+#include <Eigen/Core>
+
 #include <opencv2/sfm/sfm.hpp>
+#include <opencv2/core/eigen.hpp>
 
 /* libmv headers */
 #include <libmv/reconstruction/reconstruction.h>
 #include <libmv/reconstruction/projective_reconstruction.h>
+
+#include <iostream>
 
 using namespace cv;
 using namespace libmv;
@@ -86,7 +91,7 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
       cam = (PinholeCamera *) recon.GetCamera(i);
       P = cam->GetPoseMatrix();
       cv::Mat Pcv = projection_matrices.getMat(i);
-      eigen2cv(P, Pcv);
+//       eigen2cv(P, Pcv);
 //      cout << Pcv << endl; // not impl? - print
 
     }
