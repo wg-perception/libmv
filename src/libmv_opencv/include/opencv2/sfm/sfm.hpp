@@ -91,8 +91,6 @@ namespace cv
               OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
                   false);
 
-  int test(int num);
-
 } /* namespace cv */
 
 #endif /* __cplusplus */

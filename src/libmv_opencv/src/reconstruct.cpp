@@ -50,15 +50,12 @@ using namespace cv;
 using namespace libmv;
 using namespace std;
 
-int
-test(int num)
+namespace cv
 {
-  return 2 * num;
-}
 
 void
 reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
-            bool is_projective, bool has_outliers, bool is_sequence = false)
+            bool is_projective, bool has_outliers, bool is_sequence)
 {
   bool result = false;
 
@@ -117,3 +114,4 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
   CV_Assert(result == true);
 }
 
+}

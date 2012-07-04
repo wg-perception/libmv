@@ -40,10 +40,10 @@ add_executable(sfm_tests test/test_main.cpp
 )
 
 find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})
-target_link_libraries(sfm_tests  ${GTEST_BOTH_LIBRARIES}
-				  opencv_sfm            
-# This gives error:  there is a cycle in the constraint graph:			  
-#                                  ${OPENCV_TS_LIBRARY}
+target_link_libraries(sfm_tests opencv_sfm
+                                ${GTEST_BOTH_LIBRARIES}
+                                ${OpenCV_LIBRARIES}
+                                ${OPENCV_TS_LIBRARY}
 )
 
 set_target_properties(sfm_tests PROPERTIES
