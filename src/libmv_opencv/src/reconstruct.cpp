@@ -33,8 +33,10 @@
  *
  */
 
+/* Eigen */
 #include <Eigen/Core>
 
+/* Open CV */
 #include <opencv2/sfm/sfm.hpp>
 #include <opencv2/core/eigen.hpp>
 
@@ -48,9 +50,15 @@ using namespace cv;
 using namespace libmv;
 using namespace std;
 
+int
+test(int num)
+{
+  return 2 * num;
+}
+
 void
 reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
-                bool is_projective, bool has_outliers, bool is_sequence = false)
+            bool is_projective, bool has_outliers, bool is_sequence = false)
 {
   bool result = false;
 
@@ -63,7 +71,7 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
   unsigned int nviews = (unsigned) points2d.total();
   for (int v = 0; v < nviews; ++v)
   {
-    std::vector<cv::Point2d> imgpts = points2d.getMat(v);
+    std::vector < cv::Point2d > imgpts = points2d.getMat(v);
     for (int p = 0; p < imgpts.size(); ++p)
     {
       cv::Point2d pt = imgpts[p];
@@ -81,7 +89,7 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
 
     /* Set output data */
     /* Get Cameras */
-    CV_Assert(recon.GetNumberCameras()==nviews);
+    CV_Assert(recon.GetNumberCameras() == nviews);
     libmv::PinholeCamera *cam;
     libmv::Mat34 P;
     projection_matrices.create(3, 4, CV_32FC1, nviews);
@@ -106,5 +114,6 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
   }
 
   /* Give error if reconstruction failed */
-  CV_Assert(result==true);
+  CV_Assert(result == true);
 }
+

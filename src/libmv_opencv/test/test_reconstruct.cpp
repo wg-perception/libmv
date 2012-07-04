@@ -61,11 +61,13 @@ TEST(Sfm_reconstruct, twoViewProjective)
   fs["W2"] >> W[1];
   fs["W2"] >> W[2];
 
+#if 0
   cout << endl << "P1 = " << P1 << endl;
   cout << endl << "P2 = " << P2 << endl;
   cout << endl << "W1 = " << W1 << endl;
   cout << endl << "W2 = " << W2 << endl;
   cout << endl << "S = " << S << endl;
+#endif
 
   std::vector<cv::Mat > projection_matrices;
   std::vector<cv::Point3d> points3d;
@@ -75,11 +77,16 @@ TEST(Sfm_reconstruct, twoViewProjective)
   for (int m = 0; m < 2; ++m)
   { // 2views
     std::vector<cv::Point2d> p2d;
-    for (int n = 0; n < 10; ++n) // 10 pts
-      p2d.push_back(cv::Point2d(W[n].at<double>(0, n), W[n].at<double>(1, n)));
+    for (int n = 0; n < 10; ++n)// 10 pts
+    p2d.push_back(cv::Point2d(W[n].at<double>(0, n), W[n].at<double>(1, n)));
     points2d.push_back(p2d);
   }
 
-  reconstruct(points2d,projection_matrices,points3d);
+  Mat _points2d= Mat(points2d);
+  Mat _projection_matrices= Mat(projection_matrices);
+  Mat _points3d= Mat(points3d);
 
+  reconstruct(points2d,projection_matrices,points3d);
+//  reconstruct(_points2d, _projection_matrices, _points3d);
+//  cout << test(4);
 }

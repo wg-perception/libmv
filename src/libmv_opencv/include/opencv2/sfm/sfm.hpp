@@ -90,6 +90,9 @@ namespace cv
   reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
               OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
                   false);
+
+  int test(int num);
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
