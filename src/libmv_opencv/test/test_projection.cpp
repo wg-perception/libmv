@@ -34,8 +34,10 @@
  */
 
 #include "test_precomp.hpp"
+#include "opencv2/sfm/sfm.hpp"
 
 using namespace cv;
+using namespace std;
 
 // namespace cvtest
 // {    
@@ -43,5 +45,15 @@ using namespace cv;
 
 TEST(Sfm_HomogeneousToEuclidean, correctness)
 {
-    std::cout << "testing!!!" << std::endl;
+    Matx33f X(1, 2, 3,
+              4, 5, 6,
+              2, 1, 0);
+
+    Mat x;
+    HomogeneousToEuclidean(X,x);
+
+//     cout << Mat(X) << endl;
+//     cout << x << endl;
+
+    EXPECT_EQ( X.rows, x.rows );
 }

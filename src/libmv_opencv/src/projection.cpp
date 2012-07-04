@@ -35,10 +35,12 @@
 
 #include <opencv2/sfm/sfm.hpp>
 
-using namespace cv;
+namespace cv
+{
 
 template<typename T>
-void HomogeneousToEuclidean_(const cv::Mat & _X, cv::Mat & _x)
+void
+HomogeneousToEuclidean_(const cv::Mat & _X, cv::Mat & _x)
 {
     int d = _X.rows - 1;
 
@@ -59,7 +61,8 @@ void HomogeneousToEuclidean_(const cv::Mat & _X, cv::Mat & _x)
     }
 }
 
-void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
+void
+HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
 {
     const Mat X = _X.getMat();
     cv::Mat x = _x.getMat();
@@ -73,3 +76,5 @@ void HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
         HomogeneousToEuclidean_<double>(X,x);
     }
 }
+
+} /* namespace cv */

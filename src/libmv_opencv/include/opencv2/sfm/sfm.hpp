@@ -91,6 +91,14 @@ namespace cv
               OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
                   false);
 
+  /** Converts point coordinates from homogeneous to euclidean pixel coordinates ((x,y,z)->(x/z, y/z))
+   * @param X Input vector of N-dimensional points
+   * @param x Output vector of N-1-dimensional points.
+   */
+  CV_EXPORTS
+  void
+  HomogeneousToEuclidean(const InputArray X, OutputArray x);
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
