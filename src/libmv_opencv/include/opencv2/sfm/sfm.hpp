@@ -42,6 +42,15 @@
 
 namespace cv
 {
+
+  /** Triangulates enum */
+  enum
+  {
+      CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
+      CV_TRIANG_ALGEBRAIC = 1    /*!< ... */
+  };
+
+  
   /** Triangulates the 3d position of 2d correspondences between several images
    * @param points2d a vector of vectors of 2d points (the inner vector is per image)
    * @param projection_matrices The 3 x 4 projections matrices of each image
@@ -51,7 +60,7 @@ namespace cv
   CV_EXPORTS
   void
   triangulatePoints(const InputArrayOfArrays points2d, const InputArrayOfArrays projection_matrices,
-                    OutputArray points3d, bool has_outliers = false);
+                    OutputArray points3d, int method = CV_TRIANG_DLT);
 
   /** Reconstruct 3d points from 2d correspondences without performing autocalibration.
    * @param points2d a vector of vectors of 2d points (the inner vector is per image)
