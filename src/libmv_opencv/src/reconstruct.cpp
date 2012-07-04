@@ -49,8 +49,8 @@ using namespace libmv;
 using namespace std;
 
 void
-reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d, bool,
-            bool is_projective, bool has_outliers, bool is_sequence)
+reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
+                bool is_projective, bool has_outliers, bool is_sequence = false)
 {
   bool result = false;
 
@@ -91,24 +91,13 @@ reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_ma
       cam = (PinholeCamera *) recon.GetCamera(i);
       P = cam->GetPoseMatrix();
       cv::Mat Pcv = projection_matrices.getMat(i);
-//       eigen2cv(P, Pcv);
-//      cout << Pcv << endl; // not impl? - print
+      eigen2cv(P, Pcv);
+      cout << Pcv << endl; // not impl? - print
 
     }
 
-    /*    3D structure*/
-    // where is the 3D pt info? in tracks?? check Recon...code
-    /*
-     PointStructure *ptstruc;
-     Vec3 pt3;
-     for (int i = 0; i < recon.GetNumberStructures(); ++i)
-     {
-     ptstruc = (PointStructure)recon.GetStructure(i);
-
-     cout << "3D pt" << ptstruc->coords_affine() << endl;
-     }
-     */
-
+    /*  Triangulate and find  3D points*/
+//    cv::triangulatePoints()
   }
   /* Euclidian reconstruction*/
   else

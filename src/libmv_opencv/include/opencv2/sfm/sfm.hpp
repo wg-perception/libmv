@@ -72,7 +72,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d, bool,
+  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
               bool is_projective = false, bool has_outliers = false, bool is_sequence = false);
 
   /** Reconstruct 3d points from 2d correspondences while performing autocalibration.

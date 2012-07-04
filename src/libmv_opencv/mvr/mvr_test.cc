@@ -66,30 +66,41 @@ using namespace cv;
 #if 1
 TEST(Mvr, TestYAML)
 {
-//	{ //write
-//		Mat R = Mat_ < uchar > ::eye(3, 3), T = Mat_<double>::zeros(3, 1);
-//		FileStorage fs("opencv.yml", FileStorage::WRITE);
+  std::vector<cv::Point2d> imgpts, imgpts2;
+  imgpts.push_back(Point2d(1.0, 2.0));
+  imgpts.push_back(Point2d(2.0, 3.0));
+  imgpts.push_back(Point2d(3.0, 2.0));
+  { //write
+    cv::Mat R = Mat_<uchar>::eye(3, 3), T = Mat_<double>::zeros(3, 1);
+    FileStorage fs("opencv.yml", FileStorage::WRITE);
+
+    fs << "R" << R; // cv::Mat
+    fs << "T" << T;
+
+    fs << "imgpts" << imgpts;
+
+    fs.release(); // explicit close
+    cout << "Write Done." << endl;
+  }
+
+  { //read
+    string filename = "opencv.yml";
+    cout << endl << "Reading: " << endl;
+    FileStorage fs;
+    fs.open(filename, FileStorage::READ);
+//    Mat R, T;
 //
-//		fs << "R" << R; // cv::Mat
-//		fs << "T" << T;
+//    fs["R"] >> R; // Read cv::Mat
+//    fs["T"] >> T;
 //
-//		fs.release(); // explicit close
-//		cout << "Write Done." << endl;
-//	}
-//
-//	{ //read
-//		string filename = "opencv.yml";
-//		cout << endl << "Reading: " << endl;
-//		FileStorage fs;
-//		fs.open(filename, FileStorage::READ);
-//		Mat R, T;
-//
-//		fs["R"] >> R; // Read cv::Mat
-//		fs["T"] >> T;
-//
-//		cout << endl << "R = " << R << endl;
-//		cout << "T = " << T << endl << endl;
-//	}
+//    cout << endl << "R = " << R << endl;
+//    cout << "T = " << T << endl;
+
+    fs["imgpts"] >> imgpts2;
+    cout << "imgpts = " << imgpts2[0] << endl;
+    cout << "imgpts = " << imgpts2[1] << endl;
+
+  }
   { //test
     string filename = "rnd_N10_F3.yml";
     int nviews = 3;

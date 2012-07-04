@@ -7,6 +7,7 @@
 
 #include <opencv2/ts/ts.hpp>
 #include <opencv2/core/core.hpp>
+#include <opencv2/sfm/sfm.hpp>
 #include <iostream>
 
 #endif
