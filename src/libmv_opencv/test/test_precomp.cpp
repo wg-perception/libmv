@@ -8,7 +8,7 @@ readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::
   fs.open(filename, FileStorage::READ);
 
   /* Read 2d point data */
-  cv::Mat W[nviews];
+  std::vector<cv::Mat> W(nviews);
   for (int m = 0; m < nviews; ++m)
   {
     std::stringstream buf;
