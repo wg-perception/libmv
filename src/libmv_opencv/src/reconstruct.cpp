@@ -61,19 +61,24 @@ namespace cv
 
     /* Data types needed by libmv functions */
     Matches matches;
-    Matches *matches_inliers;
+    Matches matches_inliers;
     Reconstruction recon;
 
     /* Convert OpenCV types to libmv types */
-    unsigned int nviews = (unsigned) points2d.total();
-    for (int v = 0; v < nviews; ++v)
+    int nviews = (int) points2d.total();
+    cout << nviews << endl;
+
+    for (int m = 0; m < nviews; ++m)
     {
-      std::vector<cv::Point2d> imgpts = points2d.getMat(v);
-      for (int p = 0; p < imgpts.size(); ++p)
+      std::vector<Point2d> imgpts;
+      imgpts = points2d.getMat(0);
+      for (int n = 0; n < imgpts.size(); ++n)
       {
-        cv::Point2d pt = imgpts[p];
-        PointFeature * feature = new PointFeature(pt.x, pt.y);
-        matches.Insert(v, p, feature);
+//        cout << imgpts[n] << endl;
+        PointFeature * feature = new PointFeature(imgpts[n].x, imgpts[n].y);
+        matches.Insert(m, n, feature);
+        feature = (PointFeature *) matches.Get(m, n);
+//        cout << feature->coords << endl;
       }
     }
 
@@ -82,26 +87,27 @@ namespace cv
     {
 
       /* Two view reconstruction */
+
       if (nviews == 2)
-        result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, matches_inliers, &recon);
+        result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, &matches_inliers, &recon);
 
       /* Get Cameras */
       CV_Assert(recon.GetNumberCameras() == nviews);
 
       libmv::PinholeCamera *cam;
       libmv::Mat34 P;
+      std::vector<cv::Mat> Pcv(nviews);
+      projection_matrices.create(nviews, 1, CV_64FC3);
 
-      projection_matrices.create(3, 4, CV_32FC1, 0);
-#if 0
-      for (int i = 0; i < nviews; ++i)
+      for (int m = 0; m < nviews; ++m)
       {
-        cam = (PinholeCamera *) recon.GetCamera(i);
-        P = cam->GetPoseMatrix();
-        cv::Mat Pcv = projection_matrices.getMat(i);
-        eigen2cv(P, Pcv);
-        cout << Pcv << endl; // not impl? - print
+        cam = (PinholeCamera *) recon.GetCamera(m);
+        eigen2cv(cam->GetPoseMatrix(), Pcv[m]);
+//        cout << Pcv[m] << endl;
+        projection_matrices.create(3, 4, CV_64F, m, true);
+        memcpy(projection_matrices.getMat(m).data, Pcv[m].ptr<double>(0), 3 * 4 * sizeof(double));
       }
-#endif
+
       /*  Triangulate and find  3D points*/
 
     }

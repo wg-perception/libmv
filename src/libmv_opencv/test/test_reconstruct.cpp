@@ -35,19 +35,30 @@
 
 #include "test_precomp.hpp"
 
-
 TEST(Sfm_reconstruct, twoViewProjective)
 {
 
-  string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
   std::vector<std::vector<cv::Point2d> > points2d;
+  std::vector<cv::Point3d> points3d;
+  std::vector<cv::Mat> projection_matrices;
 
+  string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
   readtestdata(filename, 2, 10, points2d);
-  std::vector<cv::Point2d> pts;
-  pts = points2d[0];
-  cout << pts << endl;
 
-//  cv::reconstruct(points2d, projection_matrices, points3d, true);
+  cv::reconstruct(points2d, projection_matrices, points3d, true);
+  cout << projection_matrices[0] << endl;
+  cout << projection_matrices[1] << endl;
 
 }
+
+//  std::vector<cv::Point2d> pts;
+//  pts = points2d[0];
+//  cout << pts << endl;
+
+//  OutputArray projection_matrix_outarray(projection_matrices);
+//
+//  assert(projection_matrix_outarray.kind() == _OutputArray::STD_VECTOR_MAT);
+//
+//
+//cv::reconstruct(points2d, projection_matrix_outarray, points3d, true);
 

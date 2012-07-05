@@ -20,7 +20,7 @@ readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::
   for (int m = 0; m < nviews; ++m)
   {
     std::vector<cv::Point2d> pts;
-    for (int n = 0; n < 10; ++n)
+    for (int n = 0; n < npts; ++n)
       pts.push_back(cv::Point2d(W[m].at<double>(0, n), W[m].at<double>(1, n)));
     points2d.push_back(pts);
   }
