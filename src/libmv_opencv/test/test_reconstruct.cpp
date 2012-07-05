@@ -43,7 +43,7 @@ TEST(Sfm_reconstruct, twoViewProjective)
   std::vector<cv::Mat> projection_matrices;
   std::vector<cv::Mat> estimated_projection_matrices;
 
-  string filename(/*cvtest::TS::ptr()->get_data_path() +*/ "sfm/rnd_N10_F3.yml");
+  string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
   readtestdata(filename, 2, 10, points2d);
   readtestdata(filename, 2, projection_matrices);
 
