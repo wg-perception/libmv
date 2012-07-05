@@ -53,11 +53,9 @@ HomogeneousToEuclidean_(const cv::Mat & _X, cv::Mat & _x)
     for (; h_ptr != h_ptr_end; ++h_ptr, ++X_ptr, ++x_ptr)
     {
         const T * X_col_ptr = X_ptr;
-        T * x_col_ptr = x_ptr, *x_col_ptr_end = x_col_ptr + d * _x.step;
-        for (; x_col_ptr != x_col_ptr_end; X_col_ptr+=X_rows.step, x_col_ptr+=_x.step )
-        {
+        T * x_col_ptr = x_ptr, *x_col_ptr_end = x_col_ptr + d * _x.step1();
+        for (; x_col_ptr != x_col_ptr_end; X_col_ptr+=X_rows.step1(), x_col_ptr+=_x.step1() )
             *x_col_ptr = (*X_col_ptr) / (*h_ptr);
-        }
     }
 }
 
