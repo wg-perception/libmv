@@ -47,7 +47,7 @@ TEST(Sfm_reconstruct, twoViewProjective)
   readtestdata(filename, 2, 10, points2d);
   readtestdata(filename, 2, projection_matrices);
 
-  cv::reconstruct(points2d, estimated_projection_matrices, points3d, true);
+//  cv::reconstruct(points2d, estimated_projection_matrices, points3d, true);
 
 /*  cout << "Estimate:" << endl;
   cout << projection_matrices[0] << endl;
@@ -56,4 +56,5 @@ TEST(Sfm_reconstruct, twoViewProjective)
   cout << estimated_projection_matrices[0] << endl;
   cout << estimated_projection_matrices[1] << endl;
   cout << "Should be equal to scale. Better to check diff in PX" << endl;*/
+
 }

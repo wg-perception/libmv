@@ -66,25 +66,26 @@ namespace cv
   }
 
   void
-  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
-              bool is_projective, bool has_outliers, bool is_sequence)
+  iparr_2_ptvec(const InputArrayOfArrays points2d, std::vector<std::vector<Point2d> >& points2dvec)
   {
-    bool result = false;
-    std::vector<std::vector<Point2d> > _points2d;
     int nviews = (int) points2d.total();
-    cout << nviews << endl;
-
-    /* Data types needed by libmv functions */
-    Matches matches;
-    Matches matches_inliers;
-    Reconstruction recon;
-
-    /* Convert OpenCV types to libmv types */
     for (int m = 0; m < nviews; ++m)
     {
-      std::vector<Point2d> imgpts;
-      imgpts = points2d.getMat(0);
-      _points2d.push_back(imgpts);
+      std::vector < Point2d > imgpts;
+      imgpts = points2d.getMat(m);
+      points2dvec.push_back(imgpts);
+    }
+  }
+
+  void
+  ptvec_2_matches(std::vector<std::vector<Point2d> >& points2d, libmv::Matches& matches)
+  {
+    int nviews = points2d.size();
+
+    for (int m = 0; m < nviews; ++m)
+    {
+      std::vector < Point2d > imgpts;
+      imgpts = points2d[m];
 
       for (int n = 0; n < imgpts.size(); ++n)
       {
@@ -96,7 +97,61 @@ namespace cv
       }
     }
 
+  }
+
+  void
+  recon_2_projmatvec(libmv::Reconstruction& recon, std::vector<cv::Mat>& Pv)
+  {
+    libmv::PinholeCamera *cam;
+
+    for (int m = 0; m < recon.GetNumberCameras(); ++m)
+    {
+      cam = (PinholeCamera *) recon.GetCamera(m);
+      cv::Mat P;
+      eigen2cv(cam->GetPoseMatrix(), P);
+//      cout << P << endl;
+      Pv.push_back(P);
+    }
+  }
+
+  void
+  projmatvec_2_oparr(std::vector<cv::Mat>& P, OutputArrayOfArrays projection_matrices)
+  {
+//    cout << P.size() << endl;
+    projection_matrices.create(P.size(), 1, CV_64FC3);
+
+    for (int m = 0; m < P.size(); ++m)
+    {
+//      cout << P[m] << endl;
+      projection_matrices.create(P[m].rows, P[m].cols, CV_64F, m, true);
+      memcpy(projection_matrices.getMat(m).data, P[m].ptr<double>(0), P[m].rows * P[m].cols * sizeof(double));
+    }
+  }
+
+  void
+  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
+              bool is_projective, bool has_outliers, bool is_sequence)
+  {
+
+    /* OpenCV data types */
+    bool result = false;
+    std::vector < std::vector<Point2d> > _points2d;
+    std::vector < cv::Mat > P;
+
+    /* Data types needed by libmv functions */
+    Matches matches;
+    Matches matches_inliers;
+    Reconstruction recon;
+
+    /* Convert OpenCV types to libmv types */
+    iparr_2_ptvec(points2d, _points2d);
+    ptvec_2_matches(_points2d, matches);
+
+    int nviews = _points2d.size();
+    // cout << nviews << endl;
+
     /* Projective reconstruction*/
+
     if (is_projective)
     {
 
@@ -105,37 +160,27 @@ namespace cv
       if (nviews == 2)
         result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, &matches_inliers, &recon);
 
-      /* Get Cameras */
+      /* Get projection matrices */
       CV_Assert(recon.GetNumberCameras() == nviews);
+      recon_2_projmatvec(recon, P);
+      projmatvec_2_oparr(P, projection_matrices);
+      cout << projection_matrices.getMat(0) << endl;
+      cout << projection_matrices.getMat(1) << endl;
 
-      libmv::PinholeCamera *cam;
-      libmv::Mat34 P;
-      std::vector<cv::Mat> Pcv(nviews);
-      projection_matrices.create(nviews, 1, CV_64FC3);
-
-      for (int m = 0; m < nviews; ++m)
-      {
-        cam = (PinholeCamera *) recon.GetCamera(m);
-        eigen2cv(cam->GetPoseMatrix(), Pcv[m]);
-//        cout << Pcv[m] << endl;
-        projection_matrices.create(3, 4, CV_64F, m, true);
-        memcpy(projection_matrices.getMat(m).data, Pcv[m].ptr<double>(0), 3 * 4 * sizeof(double));
-      }
 
       /*  Triangulate and find  3D points*/
-      cv::Mat pt4d(4, 10, CV_64F);
-      cv::Mat pt2d[2];
-      ptvec2mat(_points2d[0], pt2d[0]);
-      ptvec2mat(_points2d[1], pt2d[1]);
-      CV_Assert(pt2d[0].cols==pt2d[1].cols);
-      cout << pt2d[0] << endl;
-      cout << pt2d[1] << endl;
-      cout << Pcv[0] << endl;
-      cout << Pcv[1] << endl;
+      /*      cv::Mat pt4d(4, 10, CV_64F);
+       cv::Mat pt2d[2];
+       ptvec2mat(_points2d[0], pt2d[0]);
+       ptvec2mat(_points2d[1], pt2d[1]);
+       CV_Assert(pt2d[0].cols == pt2d[1].cols);
+       cout << pt2d[0] << endl;
+       cout << pt2d[1] << endl;
+       cout << Pcv[0] << endl;
+       cout << Pcv[1] << endl;*/
 
       // This gives seg fault??
 //      cv::triangulatePoints(Pcv[0], Pcv[1], pt2d[0], pt2d[1], pt4d);
-
     }
     /* Euclidian reconstruction*/
     else
