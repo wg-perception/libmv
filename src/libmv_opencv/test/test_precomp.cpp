@@ -32,6 +32,8 @@ readtestdata(string filename, int nviews, std::vector<cv::Mat> &projection_matri
   cout << endl << "Reading: " << filename << endl;
   FileStorage fs;
   fs.open(filename, FileStorage::READ);
+  if (!fs.isOpened())
+    std::cerr << "Cannot find file: " << filename << std::endl;
 
   /* Read projection matrix data */
   for (int m = 0; m < nviews; ++m)
