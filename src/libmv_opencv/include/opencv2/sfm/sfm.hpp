@@ -99,6 +99,14 @@ namespace cv
   void
   HomogeneousToEuclidean(const InputArray X, OutputArray x);
 
+  /** This function normalizes points as done in the eight point algorithm
+   * @param X Input vector of N-dimensional points
+   * @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
+   * @param T Output transform matrix such that x = T*X
+   */
+  CV_EXPORTS
+  void
+  IsotropicScaling(const InputArray X, OutputArray x, OutputArray T);
 } /* namespace cv */
 
 #endif /* __cplusplus */
