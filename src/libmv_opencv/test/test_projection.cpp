@@ -55,5 +55,5 @@ TEST(Sfm_HomogeneousToEuclidean, correctness)
 //     cout << Mat(X) << endl;
 //     cout << x << endl;
 
-    EXPECT_EQ( X.rows, x.rows );
+    EXPECT_EQ( X.rows-1, x.rows );
 }
