@@ -13,8 +13,12 @@
 using namespace cv;
 using namespace std;
 
-/*Read test data from YAML file*/
+/*Read 2d point data from YAML file*/
 void
 readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d);
+
+/*Read projection matrix data from YAML file*/
+void
+readtestdata(string filename, int nviews, std::vector<cv::Mat> &projection_matrices);
 
 #endif

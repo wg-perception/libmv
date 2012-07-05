@@ -41,11 +41,14 @@ TEST(Sfm_reconstruct, twoViewProjective)
   std::vector<std::vector<cv::Point2d> > points2d;
   std::vector<cv::Point3d> points3d;
   std::vector<cv::Mat> projection_matrices;
+  std::vector<cv::Mat> estimated_projection_matrices;
 
   string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
   readtestdata(filename, 2, 10, points2d);
+  readtestdata(filename,2,projection_matrices);
 
-  cv::reconstruct(points2d, projection_matrices, points3d, true);
+  cv::reconstruct(points2d, estimated_projection_matrices, points3d, true);
+
   cout << projection_matrices[0] << endl;
   cout << projection_matrices[1] << endl;
 

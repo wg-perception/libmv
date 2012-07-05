@@ -25,3 +25,23 @@ readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::
     points2d.push_back(pts);
   }
 }
+
+void
+readtestdata(string filename, int nviews, std::vector<cv::Mat> &projection_matrices)
+{
+  cout << endl << "Reading: " << filename << endl;
+  FileStorage fs;
+  fs.open(filename, FileStorage::READ);
+
+  /* Read projection matrix data */
+  for (int m = 0; m < nviews; ++m)
+  {
+    cv::Mat P;
+
+    std::stringstream buf;
+    buf << "P" << m + 1;
+    fs[buf.str()] >> P;
+
+    projection_matrices.push_back(P);
+  }
+}
