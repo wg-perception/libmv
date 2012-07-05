@@ -45,23 +45,15 @@ TEST(Sfm_reconstruct, twoViewProjective)
 
   string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
   readtestdata(filename, 2, 10, points2d);
-  readtestdata(filename,2,projection_matrices);
+  readtestdata(filename, 2, projection_matrices);
 
   cv::reconstruct(points2d, estimated_projection_matrices, points3d, true);
 
+/*  cout << "Estimate:" << endl;
   cout << projection_matrices[0] << endl;
   cout << projection_matrices[1] << endl;
-
+  cout << "Groundtruth:" << endl;
+  cout << estimated_projection_matrices[0] << endl;
+  cout << estimated_projection_matrices[1] << endl;
+  cout << "Should be equal to scale. Better to check diff in PX" << endl;*/
 }
-
-//  std::vector<cv::Point2d> pts;
-//  pts = points2d[0];
-//  cout << pts << endl;
-
-//  OutputArray projection_matrix_outarray(projection_matrices);
-//
-//  assert(projection_matrix_outarray.kind() == _OutputArray::STD_VECTOR_MAT);
-//
-//
-//cv::reconstruct(points2d, projection_matrix_outarray, points3d, true);
-

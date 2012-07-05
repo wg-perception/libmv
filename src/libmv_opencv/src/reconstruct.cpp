@@ -39,6 +39,7 @@
 /* Open CV */
 #include <opencv2/sfm/sfm.hpp>
 #include <opencv2/core/eigen.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 /* libmv headers */
 #include <libmv/reconstruction/reconstruction.h>
@@ -52,12 +53,26 @@ using namespace std;
 
 namespace cv
 {
+  void
+  ptvec2mat(std::vector<cv::Point2d> &pvec, cv::Mat &pmat)
+  {
+    pmat = Mat(2, pvec.size(), CV_64F);
+
+    for (int i = 0; i < pvec.size(); ++i)
+    {
+      pmat.at<double>(0, i) = pvec[i].x;
+      pmat.at<double>(1, i) = pvec[i].y;
+    }
+  }
 
   void
   reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
               bool is_projective, bool has_outliers, bool is_sequence)
   {
     bool result = false;
+    std::vector<std::vector<Point2d> > _points2d;
+    int nviews = (int) points2d.total();
+    cout << nviews << endl;
 
     /* Data types needed by libmv functions */
     Matches matches;
@@ -65,13 +80,12 @@ namespace cv
     Reconstruction recon;
 
     /* Convert OpenCV types to libmv types */
-    int nviews = (int) points2d.total();
-    cout << nviews << endl;
-
     for (int m = 0; m < nviews; ++m)
     {
       std::vector<Point2d> imgpts;
       imgpts = points2d.getMat(0);
+      _points2d.push_back(imgpts);
+
       for (int n = 0; n < imgpts.size(); ++n)
       {
 //        cout << imgpts[n] << endl;
@@ -109,6 +123,18 @@ namespace cv
       }
 
       /*  Triangulate and find  3D points*/
+      cv::Mat pt4d(4, 10, CV_64F);
+      cv::Mat pt2d[2];
+      ptvec2mat(_points2d[0], pt2d[0]);
+      ptvec2mat(_points2d[1], pt2d[1]);
+      CV_Assert(pt2d[0].cols==pt2d[1].cols);
+      cout << pt2d[0] << endl;
+      cout << pt2d[1] << endl;
+      cout << Pcv[0] << endl;
+      cout << Pcv[1] << endl;
+
+      // This gives seg fault??
+//      cv::triangulatePoints(Pcv[0], Pcv[1], pt2d[0], pt2d[1], pt4d);
 
     }
     /* Euclidian reconstruction*/
