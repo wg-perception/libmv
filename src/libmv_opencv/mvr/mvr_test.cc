@@ -67,9 +67,8 @@ using namespace cv;
 TEST(Mvr, TestYAML)
 {
   std::vector<cv::Point2d> imgpts, imgpts2;
-  imgpts.push_back(Point2d(1.0, 2.0));
-  imgpts.push_back(Point2d(2.0, 3.0));
-  imgpts.push_back(Point2d(3.0, 2.0));
+  std::vector<std::vector<cv::Point2d> > imgptsaoa, imgpts2aoa;
+
   { //write
     cv::Mat R = Mat_<uchar>::eye(3, 3), T = Mat_<double>::zeros(3, 1);
     FileStorage fs("opencv.yml", FileStorage::WRITE);
@@ -77,7 +76,15 @@ TEST(Mvr, TestYAML)
     fs << "R" << R; // cv::Mat
     fs << "T" << T;
 
+    imgpts.push_back(Point2d(1.0, 2.0));
+    imgpts.push_back(Point2d(2.0, 3.0));
+    imgpts.push_back(Point2d(3.0, 2.0));
+
+    imgptsaoa.push_back(imgpts);
+    imgptsaoa.push_back(imgpts);
+
     fs << "imgpts" << imgpts;
+    fs << "imgptsaoa" << imgptsaoa;
 
     fs.release(); // explicit close
     cout << "Write Done." << endl;
@@ -96,10 +103,12 @@ TEST(Mvr, TestYAML)
 //    cout << endl << "R = " << R << endl;
 //    cout << "T = " << T << endl;
 
-    fs["imgpts"] >> imgpts2;
+//    fs["imgpts"] >> imgpts2;
+//    cout << "imgpts = " << imgpts2[0] << endl;
+//    cout << "imgpts = " << imgpts2[1] << endl;
+    fs["imgptsaoa"] >> imgptsaoa;
+    imgpts2 = imgptsaoa[0];
     cout << "imgpts = " << imgpts2[0] << endl;
-    cout << "imgpts = " << imgpts2[1] << endl;
-
   }
   { //test
     string filename = "rnd_N10_F3.yml";

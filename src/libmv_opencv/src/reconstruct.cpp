@@ -53,65 +53,66 @@ using namespace std;
 namespace cv
 {
 
-void
-reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
-            bool is_projective, bool has_outliers, bool is_sequence)
-{
-  bool result = false;
-
-  /* Data types needed by libmv functions */
-  Matches matches;
-  Matches *matches_inliers;
-  Reconstruction recon;
-
-  /* Convert OpenCV types to libmv types */
-  unsigned int nviews = (unsigned) points2d.total();
-  for (int v = 0; v < nviews; ++v)
+  void
+  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
+              bool is_projective, bool has_outliers, bool is_sequence)
   {
-    std::vector < cv::Point2d > imgpts = points2d.getMat(v);
-    for (int p = 0; p < imgpts.size(); ++p)
+    bool result = false;
+
+    /* Data types needed by libmv functions */
+    Matches matches;
+    Matches *matches_inliers;
+    Reconstruction recon;
+
+    /* Convert OpenCV types to libmv types */
+    unsigned int nviews = (unsigned) points2d.total();
+    for (int v = 0; v < nviews; ++v)
     {
-      cv::Point2d pt = imgpts[p];
-      PointFeature * feature = new PointFeature(pt.x, pt.y);
-      matches.Insert(v, p, feature);
-    }
-  }
-
-  /* Projective reconstruction*/
-  if (is_projective)
-  {
-    /* Two view reconstruction */
-    if (nviews == 2)
-      result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, matches_inliers, &recon);
-
-    /* Set output data */
-    /* Get Cameras */
-    CV_Assert(recon.GetNumberCameras() == nviews);
-    libmv::PinholeCamera *cam;
-    libmv::Mat34 P;
-    projection_matrices.create(3, 4, CV_32FC1, nviews);
-
-    for (int i = 0; i < nviews; ++i)
-    {
-      cam = (PinholeCamera *) recon.GetCamera(i);
-      P = cam->GetPoseMatrix();
-      cv::Mat Pcv = projection_matrices.getMat(i);
-      eigen2cv(P, Pcv);
-      cout << Pcv << endl; // not impl? - print
-
+      std::vector<cv::Point2d> imgpts = points2d.getMat(v);
+      for (int p = 0; p < imgpts.size(); ++p)
+      {
+        cv::Point2d pt = imgpts[p];
+        PointFeature * feature = new PointFeature(pt.x, pt.y);
+        matches.Insert(v, p, feature);
+      }
     }
 
-    /*  Triangulate and find  3D points*/
-//    cv::triangulatePoints()
-  }
-  /* Euclidian reconstruction*/
-  else
-  {
+    /* Projective reconstruction*/
+    if (is_projective)
+    {
 
-  }
+      /* Two view reconstruction */
+      if (nviews == 2)
+        result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, matches_inliers, &recon);
 
-  /* Give error if reconstruction failed */
-  CV_Assert(result == true);
-}
+      /* Get Cameras */
+      CV_Assert(recon.GetNumberCameras() == nviews);
+
+      libmv::PinholeCamera *cam;
+      libmv::Mat34 P;
+
+      projection_matrices.create(3, 4, CV_32FC1, 0);
+#if 0
+      for (int i = 0; i < nviews; ++i)
+      {
+        cam = (PinholeCamera *) recon.GetCamera(i);
+        P = cam->GetPoseMatrix();
+        cv::Mat Pcv = projection_matrices.getMat(i);
+        eigen2cv(P, Pcv);
+        cout << Pcv << endl; // not impl? - print
+      }
+#endif
+      /*  Triangulate and find  3D points*/
+
+    }
+    /* Euclidian reconstruction*/
+    else
+    {
+
+    }
+
+    /* Give error if reconstruction failed */
+//    CV_Assert(result == true);
+  }
 
 }

@@ -35,58 +35,19 @@
 
 #include "test_precomp.hpp"
 
-using namespace cv;
-using namespace std;
 
 TEST(Sfm_reconstruct, twoViewProjective)
 {
 
   string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
-
-  int nviews = 3;
-  int npts = 10;
-
-  cout << endl << "Reading: " << endl;
-  FileStorage fs;
-  fs.open(filename, FileStorage::READ);
-  cv::Mat S, W1, W2, P1, P2;
-  fs["S"] >> S;
-  fs["W1"] >> W1;
-  fs["W2"] >> W2;
-  fs["P1"] >> P1;
-  fs["P2"] >> P2;
-
-  cv::Mat W[3];
-  fs["W1"] >> W[0];
-  fs["W2"] >> W[1];
-  fs["W2"] >> W[2];
-
-#if 0
-  cout << endl << "P1 = " << P1 << endl;
-  cout << endl << "P2 = " << P2 << endl;
-  cout << endl << "W1 = " << W1 << endl;
-  cout << endl << "W2 = " << W2 << endl;
-  cout << endl << "S = " << S << endl;
-#endif
-
-  std::vector<cv::Mat > projection_matrices;
-  std::vector<cv::Point3d> points3d;
   std::vector<std::vector<cv::Point2d> > points2d;
 
-  // test on  2 views
-  for (int m = 0; m < 2; ++m)
-  { // 2views
-    std::vector<cv::Point2d> p2d;
-    for (int n = 0; n < 10; ++n)// 10 pts
-    p2d.push_back(cv::Point2d(W[n].at<double>(0, n), W[n].at<double>(1, n)));
-    points2d.push_back(p2d);
-  }
+  readtestdata(filename, 2, 10, points2d);
+  std::vector<cv::Point2d> pts;
+  pts = points2d[0];
+  cout << pts << endl;
 
-  Mat _points2d= Mat(points2d);
-  Mat _projection_matrices= Mat(projection_matrices);
-  Mat _points3d= Mat(points3d);
+//  cv::reconstruct(points2d, projection_matrices, points3d, true);
 
-  reconstruct(points2d,projection_matrices,points3d);
-//  reconstruct(_points2d, _projection_matrices, _points3d);
-//  cout << test(4);
 }
+
