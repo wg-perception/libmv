@@ -100,7 +100,7 @@ namespace cv
   }
 
   void
-  recon_2_projmatvec(libmv::Reconstruction& recon, std::vector<cv::Mat>& Pv)
+  recon_2_projmatvec(libmv::Reconstruction& recon, OutputArrayOfArrays Pv)
   {
     libmv::PinholeCamera *cam;
 
@@ -110,21 +110,7 @@ namespace cv
       cv::Mat P;
       eigen2cv(cam->GetPoseMatrix(), P);
 //      cout << P << endl;
-      Pv.push_back(P);
-    }
-  }
-
-  void
-  projmatvec_2_oparr(std::vector<cv::Mat>& P, OutputArrayOfArrays projection_matrices)
-  {
-//    cout << P.size() << endl;
-    projection_matrices.create(P.size(), 1, CV_64FC3);
-
-    for (int m = 0; m < P.size(); ++m)
-    {
-//      cout << P[m] << endl;
-      projection_matrices.create(P[m].rows, P[m].cols, CV_64F, m, true);
-      memcpy(projection_matrices.getMat(m).data, P[m].ptr<double>(0), P[m].rows * P[m].cols * sizeof(double));
+      P.copyTo(Pv.getMatRef(m));
     }
   }
 
@@ -136,7 +122,6 @@ namespace cv
     /* OpenCV data types */
     bool result = false;
     std::vector < std::vector<Point2d> > _points2d;
-    std::vector < cv::Mat > P;
 
     /* Data types needed by libmv functions */
     Matches matches;
@@ -162,8 +147,10 @@ namespace cv
 
       /* Get projection matrices */
       CV_Assert(recon.GetNumberCameras() == nviews);
-      recon_2_projmatvec(recon, P);
-      projmatvec_2_oparr(P, projection_matrices);
+
+      projection_matrices.create(1,nviews, 0, -1, true,0);
+      recon_2_projmatvec(recon, projection_matrices);
+
       cout << projection_matrices.getMat(0) << endl;
       cout << projection_matrices.getMat(1) << endl;
 
