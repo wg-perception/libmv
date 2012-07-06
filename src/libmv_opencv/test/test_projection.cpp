@@ -39,25 +39,19 @@
 using namespace cv;
 using namespace std;
 
-// namespace cvtest
-// {    
-// };
-
 TEST(Sfm_HomogeneousToEuclidean, correctness)
 {
-  Matx33f X(1, 2, 3,
-      4, 5, 6,
-      2, 1, 0);
+    Matx33f X(1, 2, 3,
+              4, 5, 6,
+              2, 1, 0);
 
-  Matx23f XHomogeneous;
-  HomogeneousToEuclidean(X,XHomogeneous);
+    Matx23f XHomogeneous;
+    HomogeneousToEuclidean(X,XHomogeneous);
 
-//     cout << Mat(X) << endl;
-//     cout << x << endl;
+    EXPECT_EQ( X.rows-1, XHomogeneous.rows );
 
-  EXPECT_EQ( X.rows-1, XHomogeneous.rows );
-  for(int y=0;y<X.rows-1;++y)
-  for(int x=0;x<X.cols;++x)
-  if (X(X.rows-1,x)!=0)
-    EXPECT_LE( std::abs(X(y,x)/X(X.rows-1, x) - XHomogeneous(y,x)), 1e-4 );
+    for(int y=0;y<X.rows-1;++y)
+        for(int x=0;x<X.cols;++x)
+            if (X(X.rows-1,x)!=0)
+                EXPECT_LE( std::abs(X(y,x)/X(X.rows-1, x) - XHomogeneous(y,x)), 1e-4 );
 }

@@ -52,3 +52,5 @@ set_target_properties(sfm_tests PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/tests)
 
 add_test(sfm_tests sfm_tests)
+
+ADD_DEFINITIONS(-DTHIS_SOURCE_DIR="\\"${CMAKE_CURRENT_SOURCE_DIR}\\"")

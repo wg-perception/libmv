@@ -36,8 +36,6 @@
 #ifndef __OPENCV_SFM_HPP__
 #define __OPENCV_SFM_HPP__
 
-#define BR exit(1);
-
 #ifdef __cplusplus
 
 #include <opencv2/core/core.hpp>

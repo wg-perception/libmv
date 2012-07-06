@@ -10,15 +10,17 @@
 #include <opencv2/core/core.hpp>
 #include <iostream>
 
-using namespace cv;
-using namespace std;
+namespace cvtest
+{
 
 /*Read 2d point data from YAML file*/
 void
-readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d);
+readtestdata(std::string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d);
 
 /*Read projection matrix data from YAML file*/
 void
-readtestdata(string filename, int nviews, std::vector<cv::Mat> &projection_matrices);
+readtestdata(std::string filename, int nviews, std::vector<cv::Mat> &projection_matrices);
+
+}; /* namespace cvtest */
 
 #endif

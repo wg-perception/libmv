@@ -35,25 +35,30 @@
 
 #include "test_precomp.hpp"
 
+using namespace cv;
+using namespace std;
+
 TEST(Sfm_reconstruct, twoViewProjective)
 {
+    vector<vector<Point2d> > points2d;
+    vector<Point3d> points3d;
+    vector<Mat> projection_matrices;
+    vector<Mat> estimated_projection_matrices;
 
-  std::vector<std::vector<cv::Point2d> > points2d;
-  std::vector<cv::Point3d> points3d;
-  std::vector<cv::Mat> projection_matrices;
-  std::vector<cv::Mat> estimated_projection_matrices;
+    // ToDo (pablo): fix it (THIS_SOURCE_DIR definition is temporal solution, see CMakeLists.txt file)
+    // string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
+    string filename(string(THIS_SOURCE_DIR) + "/testdata/cv/sfm/rnd_N10_F3.yml");
 
-  string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
-  readtestdata(filename, 2, 10, points2d);
-  readtestdata(filename, 2, projection_matrices);
+    cvtest::readtestdata(filename, 2, 10, points2d);
+    cvtest::readtestdata(filename, 2, projection_matrices);
 
-  cv::reconstruct(points2d, estimated_projection_matrices, points3d, true);
+    reconstruct(points2d, estimated_projection_matrices, points3d, true);
 
-  cout << "Groundtruth:" << endl;
-  cout << projection_matrices[0] << endl;
-  cout << projection_matrices[1] << endl;
-  cout << "Estimate:" << endl;
-  cout << estimated_projection_matrices[0] << endl;
-  cout << estimated_projection_matrices[1] << endl;
-  cout << "Not necessarily equal, the first one should be identity though. Better to check diff in PX" << endl;
+    cout << "Groundtruth:" << endl;
+    cout << projection_matrices[0] << endl;
+    cout << projection_matrices[1] << endl;
+    cout << "Estimate:" << endl;
+    cout << estimated_projection_matrices[0] << endl;
+    cout << estimated_projection_matrices[1] << endl;
+    cout << "Not necessarily equal, the first one should be identity though. Better to check diff in PX" << endl;
 }
