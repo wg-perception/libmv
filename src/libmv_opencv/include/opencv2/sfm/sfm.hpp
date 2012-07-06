@@ -91,14 +91,22 @@ namespace cv
               OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
                   false);
 
-  /** Converts point coordinates from homogeneous to euclidean pixel coordinates ((x,y,z)->(x/z, y/z))
-   * @param X Input vector of N-dimensional points
-   * @param x Output vector of N-1-dimensional points.
+  /** Converts point coordinates from homogeneous to euclidean pixel coordinates. E.g., ((x,y,z)->(x/z, y/z))
+   * @param src Input vector of N-dimensional points
+   * @param dst Output vector of N-1-dimensional points.
    */
   CV_EXPORTS
   void
-  HomogeneousToEuclidean(const InputArray X, OutputArray x);
+  HomogeneousToEuclidean(const InputArray src, OutputArray x);
 
+  /** Converts points from Euclidean to homogeneous space. E.g., ((x,y)->(x,y,1))
+   * @param src Input vector of N-dimensional points
+   * @param dst Output vector of N+1-dimensional points.
+   */
+  CV_EXPORTS
+  void
+  EuclideanToHomogeneous(const InputArray src, OutputArray _X);
+  
   /** This function normalizes points as done in the eight point algorithm
    * @param X Input vector of N-dimensional points
    * @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)

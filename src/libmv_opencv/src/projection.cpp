@@ -40,11 +40,11 @@ namespace cv
 
 template<typename T>
 void
-HomogeneousToEuclidean_(const cv::Mat & _X, cv::Mat & _x)
+HomogeneousToEuclidean_(const Mat & _X, Mat & _x)
 {
     int d = _X.rows - 1;
 
-    const cv::Mat_<T> & X_rows = _X.rowRange(0,d);
+    const Mat_<T> & X_rows = _X.rowRange(0,d);
     const Mat_<T> h = _X.row(d);
 
     const T * h_ptr = h[0], *h_ptr_end = h_ptr + h.cols;
@@ -67,15 +67,23 @@ HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
     if( X.depth() == CV_32F )
     {
         _x.create(X.rows-1, X.cols, CV_32F);
-        cv::Mat x = _x.getMat();
+        Mat x = _x.getMat();
         HomogeneousToEuclidean_<float>(X,x);
     }
     else
     {
         _x.create(X.rows-1, X.cols, CV_64F);
-        cv::Mat x = _x.getMat();
+        Mat x = _x.getMat();
         HomogeneousToEuclidean_<double>(X,x);
     }
+}
+
+void
+EuclideanToHomogeneous(const InputArray _x, OutputArray _X)
+{
+    const Mat x = _x.getMat();  
+    const Mat last_row = Mat::ones(1, x.cols, x.type());
+    vconcat(x, last_row, _X);
 }
 
 } /* namespace cv */

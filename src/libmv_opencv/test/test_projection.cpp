@@ -45,13 +45,28 @@ TEST(Sfm_HomogeneousToEuclidean, correctness)
               4, 5, 6,
               2, 1, 0);
 
-    Matx23f XHomogeneous;
-    HomogeneousToEuclidean(X,XHomogeneous);
+    Matx23f XEuclidean;
+    HomogeneousToEuclidean(X,XEuclidean);
 
-    EXPECT_EQ( X.rows-1, XHomogeneous.rows );
+    EXPECT_EQ( X.rows-1, XEuclidean.rows );
 
     for(int y=0;y<X.rows-1;++y)
         for(int x=0;x<X.cols;++x)
             if (X(X.rows-1,x)!=0)
-                EXPECT_LE( std::abs(X(y,x)/X(X.rows-1, x) - XHomogeneous(y,x)), 1e-4 );
+                EXPECT_LE( std::abs(X(y,x)/X(X.rows-1, x) - XEuclidean(y,x)), 1e-4 );
+}
+
+TEST(Sfm_EuclideanToHomogeneous, correctness)
+{
+    Matx33f x(1, 2, 3,
+              4, 5, 6,
+              2, 1, 0);
+
+    Matx43f XHomogeneous;
+    EuclideanToHomogeneous(x,XHomogeneous);
+
+    EXPECT_EQ( x.rows+1, XHomogeneous.rows );
+
+    for(int i=0;i<x.cols;++i)
+        EXPECT_EQ( 1, XHomogeneous(x.rows,i) );
 }

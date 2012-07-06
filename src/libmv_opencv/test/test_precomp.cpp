@@ -9,7 +9,6 @@ namespace cvtest
 void
 readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d)
 {
-    cout << endl << "Reading: " << filename << endl;
     FileStorage fs;
     fs.open(filename, FileStorage::READ);
     if (!fs.isOpened())
@@ -40,7 +39,6 @@ readtestdata(string filename, int nviews, int npts, std::vector<std::vector<cv::
 void
 readtestdata(string filename, int nviews, std::vector<cv::Mat> &projection_matrices)
 {
-    cout << endl << "Reading: " << filename << endl;
     FileStorage fs;
     fs.open(filename, FileStorage::READ);
     if (!fs.isOpened())
