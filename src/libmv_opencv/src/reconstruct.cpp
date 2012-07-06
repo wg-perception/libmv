@@ -151,8 +151,8 @@ namespace cv
       projection_matrices.create(1,nviews, 0, -1, true,0);
       recon_2_projmatvec(recon, projection_matrices);
 
-      cout << projection_matrices.getMat(0) << endl;
-      cout << projection_matrices.getMat(1) << endl;
+//      cout << projection_matrices.getMat(0) << endl;
+//      cout << projection_matrices.getMat(1) << endl;
 
 
       /*  Triangulate and find  3D points*/

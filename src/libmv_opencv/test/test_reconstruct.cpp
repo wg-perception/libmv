@@ -37,28 +37,38 @@
 
 using namespace cv;
 using namespace std;
+using namespace cvtest;
 
 TEST(Sfm_reconstruct, twoViewProjective)
 {
-    vector<vector<Point2d> > points2d;
-    vector<Point3d> points3d;
-    vector<Mat> projection_matrices;
-    vector<Mat> estimated_projection_matrices;
+  vector<Point3d> points3d;
+  vector<Point3d> points3d_estimated;
+  vector<Mat> projection_matrices;
+  vector<Mat> projection_matrices_estimated;
+  vector<vector<Point2d> > points2d;
 
-    // ToDo (pablo): fix it (THIS_SOURCE_DIR definition is temporal solution, see CMakeLists.txt file)
-    // string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
-    string filename(string(THIS_SOURCE_DIR) + "/testdata/cv/sfm/rnd_N10_F3.yml");
+  string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
 
-    cvtest::readtestdata(filename, 2, 10, points2d);
-    cvtest::readtestdata(filename, 2, projection_matrices);
+  cout << "Test data: " << filename << endl;
+  readtestdata(filename, 2, 10, points2d);
+  readtestdata(filename, 2, projection_matrices);
+  readtestdata(filename, points3d);
+  CV_Assert(points3d.size()==10);
 
-    reconstruct(points2d, estimated_projection_matrices, points3d, true);
+  cout << "Ground truth 3D Points:" << endl;
+  for (int n = 0; n < points3d.size(); ++n)
+    cout << points3d[n] << endl;
 
-    cout << "Groundtruth:" << endl;
-    cout << projection_matrices[0] << endl;
-    cout << projection_matrices[1] << endl;
-    cout << "Estimate:" << endl;
-    cout << estimated_projection_matrices[0] << endl;
-    cout << estimated_projection_matrices[1] << endl;
-    cout << "Not necessarily equal, the first one should be identity though. Better to check diff in PX" << endl;
+  reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
+
+  cout << "Groundtruth:" << endl;
+  cout << projection_matrices[0] << endl;
+  cout << projection_matrices[1] << endl;
+  cout << "Estimate:" << endl;
+  cout << projection_matrices_estimated[0] << endl;
+  cout << projection_matrices_estimated[1] << endl;
+  cout << "Not necessarily equal, the first one should be identity though. Better to check diff in PX" << endl;
+  cout << "Ground truth 3D Points:" << endl;
+  for (int n = 0; n < points3d.size(); ++n)
+    cout << points3d[n] << endl;
 }

@@ -10,17 +10,31 @@
 #include <opencv2/core/core.hpp>
 #include <iostream>
 
+#define OPEN_TESTFILE(FNAME,FS)  \
+      FS.open(FNAME, FileStorage::READ); \
+    if (!FS.isOpened())\
+    {\
+        std::cerr << "Cannot find file: " << FNAME << std::endl;\
+        return;\
+    }
+
 namespace cvtest
 {
 
-/*Read 2d point data from YAML file*/
-void
-readtestdata(std::string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d);
+  /*Read 2d point data from YAML file*/
+  void
+  readtestdata(std::string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d);
 
-/*Read projection matrix data from YAML file*/
-void
-readtestdata(std::string filename, int nviews, std::vector<cv::Mat> &projection_matrices);
+  /*Read projection matrix data from YAML file*/
+  void
+  readtestdata(std::string filename, int nviews, std::vector<cv::Mat> &projection_matrices);
 
-}; /* namespace cvtest */
+  /*Read 3D point data from YAML file*/
+  void
+  readtestdata(string filename, std::vector<cv::Point3d> &points3d);
+
+}
+
+/* namespace cvtest */
 
 #endif
