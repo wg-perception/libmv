@@ -48,7 +48,7 @@ a=reshape(array,1,size(array,1)*size(array,2));
 
 str=['[ ' num2str(a(1))];
 for i=2:length(a)
-    str=[str ', ' num2str(a(i))];
+    str=[str ', ' num2str(a(i),'%.8f')];
 end
 str=[str ' ]'];
 
