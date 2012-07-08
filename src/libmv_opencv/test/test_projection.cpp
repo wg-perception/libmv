@@ -58,6 +58,7 @@ TEST(Sfm_HomogeneousToEuclidean, correctness)
 
 TEST(Sfm_EuclideanToHomogeneous, correctness)
 {
+    // Testing with floats
     Matx33f x(1, 2, 3,
               4, 5, 6,
               2, 1, 0);
@@ -66,7 +67,18 @@ TEST(Sfm_EuclideanToHomogeneous, correctness)
     EuclideanToHomogeneous(x,XHomogeneous);
 
     EXPECT_EQ( x.rows+1, XHomogeneous.rows );
-
     for(int i=0;i<x.cols;++i)
         EXPECT_EQ( 1, XHomogeneous(x.rows,i) );
+
+    
+    // Testing with doubles
+    Vec2d x2(4,3);
+    Vec3d X2;
+
+    EuclideanToHomogeneous(x2,X2);
+
+    EXPECT_EQ( x2.rows+1, X2.rows );
+    EXPECT_EQ( 4, X2(0) );
+    EXPECT_EQ( 3, X2(1) );
+    EXPECT_EQ( 1, X2(2) );
 }
