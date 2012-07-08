@@ -97,7 +97,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  HomogeneousToEuclidean(const InputArray src, OutputArray x);
+  HomogeneousToEuclidean(const InputArray src, OutputArray dst);
 
   /** Converts points from Euclidean to homogeneous space. E.g., ((x,y)->(x,y,1))
    * @param src Input vector of N-dimensional points
@@ -105,7 +105,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  EuclideanToHomogeneous(const InputArray src, OutputArray _X);
+  EuclideanToHomogeneous(const InputArray src, OutputArray dst);
   
   /** This function normalizes points as done in the eight point algorithm
    * @param X Input vector of N-dimensional points

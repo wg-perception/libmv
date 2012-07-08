@@ -62,18 +62,20 @@ HomogeneousToEuclidean_(const Mat & _X, Mat & _x)
 void
 HomogeneousToEuclidean(const InputArray _X, OutputArray _x)
 {
+    // src
     const Mat X = _X.getMat();
 
+    // dst
+     _x.create(X.rows-1, X.cols, X.type());
+    Mat x = _x.getMat();
+
+    // type
     if( X.depth() == CV_32F )
     {
-        _x.create(X.rows-1, X.cols, CV_32F);
-        Mat x = _x.getMat();
         HomogeneousToEuclidean_<float>(X,x);
     }
     else
     {
-        _x.create(X.rows-1, X.cols, CV_64F);
-        Mat x = _x.getMat();
         HomogeneousToEuclidean_<double>(X,x);
     }
 }
