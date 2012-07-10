@@ -33,15 +33,32 @@
  *
  */
 
+#include "libmv/multiview/conditioning.h"
+
 #include <opencv2/sfm/sfm.hpp>
+#include <opencv2/core/eigen.hpp>
 
 namespace cv
 {
-  
+
 void
-IsotropicScaling(const InputArray X, OutputArray x, OutputArray T)
+IsotropicScaling(const InputArray _X, OutputArray _x, OutputArray _T)
 {
-    
+    // input
+    libmv::Mat X;
+    cv2eigen<double>(_X.getMat(), X);
+
+    // normalization
+    libmv::Mat x;
+    libmv::Mat3 T;
+    libmv::NormalizeIsotropicPoints(X, &x, &T);
+
+    // output
+    cv::Mat x_dst = _x.getMat();
+    eigen2cv<double>(x, x_dst);
+
+    cv::Mat T_dst = _T.getMat();
+    eigen2cv<double,3,3>(T, T_dst);
 }
 
 } /* namespace cv */
