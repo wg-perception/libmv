@@ -51,6 +51,9 @@ using namespace cv;
 using namespace libmv;
 using namespace std;
 
+/* Temp debug macro */
+#define BR exit(1);
+
 namespace cv
 {
   void
@@ -89,11 +92,9 @@ namespace cv
 
       for (int n = 0; n < imgpts.size(); ++n)
       {
-//        cout << imgpts[n] << endl;
         PointFeature * feature = new PointFeature(imgpts[n].x, imgpts[n].y);
         matches.Insert(m, n, feature);
         feature = (PointFeature *) matches.Get(m, n);
-//        cout << feature->coords << endl;
       }
     }
 
@@ -109,11 +110,23 @@ namespace cv
       cam = (PinholeCamera *) recon.GetCamera(m);
       cv::Mat P;
       eigen2cv(cam->GetPoseMatrix(), P);
-//      cout << P << endl;
       P.copyTo(Pv.getMatRef(m));
     }
   }
 
+  /* Converts 2d vector of points to 2xN Mat */
+  void
+  ptvec2d_2_mat(std::vector<cv::Point2d> ptvec2d, cv::Mat& mat)
+  {
+    mat = Mat::zeros(2, ptvec2d.size(), CV_64F);
+    for (int n = 0; n < ptvec2d.size(); ++n)
+    {
+      mat.at<double>(0, n) = ptvec2d[n].x;
+      mat.at<double>(1, n) = ptvec2d[n].y;
+    }
+  }
+
+  /* reconstruction function for API */
   void
   reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
               bool is_projective, bool has_outliers, bool is_sequence)
@@ -153,12 +166,7 @@ namespace cv
 
       /* Triangulate and find 3D points */
 
-      vector<Matx41d> points4d;
-      cv::triangulatePoints(projection_matrices.getMat(0), projection_matrices.getMat(1), points2d.getMat(0),
-                            points2d.getMat(1), points4d);
-
-      /* Convert to 3D from 4D */
-      HomogeneousToEuclidean(points4d, points3d);
+      triangulatePoints(points2d, projection_matrices, points3d);
 
     }
     /* Euclidian reconstruction*/

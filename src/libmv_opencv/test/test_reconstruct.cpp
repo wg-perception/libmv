@@ -76,5 +76,12 @@ TEST(Sfm_reconstruct, twoViewProjective)
   for (int n = 0; n < points3d.size(); ++n)
     cout << points3d_estimated[n] << endl;
 
+  /* Check x=PX -- improve */
+/*  vector<Point2d> v1pts2d = points2d[0];
+  for (int n = 0; n < points3d.size(); ++n)
+  {
+    cout << "View 1Projection error for pt " << n << ": "
+         << v1pts2d[n] - projection_matrices_estimated[0] * points3d_estimated[n];
+  }*/
 
 }
