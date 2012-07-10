@@ -71,7 +71,7 @@ namespace cv
     int nviews = (int) points2d.total();
     for (int m = 0; m < nviews; ++m)
     {
-      std::vector < Point2d > imgpts;
+      std::vector<Point2d> imgpts;
       imgpts = points2d.getMat(m);
       points2dvec.push_back(imgpts);
     }
@@ -84,7 +84,7 @@ namespace cv
 
     for (int m = 0; m < nviews; ++m)
     {
-      std::vector < Point2d > imgpts;
+      std::vector<Point2d> imgpts;
       imgpts = points2d[m];
 
       for (int n = 0; n < imgpts.size(); ++n)
@@ -121,7 +121,7 @@ namespace cv
 
     /* OpenCV data types */
     bool result = false;
-    std::vector < std::vector<Point2d> > _points2d;
+    std::vector<std::vector<Point2d> > _points2d;
 
     /* Data types needed by libmv functions */
     Matches matches;
@@ -146,28 +146,20 @@ namespace cv
         result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, &matches_inliers, &recon);
 
       /* Get projection matrices */
-      CV_Assert(recon.GetNumberCameras() == nviews);
 
-      projection_matrices.create(1,nviews, 0, -1, true,0);
+      CV_Assert(recon.GetNumberCameras() == nviews);
+      projection_matrices.create(1, nviews, 0, -1, true, 0);
       recon_2_projmatvec(recon, projection_matrices);
 
-//      cout << projection_matrices.getMat(0) << endl;
-//      cout << projection_matrices.getMat(1) << endl;
+      /* Triangulate and find 3D points */
 
+      vector<Matx41d> points4d;
+      cv::triangulatePoints(projection_matrices.getMat(0), projection_matrices.getMat(1), points2d.getMat(0),
+                            points2d.getMat(1), points4d);
 
-      /*  Triangulate and find  3D points*/
-      /*      cv::Mat pt4d(4, 10, CV_64F);
-       cv::Mat pt2d[2];
-       ptvec2mat(_points2d[0], pt2d[0]);
-       ptvec2mat(_points2d[1], pt2d[1]);
-       CV_Assert(pt2d[0].cols == pt2d[1].cols);
-       cout << pt2d[0] << endl;
-       cout << pt2d[1] << endl;
-       cout << Pcv[0] << endl;
-       cout << Pcv[1] << endl;*/
+      /* Convert to 3D from 4D */
+      HomogeneousToEuclidean(points4d, points3d);
 
-      // This gives seg fault??
-//      cv::triangulatePoints(Pcv[0], Pcv[1], pt2d[0], pt2d[1], pt4d);
     }
     /* Euclidian reconstruction*/
     else

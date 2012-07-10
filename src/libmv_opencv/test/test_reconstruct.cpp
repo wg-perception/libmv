@@ -61,14 +61,20 @@ TEST(Sfm_reconstruct, twoViewProjective)
 
   reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
 
-  cout << "Groundtruth:" << endl;
+  cout << "Groundtruth Projection Matrices:" << endl;
   cout << projection_matrices[0] << endl;
   cout << projection_matrices[1] << endl;
-  cout << "Estimate:" << endl;
+  cout << "Estimate Projection Matrices :" << endl;
   cout << projection_matrices_estimated[0] << endl;
   cout << projection_matrices_estimated[1] << endl;
-  cout << "Not necessarily equal, the first one should be identity though. Better to check diff in PX" << endl;
+  cout << "Not necessarily equal.Better to check diff in x=PX" << endl;
   cout << "Ground truth 3D Points:" << endl;
   for (int n = 0; n < points3d.size(); ++n)
     cout << points3d[n] << endl;
+
+  cout << "Estimted 3D Points:" << endl;
+  for (int n = 0; n < points3d.size(); ++n)
+    cout << points3d_estimated[n] << endl;
+
+
 }
