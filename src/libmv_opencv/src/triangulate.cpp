@@ -35,6 +35,8 @@
 
 #include "opencv2/sfm/sfm.hpp"
 #include "libmv/multiview/triangulation.h"
+#include "libmv/multiview/twoviewtriangulation.h"
+#include "libmv/multiview/fundamental.h"
 #include <opencv2/core/eigen.hpp>
 
 using namespace cv;
@@ -46,22 +48,34 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
                   cv::Mat & points3d, int method)
 {
     // Two view
-    if (nviews == 2 && method == CV_TRIANG_DLT)
+    if( nviews == 2 )
     {
         Eigen::Matrix<T, 2, 1> x1, x2;
         Eigen::Matrix<T, 3, 4> P1, P2;
         Eigen::Matrix<T, 3, 1> X_euclidean;
 
-        // ToDo (pablo): Check dimensions
-        
         cv2eigen<T, 2, 1>(points2d.at(0),x1);
         cv2eigen<T, 2, 1>(points2d.at(1),x2);
         cv2eigen<T, 3, 4>(projection_matrices.at(0),P1);
         cv2eigen<T, 3, 4>(projection_matrices.at(1),P2);
 
-        libmv::TriangulateDLT(P1, x1, P2, x2, &X_euclidean);
+        if( method == CV_TRIANG_DLT )
+        {
+            libmv::TriangulateDLT(P1, x1, P2, x2, &X_euclidean);
+            eigen2cv<T, 3, 1>(X_euclidean,points3d);
+        }
+        else if( method == CV_TRIANG_BY_PLANE )
+        {
+           // Fundamental matrix
+            libmv::Mat3 F;
+            libmv::NormalizedEightPointSolver(x1, x2, &F);
 
-        eigen2cv<T, 3, 1>(X_euclidean,points3d);
+            // Essential matrix
+            libmv::Mat3 E;
+//             libmv::EssentialFromFundamental(F, K1, K2, &E);
+
+            libmv::TwoViewTriangulationByPlanes(x1, x2, P2, E, &X_euclidean);
+        }
     }
     else
     {

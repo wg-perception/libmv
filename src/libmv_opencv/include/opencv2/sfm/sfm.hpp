@@ -47,7 +47,8 @@ namespace cv
   enum
   {
       CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
-      CV_TRIANG_ALGEBRAIC = 1    /*!< ... */
+      CV_TRIANG_ALGEBRAIC = 1,   /*!< ... */
+      CV_TRIANG_BY_PLANE = 2,
   };
 
   
