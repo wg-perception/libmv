@@ -7,9 +7,10 @@ find_package(OpenCV REQUIRED)
 
 include_directories(include)
 
-add_library(opencv_sfm src/reconstruct.cpp
-                       src/triangulate.cpp
+add_library(opencv_sfm src/conditioning.cpp
                        src/projection.cpp
+                       src/reconstruct.cpp
+                       src/triangulate.cpp
 )
 
 target_link_libraries(opencv_sfm ${OpenCV_LIBS}
@@ -34,11 +35,10 @@ install(DIRECTORY include/opencv2/sfm
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(sfm_tests test/test_main.cpp
-                         test/test_reconstruct.cpp
+                         test/test_conditioning.cpp
                          test/test_projection.cpp
+                         test/test_reconstruct.cpp
                          test/test_precomp.cpp
-                         
-
 )
 
 find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})
