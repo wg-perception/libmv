@@ -39,7 +39,7 @@ using namespace cv;
 using namespace std;
 using namespace cvtest;
 
-TEST(Sfm_reconstruct, twoViewProjective)
+TEST(Sfm_triangulate, twoViewProjective)
 {
   vector<Point3d> points3d;
   vector<Point3d> points3d_estimated;
@@ -49,6 +49,7 @@ TEST(Sfm_reconstruct, twoViewProjective)
 
   string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
 
+/*
   cout << "Test data: " << filename << endl;
   readtestdata(filename, 2, 10, points2d);
   readtestdata(filename, 2, projection_matrices);
@@ -58,32 +59,6 @@ TEST(Sfm_reconstruct, twoViewProjective)
   cout << "Ground truth 3D Points:" << endl;
   for (int n = 0; n < points3d.size(); ++n)
     cout << points3d[n] << endl;
-
-/*
-  reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
-
-  cout << "Groundtruth Projection Matrices:" << endl;
-  cout << projection_matrices[0] << endl;
-  cout << projection_matrices[1] << endl;
-  cout << "Estimate Projection Matrices :" << endl;
-  cout << projection_matrices_estimated[0] << endl;
-  cout << projection_matrices_estimated[1] << endl;
-  cout << "Not necessarily equal.Better to check diff in x=PX" << endl;
-  cout << "Ground truth 3D Points:" << endl;
-  for (int n = 0; n < points3d.size(); ++n)
-    cout << points3d[n] << endl;
-
-  cout << "Estimted 3D Points:" << endl;
-  for (int n = 0; n < points3d.size(); ++n)
-    cout << points3d_estimated[n] << endl;
 */
-
-  /* Check x=PX -- improve */
-/*  vector<Point2d> v1pts2d = points2d[0];
-  for (int n = 0; n < points3d.size(); ++n)
-  {
-    cout << "View 1Projection error for pt " << n << ": "
-         << v1pts2d[n] - projection_matrices_estimated[0] * points3d_estimated[n];
-  }*/
 
 }
