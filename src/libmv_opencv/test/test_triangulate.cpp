@@ -39,26 +39,34 @@ using namespace cv;
 using namespace std;
 using namespace cvtest;
 
-TEST(Sfm_triangulate, twoViewProjective)
+TEST(Sfm_triangulate, twoViewAffine)
 {
+  int nviews=2;
+  int npts=10;
   vector<Point3d> points3d;
   vector<Point3d> points3d_estimated;
   vector<Mat> projection_matrices;
-  vector<Mat> projection_matrices_estimated;
   vector<vector<Point2d> > points2d;
 
   string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3.yml");
-
-/*
-  cout << "Test data: " << filename << endl;
-  readtestdata(filename, 2, 10, points2d);
-  readtestdata(filename, 2, projection_matrices);
+  readtestdata(filename, nviews, npts, points2d);
+  readtestdata(filename, nviews, projection_matrices);
   readtestdata(filename, points3d);
-  CV_Assert(points3d.size()==10);
 
-  cout << "Ground truth 3D Points:" << endl;
-  for (int n = 0; n < points3d.size(); ++n)
-    cout << points3d[n] << endl;
-*/
+  triangulatePoints(points2d,projection_matrices,
+      points3d_estimated);
+
+  cout << "Estimated 3D pts: " << points3d_estimated.size() << endl;
+  CV_Assert(points3d_estimated.size()==npts);
+
+  /*
+   cout << "Test data: " << filename << endl;
+
+   CV_Assert(points3d.size()==10);
+
+   cout << "Ground truth 3D Points:" << endl;
+   for (int n = 0; n < points3d.size(); ++n)
+   cout << points3d[n] << endl;
+   */
 
 }
