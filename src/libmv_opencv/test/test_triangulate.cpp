@@ -91,25 +91,25 @@ TEST(Sfm_triangulate, TriangulateDLT) {
 
         Mat tmp;
         eigen2cv<double,2,1>(x1, tmp);
-        x.push_back( tmp );
+        x.push_back( tmp.clone() );
 
         eigen2cv<double,2,1>(x2, tmp);
-        x.push_back( tmp );
+        x.push_back( tmp.clone() );
 
         // build P
         vector<Mat> P;
         eigen2cv<double,3,4>(d.P1, tmp);
-        P.push_back( tmp );
+        P.push_back( tmp.clone() );
 
         eigen2cv<double,3,4>(d.P2, tmp);
-        P.push_back( tmp );
+        P.push_back( tmp.clone() );
 
+        // get 3d points
         Mat X_estimated_cv;
         triangulatePoints(x, P, X_estimated_cv);
         cv2eigen<double,3,1>(X_estimated_cv, X_estimated);
 
-//         std::cout << "X_estimated_cv: " << X_estimated_cv << std::endl;
-
+        // check
         EXPECT_NEAR(0, libmv::DistanceLInfinity(X_estimated, X_gt), 1e-8);
     }
 }
