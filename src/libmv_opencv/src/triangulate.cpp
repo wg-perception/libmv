@@ -111,6 +111,8 @@ triangulatePoints(const InputArrayOfArrays _points2d, const InputArrayOfArrays _
 //     {
         triangulatePoints_<double>(nviews, points2d, projection_matrices, points3d, method);
 //     }
+
+    points3d.copyTo(_points3d);
 }
 
 } /* namespace cv */
