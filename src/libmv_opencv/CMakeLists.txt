@@ -18,7 +18,8 @@ target_link_libraries(opencv_sfm ${OpenCV_LIBS}
                                   reconstruction
                                   correspondence
                                   camera
-                                  multiview 
+                                  multiview
+                                  multiview_test_data
                                   numeric
 )
 
