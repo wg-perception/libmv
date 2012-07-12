@@ -169,6 +169,7 @@ namespace cv
       triangulatePoints(points2d, projection_matrices, points3d);
 
     }
+
     /* Euclidian reconstruction*/
     else
     {
