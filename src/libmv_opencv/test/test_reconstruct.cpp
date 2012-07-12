@@ -59,9 +59,9 @@ TEST(Sfm_reconstruct, twoViewProjective)
   for (int n = 0; n < points3d.size(); ++n)
     cout << points3d[n] << endl;
 
-/*
   reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
 
+  /*
   cout << "Groundtruth Projection Matrices:" << endl;
   cout << projection_matrices[0] << endl;
   cout << projection_matrices[1] << endl;
