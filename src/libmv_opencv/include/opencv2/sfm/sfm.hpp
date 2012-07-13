@@ -60,7 +60,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  triangulatePoints(const InputArrayOfArrays points2d, const InputArrayOfArrays projection_matrices,
+  triangulatePoints(InputArrayOfArrays points2d, InputArrayOfArrays projection_matrices,
                     OutputArray points3d, int method = CV_TRIANG_DLT);
 
   /** Reconstruct 3d points from 2d correspondences without performing autocalibration.
@@ -73,7 +73,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
+  reconstruct(InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
               bool is_projective = false, bool has_outliers = false, bool is_sequence = false);
 
   /** Reconstruct 3d points from 2d correspondences while performing autocalibration.
@@ -88,7 +88,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
+  reconstruct(InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
               OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
                   false);
 
@@ -98,7 +98,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  HomogeneousToEuclidean(const InputArray src, OutputArray dst);
+  HomogeneousToEuclidean(InputArray src, OutputArray dst);
 
   /** Converts points from Euclidean to homogeneous space. E.g., ((x,y)->(x,y,1))
    * @param src Input vector of N-dimensional points
@@ -106,7 +106,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  EuclideanToHomogeneous(const InputArray src, OutputArray dst);
+  EuclideanToHomogeneous(InputArray src, OutputArray dst);
   
   /** This function normalizes points as done in the eight point algorithm
    * @param X Input vector of N-dimensional points
@@ -115,7 +115,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  IsotropicScaling(const InputArray X, OutputArray x, OutputArray T);
+  IsotropicScaling(InputArray X, OutputArray x, OutputArray T);
 } /* namespace cv */
 
 #endif /* __cplusplus */

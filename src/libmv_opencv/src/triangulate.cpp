@@ -134,7 +134,7 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
 
 
 void
-triangulatePoints(const InputArrayOfArrays _points2d, const InputArrayOfArrays _projection_matrices,
+triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _projection_matrices,
                   OutputArray _points3d, int method)
 {
     unsigned nviews = (unsigned) _points2d.total();
