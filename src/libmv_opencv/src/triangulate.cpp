@@ -33,7 +33,6 @@
  *
  */
 
-#include "libmv/multiview/triangulation.h"
 #include "libmv/multiview/twoviewtriangulation.h"
 #include "libmv/multiview/fundamental.h"
 
@@ -46,28 +45,24 @@ using namespace std;
 namespace cv
 {
 
+// HZ 12.2 pag.312
 template<typename T>
 void
-triangulateDLT( const Mat &_xl, const Mat &_xr, const Mat &_Pl, const Mat &_Pr, Mat &points3d)
+triangulateDLT( const Mat_<T> &xl, const Mat_<T> &xr, const Mat_<T> &Pl, const Mat_<T> &Pr, Mat &points3d)
 {
-    // src
-    Eigen::Matrix<T, 2, 1> xl, xr;
-    Eigen::Matrix<T, 3, 4> Pl, Pr;
+    Matx<T, 4, 4> design;
+    for (int i = 0; i < 4; ++i)
+    {
+        design(0,i) = xl(0) * Pl(2,i) - Pl(0,i);
+        design(1,i) = xl(1) * Pl(2,i) - Pl(1,i);
+        design(2,i) = xr(0) * Pr(2,i) - Pr(0,i);
+        design(3,i) = xr(1) * Pr(2,i) - Pr(1,i);
+    }
 
-    // dst
-    Eigen::Matrix<T, 3, 1> XEuclidean;
+    Matx<T, 4, 1> XHomogeneous;
+    cv::SVD::solveZ(design, XHomogeneous);
 
-    // convert to Eigen types
-    cv2eigen<T, 2, 1>(_xl, xl);
-    cv2eigen<T, 2, 1>(_xr, xr);
-    cv2eigen<T, 3, 4>(_Pl, Pl);
-    cv2eigen<T, 3, 4>(_Pr, Pr);
-
-    // libmv implementation
-    libmv::TriangulateDLT(Pl, xl, Pr, xr, &XEuclidean);
-
-    // Eigen to Mat
-    eigen2cv<T, 3, 1>(XEuclidean, points3d);
+    HomogeneousToEuclidean(XHomogeneous, points3d);
 }
 
 template<typename T>
@@ -126,26 +121,29 @@ void
 triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _projection_matrices,
                   OutputArray _points3d, int method)
 {
+    // check
     unsigned nviews = (unsigned) _points2d.total();
     CV_Assert(nviews >= 2 && nviews == _projection_matrices.total());
 
+    // inputs
     vector<Mat> points2d;
     _points2d.getMatVector(points2d);
 
     vector<Mat> projection_matrices;
     _projection_matrices.getMatVector(projection_matrices);
 
+    // output
     cv::Mat points3d = _points3d.getMat();
 
-    // ToDo (pablo): libmv only has a version for 'double'
-//     if( _points2d.getMat(0).depth() == CV_32F )
-//     {
-//         triangulatePoints_<float>(nviews, points2d, projection_matrices, points3d, method);
-//     }
-//     else
-//     {
+    // type: float or double
+    if( _points2d.getMat(0).depth() == CV_32F )
+    {
+        triangulatePoints_<float>(nviews, points2d, projection_matrices, points3d, method);
+    }
+    else
+    {
         triangulatePoints_<double>(nviews, points2d, projection_matrices, points3d, method);
-//     }
+    }
 
     points3d.copyTo(_points3d);
 }
