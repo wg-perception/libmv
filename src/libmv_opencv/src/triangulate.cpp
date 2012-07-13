@@ -85,30 +85,20 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
         Mat Pl = projection_matrices.at(0);    // left matrix projection
         Mat Pr = projection_matrices.at(1);    // right matrix projection
 
-        CV_Assert( xl.cols == xr.cols );
-
+        // number of points
         unsigned npoints = xl.cols;
+        CV_Assert( xr.cols == npoints );
+
+        // pre-allocation
+        points3d.create( 3, npoints, xl.type() );
         for( unsigned i = 0; i < npoints; ++i )
         {
-            Mat current_points3d;
-
             // triangulate
+            Mat current_points3d = points3d.col(i);
             triangulateDLT<T>( xl.col(i), xr.col(i), Pl, Pr, current_points3d );
-
-            // ToDo (pablo): trying with the opencv function
-//             triangulatePoints( Pl, Pr, xl.col(i), xr.col(i), current_points3d );
-//             Mat current_points3d_euc;
-//             HomogeneousToEuclidean(current_points3d, current_points3d_euc);
-//             current_points3d = current_points3d_euc;
-
-            // Add column
-            if( points3d.empty() )
-                points3d = current_points3d;
-            else
-                cv::hconcat(points3d, current_points3d, points3d);
         }
 
-    
+
 //         if( method == CV_TRIANG_DLT )
 //         {
 //             triangulateDLT<T>( xl, xr, Pl, Pr, points3d );
