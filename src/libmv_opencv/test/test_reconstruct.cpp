@@ -57,7 +57,20 @@ TEST(Sfm_reconstruct, twoViewProjective)
 
   reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
 
-/*  Check projection errors*/
-//  cout << projection_matrices_estimated[0] * points3d_estimated;
-//  cout << points3d_estimated.rows;
+  /*  Check projection errors*/
+
+  for (int m = 0; m < 2; ++m)
+  {
+
+    Mat X, x;
+    EuclideanToHomogeneous(points3d_estimated, X); // 3D point
+    HomogeneousToEuclidean(projection_matrices_estimated[0] * X, x); // 2d projection
+    Mat projerr = points2d[m] - x;
+    for (int n = 0; n < 10; ++n)
+    {
+      EXPECT_NEAR(0, projerr.at<double>(0,n), 1e-8);
+      EXPECT_NEAR(0, projerr.at<double>(1,n), 1e-8);
+    }
+  }
+
 }
