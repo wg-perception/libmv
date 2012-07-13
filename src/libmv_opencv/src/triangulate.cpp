@@ -48,38 +48,84 @@ namespace cv
 
 template<typename T>
 void
+triangulateDLT( const Mat &_xl, const Mat &_xr, const Mat &_Pl, const Mat &_Pr, Mat &points3d)
+// triangulateDLT( const Matx<T,2,1> &_xl, const Matx<T,2,1> &_xr, const Matx<T,3,4> &_Pl, const Matx<T,3,4> &_Pr, Matx<T,3,1> &points3d)
+// triangulateDLT( InputArray _xl, InputArray _xr, InputArray _Pl, InputArray _Pr, OutputArray points3d)
+{
+    // src
+    Eigen::Matrix<T, 2, 1> xl, xr;
+    Eigen::Matrix<T, 3, 4> Pl, Pr;
+
+    // dst
+    Eigen::Matrix<T, 3, 1> XEuclidean;
+
+    // convert to Eigen types
+    cv2eigen<T, 2, 1>(_xl, xl);
+    cv2eigen<T, 2, 1>(_xr, xr);
+    cv2eigen<T, 3, 4>(_Pl, Pl);
+    cv2eigen<T, 3, 4>(_Pr, Pr);
+
+    // libmv implementation
+    libmv::TriangulateDLT(Pl, xl, Pr, xr, &XEuclidean);
+
+    // Eigen to Mat
+    eigen2cv<T, 3, 1>(XEuclidean, points3d);
+}
+
+template<typename T>
+void
 triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vector<cv::Mat> & projection_matrices,
                    cv::Mat & points3d, int method)
 {
     // Two view
     if( nviews == 2 )
     {
-        Eigen::Matrix<T, 2, 1> x1, x2;
-        Eigen::Matrix<T, 3, 4> P1, P2;
-        Eigen::Matrix<T, 3, 1> X_euclidean;
+        Mat xl = points2d.at(0);               // left points
+        Mat xr = points2d.at(1);               // right points
+        Mat Pl = projection_matrices.at(0);    // left matrix projection
+        Mat Pr = projection_matrices.at(1);    // right matrix projection
 
-        cv2eigen<T, 2, 1>(points2d.at(0), x1);
-        cv2eigen<T, 2, 1>(points2d.at(1), x2);
-        cv2eigen<T, 3, 4>(projection_matrices.at(0), P1);
-        cv2eigen<T, 3, 4>(projection_matrices.at(1), P2);
+        CV_Assert( xl.cols == xr.cols );
 
-        if( method == CV_TRIANG_DLT )
+        unsigned npoints = xl.cols;
+        for( unsigned i = 0; i < npoints; ++i )
         {
-            libmv::TriangulateDLT(P1, x1, P2, x2, &X_euclidean);
-            eigen2cv<T, 3, 1>(X_euclidean, points3d);
-        }
-        else if( method == CV_TRIANG_BY_PLANE )
-        {
-            // Fundamental matrix
-            libmv::Mat3 F;
-            libmv::NormalizedEightPointSolver(x1, x2, &F);
+            Mat current_points3d;
 
-            // Essential matrix
-            libmv::Mat3 E;
-//             libmv::EssentialFromFundamental(F, K1, K2, &E);
+            // triangulate
+            triangulateDLT<T>( xl.col(i), xr.col(i), Pl, Pr, current_points3d );
 
-            libmv::TwoViewTriangulationByPlanes(x1, x2, P2, E, &X_euclidean);
+            // ToDo (pablo): trying with the opencv function
+//             triangulatePoints( Pl, Pr, xl.col(i), xr.col(i), current_points3d );
+//             Mat current_points3d_euc;
+//             HomogeneousToEuclidean(current_points3d, current_points3d_euc);
+//             current_points3d = current_points3d_euc;
+
+            // Add column
+            if( points3d.empty() )
+                points3d = current_points3d;
+            else
+                cv::hconcat(points3d, current_points3d, points3d);
         }
+
+    
+//         if( method == CV_TRIANG_DLT )
+//         {
+//             triangulateDLT<T>( xl, xr, Pl, Pr, points3d );
+//         }
+//         else if( method == CV_TRIANG_BY_PLANE )
+//         {
+//             // Fundamental matrix
+//             libmv::Mat3 F;
+//             libmv::NormalizedEightPointSolver(xl, xr, &F);
+// 
+//             // Essential matrix
+//             libmv::Mat3 E;
+// //             libmv::EssentialFromFundamental(F, K1, K2, &E);
+// 
+//             libmv::TwoViewTriangulationByPlanes(xl, xr, Pr, E, &XEuclidean);
+//         }
+
     }
     else
     {

@@ -48,38 +48,38 @@ using namespace cvtest;
 TEST(Sfm_triangulate, TriangulateDLT) {
     libmv::TwoViewDataSet d = libmv::TwoRealisticCameras();
 
+    Mat x1, x2;
+    Mat P1, P2;
+
+    eigen2cv<double, 2, Eigen::Dynamic>(d.x1, x1);
+    eigen2cv<double, 2, Eigen::Dynamic>(d.x2, x2);
+    eigen2cv<double,3,4>(d.P1, P1);
+    eigen2cv<double,3,4>(d.P2, P2);
+
+    // build x
+    vector<Mat> x;
+    x.push_back(x1);
+    x.push_back(x2);
+
+    // build P
+    vector<Mat> P;
+    P.push_back(P1);
+    P.push_back(P2);
+
+    // get 3d points
+    Mat X_estimated;
+    triangulatePoints(x, P, X_estimated);
+
+    // check
     for (int i = 0; i < d.X.cols(); ++i)
     {
-        libmv::Vec2 x1, x2;
-        libmv::MatrixColumn(d.x1, i, &x1);
-        libmv::MatrixColumn(d.x2, i, &x2);
-        libmv::Vec3 X_estimated, X_gt;
+        libmv::Vec3 X_est, X_gt;
+
+        // get current columns
         libmv::MatrixColumn(d.X, i, &X_gt);
+        cv2eigen<double,3,1>(X_estimated.col(i), X_est);
 
-        // build x
-        vector<Mat> x;
-
-        Mat tmp;
-        eigen2cv<double,2,1>(x1, tmp);
-        x.push_back( tmp.clone() );
-
-        eigen2cv<double,2,1>(x2, tmp);
-        x.push_back( tmp.clone() );
-
-        // build P
-        vector<Mat> P;
-        eigen2cv<double,3,4>(d.P1, tmp);
-        P.push_back( tmp.clone() );
-
-        eigen2cv<double,3,4>(d.P2, tmp);
-        P.push_back( tmp.clone() );
-
-        // get 3d points
-        Mat X_estimated_cv;
-        triangulatePoints(x, P, X_estimated_cv);
-        cv2eigen<double,3,1>(X_estimated_cv, X_estimated);
-
-        // check
-        EXPECT_NEAR(0, libmv::DistanceLInfinity(X_estimated, X_gt), 1e-8);
+        // Check: || X_est - X_gt ||_{inf} < 1e-8
+        EXPECT_NEAR(0, libmv::DistanceLInfinity(X_est, X_gt), 1e-8);
     }
 }
