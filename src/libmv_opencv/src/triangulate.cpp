@@ -58,6 +58,7 @@ triangulateDLT( const Mat &_xl, const Mat &_xr, const Mat &_Pl, const Mat &_Pr, 
 
     // dst
     Eigen::Matrix<T, 3, 1> XEuclidean;
+    Eigen::Matrix<T, 4, 1> XHomogeneous;
 
     // convert to Eigen types
     cv2eigen<T, 2, 1>(_xl, xl);
@@ -66,10 +67,16 @@ triangulateDLT( const Mat &_xl, const Mat &_xr, const Mat &_Pl, const Mat &_Pr, 
     cv2eigen<T, 3, 4>(_Pr, Pr);
 
     // libmv implementation
-    libmv::TriangulateDLT(Pl, xl, Pr, xr, &XEuclidean);
-
-    // Eigen to Mat
-    eigen2cv<T, 3, 1>(XEuclidean, points3d);
+    if( points3d.rows == 3 )
+    {
+        libmv::TriangulateDLT(Pl, xl, Pr, xr, &XEuclidean);
+        eigen2cv<T, 3, 1>(XEuclidean, points3d);
+    }
+    else
+    {
+        libmv::TriangulateDLT(Pl, xl, Pr, xr, &XHomogeneous);
+        eigen2cv<T, 4, 1>(XHomogeneous, points3d);
+    }
 }
 
 template<typename T>
@@ -90,10 +97,18 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
         CV_Assert( xr.cols == npoints );
 
         // pre-allocation
-        points3d.create( 3, npoints, xl.type() );
+        if( points3d.rows == 3 )
+        {
+            points3d.create( 3, npoints, xl.type() );
+        }
+        else
+        {
+            points3d.create( 4, npoints, xl.type() );
+        }
+
+        // triangulate
         for( unsigned i = 0; i < npoints; ++i )
         {
-            // triangulate
             Mat current_points3d = points3d.col(i);
             triangulateDLT<T>( xl.col(i), xr.col(i), Pl, Pr, current_points3d );
         }

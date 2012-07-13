@@ -68,7 +68,9 @@ TEST(Sfm_triangulate, TriangulateDLT) {
 
     // get 3d points
     Mat X_estimated;
+    // X_estimated.create(3, x1.cols, CV_64F );
     triangulatePoints(x, P, X_estimated);
+    HomogeneousToEuclidean(X_estimated, X_estimated);
 
     // check
     for (int i = 0; i < d.X.cols(); ++i)
