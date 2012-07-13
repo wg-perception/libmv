@@ -56,6 +56,7 @@ using namespace std;
 
 namespace cv
 {
+#if 0
   void
   ptvec2mat(std::vector<cv::Point2d> &pvec, cv::Mat &pmat)
   {
@@ -100,6 +101,39 @@ namespace cv
 
   }
 
+  /* Converts 2d vector of points to 2xN Mat */
+  void
+  ptvec2d_2_mat(std::vector<cv::Point2d> ptvec2d, cv::Mat& mat)
+  {
+    mat = Mat::zeros(2, ptvec2d.size(), CV_64F);
+    for (int n = 0; n < ptvec2d.size(); ++n)
+    {
+      mat.at<double>(0, n) = ptvec2d[n].x;
+      mat.at<double>(1, n) = ptvec2d[n].y;
+    }
+  }
+#endif
+
+  /*  Build libmv matches from input points2d*/
+  void
+  points2d_2_matches(const InputArrayOfArrays points2d, libmv::Matches& matches)
+  {
+    int nviews = points2d.total();
+
+    for (int m = 0; m < nviews; ++m)
+    {
+      cv::Mat pts2d = points2d.getMat(m);
+
+      for (int n = 0; n < pts2d.cols; ++n)
+      {
+        PointFeature * feature = new PointFeature(pts2d.at<double>(0, n), pts2d.at<double>(0, n));
+        matches.Insert(m, n, feature);
+      }
+    }
+
+  }
+
+  /*  Builds projection matrix array from libmv Reconstruction*/
   void
   recon_2_projmatvec(libmv::Reconstruction& recon, OutputArrayOfArrays Pv)
   {
@@ -114,23 +148,13 @@ namespace cv
     }
   }
 
-  /* Converts 2d vector of points to 2xN Mat */
-  void
-  ptvec2d_2_mat(std::vector<cv::Point2d> ptvec2d, cv::Mat& mat)
-  {
-    mat = Mat::zeros(2, ptvec2d.size(), CV_64F);
-    for (int n = 0; n < ptvec2d.size(); ++n)
-    {
-      mat.at<double>(0, n) = ptvec2d[n].x;
-      mat.at<double>(1, n) = ptvec2d[n].y;
-    }
-  }
-
   /* reconstruction function for API */
   void
   reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
               bool is_projective, bool has_outliers, bool is_sequence)
   {
+
+    int nviews = points2d.total();
 
     /* OpenCV data types */
     bool result = false;
@@ -142,11 +166,7 @@ namespace cv
     Reconstruction recon;
 
     /* Convert OpenCV types to libmv types */
-    iparr_2_ptvec(points2d, _points2d);
-    ptvec_2_matches(_points2d, matches);
-
-    int nviews = _points2d.size();
-    // cout << nviews << endl;
+    points2d_2_matches(points2d, matches);
 
     /* Projective reconstruction*/
 
@@ -156,28 +176,31 @@ namespace cv
       /* Two view reconstruction */
 
       if (nviews == 2)
+      {
         result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, &matches_inliers, &recon);
 
-      /* Get projection matrices */
+        /* Get projection matrices */
 
-      CV_Assert(recon.GetNumberCameras() == nviews);
-      projection_matrices.create(1, nviews, 0, -1, true, 0);
-      recon_2_projmatvec(recon, projection_matrices);
+        CV_Assert(recon.GetNumberCameras() == nviews);
+        projection_matrices.create(1, nviews, 0 /*type*/, -1, true, 0);
+        recon_2_projmatvec(recon, projection_matrices);
 
-      /* Triangulate and find 3D points */
+        /* Triangulate and find 3D points */
 
-      triangulatePoints(points2d, projection_matrices, points3d);
+        triangulatePoints(points2d, projection_matrices, points3d);
+      }
 
     }
 
     /* Euclidian reconstruction*/
+
     else
     {
 
     }
 
-    /* Give error if reconstruction failed */
-//    CV_Assert(result == true);
+    /* Assert if reconstruction succeeded */
+    CV_Assert(result == true);
   }
 
 }

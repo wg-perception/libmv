@@ -23,7 +23,7 @@ namespace cvtest
 
   /*Read 2d point data from YAML file*/
   void
-  readtestdata(std::string filename, int nviews, int npts, std::vector<std::vector<cv::Point2d> > &points2d);
+  readtestdata(string filename, int nviews, int npts, std::vector<cv::Mat> &points2d);
 
   /*Read projection matrix data from YAML file*/
   void
@@ -31,7 +31,7 @@ namespace cvtest
 
   /*Read 3D point data from YAML file*/
   void
-  readtestdata(string filename, std::vector<cv::Point3d> &points3d);
+  readtestdata(string filename, cv::Mat &points3d);
 
 }
 
