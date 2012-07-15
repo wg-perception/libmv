@@ -35,6 +35,7 @@
 
 #include "libmv/multiview/twoviewtriangulation.h"
 #include "libmv/multiview/fundamental.h"
+#include "libmv/multiview/nviewtriangulation.h"
 
 #include "opencv2/sfm/sfm.hpp"
 #include <opencv2/core/eigen.hpp>
@@ -63,6 +64,34 @@ triangulateDLT( const Mat_<T> &xl, const Mat_<T> &xr, const Mat_<T> &Pl, const M
     cv::SVD::solveZ(design, XHomogeneous);
 
     HomogeneousToEuclidean(XHomogeneous, points3d);
+}
+
+template<typename T>
+void
+NViewTriangulate( const Mat &_x, const vector<Mat> &_P, Mat &points3d)
+{
+    unsigned nviews = _x.cols;
+
+    Eigen::Matrix<T, 2, Eigen::Dynamic> x(2, nviews);
+    libmv::vector<Eigen::Matrix<T, 3, 4> > Ps(nviews);
+    Eigen::Matrix<T, 4, 1> X;
+
+    cv2eigen<T, 2, Eigen::Dynamic>( _x, x );
+
+    Ps.clear();
+    for( unsigned i=0; i < nviews; ++i )
+    {
+        Eigen::Matrix<T, 3, 4> P;
+        cv2eigen<T, 3, 4>( _P.at(i), P );
+        Ps.push_back( P );
+    }
+
+    libmv::NViewTriangulate<T>( x, Ps, &X );
+
+    Mat XHomogeneous;
+    eigen2cv<T, 4, 1>( X, XHomogeneous );
+    HomogeneousToEuclidean( XHomogeneous, points3d );
+
 }
 
 template<typename T>
@@ -110,6 +139,33 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
 //             libmv::TwoViewTriangulationByPlanes(xl, xr, Pr, E, &XEuclidean);
 //         }
 
+    }
+    else if( nviews > 2 )
+    {
+        // defs
+        unsigned npoints = points2d.at(0).cols;
+        int type = points2d.at(0).type();
+
+        // check dimensions
+        for( unsigned k=1; k < nviews; ++k )
+            CV_Assert( points2d.at(k).cols == npoints );
+
+        // pre-allocation
+        points3d.create( 3, npoints, type );
+
+        // triangulate
+        for( unsigned i=0; i < npoints; ++i )
+        {
+            // build x matrix (one point per view)
+            Mat x( 2, nviews, type );
+            for( unsigned k=0; k < nviews; ++k )
+            {
+                points2d.at(k).col(i).copyTo( x.col(k) );
+            }
+
+            Mat current_points3d = points3d.col(i);
+            NViewTriangulate<T>( x, projection_matrices, current_points3d );
+        }
     }
     else
     {

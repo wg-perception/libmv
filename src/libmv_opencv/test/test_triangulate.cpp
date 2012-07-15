@@ -83,3 +83,43 @@ TEST(Sfm_triangulate, TriangulateDLT) {
         EXPECT_NEAR(0, libmv::DistanceLInfinity(X_est, X_gt), 1e-8);
     }
 }
+
+
+TEST(Sfm_triangulate, NViewTriangulate_FiveViews) {
+    int nviews = 5;
+    int npoints = 6;
+    libmv::NViewDataSet d = libmv::NRealisticCamerasFull(nviews, npoints);
+
+    // Collect P matrices together.
+    vector<Mat> Ps;
+    for (int j = 0; j < nviews; ++j) {
+        Mat P;
+        eigen2cv<double,3,4>(d.P(j), P);
+        Ps.push_back(P);
+    }
+
+    // Collect points
+    vector<Mat> xs;
+    for (int k = 0; k < nviews; ++k) {
+        Mat x(2, npoints, CV_64F);;
+        eigen2cv<double>( d.x[k], x );
+        xs.push_back( x );
+    }
+
+    CV_Assert(xs.size() == Ps.size());
+
+    // get 3d points
+    Mat X;
+    triangulatePoints(xs, Ps, X);
+    EuclideanToHomogeneous(X, X);
+
+    for (int i = 0; i < npoints; ++i) {
+        // Check reprojection error. Should be nearly zero.
+        for (int k = 0; k < nviews; ++k) {
+            Mat x_reprojected;
+            HomogeneousToEuclidean( Ps[k]*X.col(i), x_reprojected );
+            double error = norm( x_reprojected - xs[k].col(i) );
+            EXPECT_NEAR(error, 0.0, 1e-9);
+        }
+    }
+}
