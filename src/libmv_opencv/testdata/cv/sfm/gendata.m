@@ -14,5 +14,5 @@
 anim=generateToyAnimation( 0,'nPoint',10,'nFrame',3,'isProj',1);
 anim2cvyaml('rnd_N10_F3_Proj1.yml',anim);
 
-anim=generateToyAnimation( 0,'nPoint',10,'nFrame',3,'isProj',0);
-anim2cvyaml('rnd_N10_F3_Proj0.yml',anim);
+% anim=generateToyAnimation( 0,'nPoint',10,'nFrame',3,'isProj',0);
+% anim2cvyaml('rnd_N10_F3_Proj0.yml',anim);

@@ -43,17 +43,18 @@ using namespace cvtest;
 void
 check_projection_errors(Mat& points3d_estimated, vector<Mat>& projection_matrices_estimated, vector<Mat>& points2d)
 {
-  for (int m = 0; m < points3d_estimated.cols; ++m)
+  for (int m = 0; m < points2d.size(); ++m)
   {
 
     Mat X, x;
     EuclideanToHomogeneous(points3d_estimated, X); // 3D point
-    HomogeneousToEuclidean(projection_matrices_estimated[0] * X, x); // 2d projection
+    HomogeneousToEuclidean(projection_matrices_estimated[m] * X, x); // 2d projection
     Mat projerr = points2d[m] - x;
+//    cout << projerr << endl;
     for (int n = 0; n < 10; ++n)
     {
-      EXPECT_NEAR(0, projerr.at<double>(0,n), 1e-8);
-      EXPECT_NEAR(0, projerr.at<double>(1,n), 1e-8);
+      double d = sqrt(pow(projerr.at<double>(0, n), 2) + pow(projerr.at<double>(1, n), 2));
+      EXPECT_NEAR(0, d, 1e-4);
     }
   }
 }
@@ -67,7 +68,7 @@ TEST(Sfm_reconstruct, twoViewProjective)
   vector<Mat> points2d;
 
   string filename(cvtest::TS::ptr()->get_data_path() + "sfm/rnd_N10_F3_Proj1.yml");
-  cout << "Test data: " << filename << endl;
+//  cout << "Test data: " << filename << endl;
 
   readtestdata(filename, 2, 10, points2d);
   readtestdata(filename, 2, projection_matrices);
@@ -77,6 +78,9 @@ TEST(Sfm_reconstruct, twoViewProjective)
   reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
 
   /*  Check projection errors on GT*/
-//  check_projection_errors(points3d, projection_matrices, points2d);
+  check_projection_errors(points3d, projection_matrices, points2d);
 
+  /*  Check projection errors on estimates*/
+  // should this work for the  projective case??
+  check_projection_errors(points3d_estimated, projection_matrices_estimated, points2d);
 }

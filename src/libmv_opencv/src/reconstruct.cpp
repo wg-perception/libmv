@@ -197,6 +197,23 @@ namespace cv
     else
     {
 
+      /* Two view reconstruction */
+
+      if (nviews == 2)
+      {
+        result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, &matches_inliers, &recon);
+
+        /* Get projection matrices */
+
+        CV_Assert(recon.GetNumberCameras() == nviews);
+        projection_matrices.create(1, nviews, 0 /*type*/, -1, true, 0);
+        recon_2_projmatvec(recon, projection_matrices);
+
+        /* Triangulate and find 3D points */
+
+        triangulatePoints(points2d, projection_matrices, points3d);
+      }
+
     }
 
     /* Assert if reconstruction succeeded */
