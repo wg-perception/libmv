@@ -39,6 +39,25 @@ using namespace cv;
 using namespace std;
 using namespace cvtest;
 
+/* Check projection errors */
+void
+check_projection_errors(Mat& points3d_estimated, vector<Mat>& projection_matrices_estimated, vector<Mat>& points2d)
+{
+  for (int m = 0; m < points3d_estimated.cols; ++m)
+  {
+
+    Mat X, x;
+    EuclideanToHomogeneous(points3d_estimated, X); // 3D point
+    HomogeneousToEuclidean(projection_matrices_estimated[0] * X, x); // 2d projection
+    Mat projerr = points2d[m] - x;
+    for (int n = 0; n < 10; ++n)
+    {
+      EXPECT_NEAR(0, projerr.at<double>(0,n), 1e-8);
+      EXPECT_NEAR(0, projerr.at<double>(1,n), 1e-8);
+    }
+  }
+}
+
 TEST(Sfm_reconstruct, twoViewProjective)
 {
   Mat points3d;
@@ -57,20 +76,7 @@ TEST(Sfm_reconstruct, twoViewProjective)
 
   reconstruct(points2d, projection_matrices_estimated, points3d_estimated, true);
 
-  /*  Check projection errors*/
-
-  for (int m = 0; m < 2; ++m)
-  {
-
-    Mat X, x;
-    EuclideanToHomogeneous(points3d_estimated, X); // 3D point
-    HomogeneousToEuclidean(projection_matrices_estimated[0] * X, x); // 2d projection
-    Mat projerr = points2d[m] - x;
-    for (int n = 0; n < 10; ++n)
-    {
-      EXPECT_NEAR(0, projerr.at<double>(0,n), 1e-8);
-      EXPECT_NEAR(0, projerr.at<double>(1,n), 1e-8);
-    }
-  }
+  /*  Check projection errors on GT*/
+//  check_projection_errors(points3d, projection_matrices, points2d);
 
 }

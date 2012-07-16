@@ -5,6 +5,21 @@ function [ ] = anim2cvyaml(filename, anim )
 f=fopen(filename,'w');
 fprintf(f,'%s\n','%YAML:1.0');
 
+%Check projection errors
+for m=1:size(anim.P,3)  % views
+    for n=1: size(anim.S,2) %  points
+        x=anim.P(:,:,m)* [anim.S(:,n);1];
+        x=x/x(3);
+        x=x(1:2);
+        e=x-anim.W(:,n,m);
+        display(m);
+        display(n);
+        assert(e(1)==0);
+        assert(e(2)==0);
+    end
+end
+
+
 % Save 3D pts S
 addArray(['S'],anim.S,f);
 
