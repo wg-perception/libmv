@@ -10,6 +10,8 @@
 #include <opencv2/core/core.hpp>
 #include <iostream>
 
+#include "scene.h"
+
 #define OPEN_TESTFILE(FNAME,FS)  \
       FS.open(FNAME, FileStorage::READ); \
     if (!FS.isOpened())\
