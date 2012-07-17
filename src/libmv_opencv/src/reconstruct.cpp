@@ -116,17 +116,17 @@ namespace cv
 
   /*  Build libmv matches from input points2d*/
   void
-  points2d_2_matches(const InputArrayOfArrays points2d, libmv::Matches& matches)
+  points2d_2_matches(const std::vector<cv::Mat> & pts2d, libmv::Matches& matches)
   {
-    int nviews = points2d.total();
-
-    for (int m = 0; m < nviews; ++m)
+    for (int m = 0; m < pts2d.size(); ++m)
     {
-      cv::Mat pts2d = points2d.getMat(m);
-
-      for (int n = 0; n < pts2d.cols; ++n)
+      for (int n = 0; n < pts2d[m].cols; ++n)
       {
-        PointFeature * feature = new PointFeature(pts2d.at<double>(0, n), pts2d.at<double>(0, n));
+        PointFeature * feature;
+        if (pts2d[m].depth() == CV_32F)
+          feature = new PointFeature(pts2d[m].at<float >(0, n), pts2d[m].at<float>(0, n));
+        else
+          feature = new PointFeature(pts2d[m].at<double>(0, n), pts2d[m].at<double>(0, n));
         matches.Insert(m, n, feature);
       }
     }
@@ -135,16 +135,16 @@ namespace cv
 
   /*  Builds projection matrix array from libmv Reconstruction*/
   void
-  recon_2_projmatvec(libmv::Reconstruction& recon, OutputArrayOfArrays Pv)
+  recon_2_projmatvec(libmv::Reconstruction& recon, OutputArrayOfArrays Pv, int depth)
   {
     libmv::PinholeCamera *cam;
 
     for (int m = 0; m < recon.GetNumberCameras(); ++m)
     {
-      cam = (PinholeCamera *) recon.GetCamera(m);
+      cam = dynamic_cast<PinholeCamera *>(recon.GetCamera(m));
       cv::Mat P;
-      eigen2cv(cam->GetPoseMatrix(), P);
-      P.copyTo(Pv.getMatRef(m));
+      eigen2cv(cam->projection_matrix(), P);
+      P.convertTo(Pv.getMatRef(m), depth);
     }
   }
 
@@ -159,6 +159,9 @@ namespace cv
     /* OpenCV data types */
     bool result = false;
     std::vector<std::vector<Point2d> > _points2d;
+    std::vector<cv::Mat> pts2d;
+    points2d.getMatVector(pts2d);
+    int depth = pts2d[0].depth();
 
     /* Data types needed by libmv functions */
     Matches matches;
@@ -166,7 +169,7 @@ namespace cv
     Reconstruction recon;
 
     /* Convert OpenCV types to libmv types */
-    points2d_2_matches(points2d, matches);
+    points2d_2_matches(pts2d, matches);
 
     /* Projective reconstruction*/
 
@@ -182,8 +185,8 @@ namespace cv
         /* Get projection matrices */
 
         CV_Assert(recon.GetNumberCameras() == nviews);
-        projection_matrices.create(1, nviews, 0 /*type*/, -1, true, 0);
-        recon_2_projmatvec(recon, projection_matrices);
+        projection_matrices.create(1, nviews, 0, -1, true, 0);
+        recon_2_projmatvec(recon, projection_matrices, depth);
 
         /* Triangulate and find 3D points */
 
@@ -207,7 +210,7 @@ namespace cv
 
         CV_Assert(recon.GetNumberCameras() == nviews);
         projection_matrices.create(1, nviews, 0 /*type*/, -1, true, 0);
-        recon_2_projmatvec(recon, projection_matrices);
+        recon_2_projmatvec(recon, projection_matrices, depth);
 
         /* Triangulate and find 3D points */
 
