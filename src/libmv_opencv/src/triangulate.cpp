@@ -33,12 +33,7 @@
  *
  */
 
-#include "libmv/multiview/twoviewtriangulation.h"
-#include "libmv/multiview/fundamental.h"
-#include "libmv/multiview/nviewtriangulation.h"
-
 #include "opencv2/sfm/sfm.hpp"
-#include <opencv2/core/eigen.hpp>
 
 using namespace cv;
 using namespace std;
@@ -66,32 +61,27 @@ triangulateDLT( const Mat_<T> &xl, const Mat_<T> &xr, const Mat_<T> &Pl, const M
     HomogeneousToEuclidean(XHomogeneous, points3d);
 }
 
+// x's are 2D coordinates (x,y,1) in each image; Ps are projective cameras.
+// The output, X, is a 3D vector.
+// Algorithm is the standard DLT; for derivation see appendix of Keir's thesis.
 template<typename T>
 void
-NViewTriangulate( const Mat &_x, const vector<Mat> &_P, Mat &points3d)
+NViewTriangulate(const Mat &x, const vector<Mat> &Ps, Mat &X)
 {
-    unsigned nviews = _x.cols;
+    unsigned nviews = x.cols;
+    CV_Assert(nviews == Ps.size());
 
-    Eigen::Matrix<T, 2, Eigen::Dynamic> x(2, nviews);
-    libmv::vector<Eigen::Matrix<T, 3, 4> > Ps(nviews);
-    Eigen::Matrix<T, 4, 1> X;
-
-    cv2eigen<T, 2, Eigen::Dynamic>( _x, x );
-
-    Ps.clear();
-    for( unsigned i=0; i < nviews; ++i )
-    {
-        Eigen::Matrix<T, 3, 4> P;
-        cv2eigen<T, 3, 4>( _P.at(i), P );
-        Ps.push_back( P );
+    cv::Mat_<T> design = cv::Mat_<T>::zeros(3*nviews, 4 + nviews);
+    for (unsigned i=0; i < nviews; ++i) {
+        design(Range(3*i,3*i+3), Range(0, 4)) = -Ps[i];
+        design(3*i + 0, 4 + i) = x.at<T>(0, i);
+        design(3*i + 1, 4 + i) = x.at<T>(1, i);
+        design(3*i + 2, 4 + i) = 1.0;
     }
 
-    libmv::NViewTriangulate<T>( x, Ps, &X );
-
-    Mat XHomogeneous;
-    eigen2cv<T, 4, 1>( X, XHomogeneous );
-    HomogeneousToEuclidean( XHomogeneous, points3d );
-
+    Mat_<T> X_and_alphas;
+    cv::SVD::solveZ(design, X_and_alphas);
+    HomogeneousToEuclidean(X_and_alphas.rowRange(0, 4), X);
 }
 
 template<typename T>
