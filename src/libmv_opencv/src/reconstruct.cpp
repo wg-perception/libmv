@@ -44,6 +44,8 @@
 /* libmv headers */
 #include <libmv/reconstruction/reconstruction.h>
 #include <libmv/reconstruction/projective_reconstruction.h>
+#include <libmv/reconstruction/projective_reconstruction.h>
+#include "libmv/multiview/robust_fundamental.h"
 
 #include <iostream>
 
@@ -56,6 +58,7 @@ using namespace std;
 
 namespace cv
 {
+
 #if 0
   void
   ptvec2mat(std::vector<cv::Point2d> &pvec, cv::Mat &pmat)
@@ -124,7 +127,7 @@ namespace cv
       {
         PointFeature * feature;
         if (pts2d[m].depth() == CV_32F)
-          feature = new PointFeature(pts2d[m].at<float >(0, n), pts2d[m].at<float>(0, n));
+          feature = new PointFeature(pts2d[m].at<float>(0, n), pts2d[m].at<float>(0, n));
         else
           feature = new PointFeature(pts2d[m].at<double>(0, n), pts2d[m].at<double>(0, n));
         matches.Insert(m, n, feature);
@@ -180,6 +183,7 @@ namespace cv
 
       if (nviews == 2)
       {
+#if 0
         result = ReconstructFromTwoUncalibratedViews(matches, 0, 1, &matches_inliers, &recon);
 
         /* Get projection matrices */
@@ -191,8 +195,39 @@ namespace cv
         /* Triangulate and find 3D points */
 
         triangulatePoints(points2d, projection_matrices, points3d);
-      }
 
+#else
+        cv::Mat F, T1, T2, x1, x2;
+        double max_error = 0.1;
+
+        // Notation base on per HZ Algo 11.1 p282 2ed
+
+        // Using normalized 8points for robust F estimation
+        // Todo: Support less than 8 pts
+        assert(pts2d[0].cols >= 8);
+        assert(pts2d[1].cols >= 8);
+
+        // Normalize points
+        IsotropicScaling(pts2d[0], x1, T1);
+        IsotropicScaling(pts2d[1], x2, T2);
+
+        // Get fundamental matrix
+        libmv::vector<int> inliers;
+        libmv::Mat x1_, x2_;
+        libmv::Mat3 F_;
+        cv2eigen(x1, x1_);
+        cv2eigen(x2, x2_);
+        FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_, &inliers);
+        eigen2cv(F_, F);
+        F = T2.t() * F * T1; // Denormalized
+
+        // Get Projection matrices
+        // Todo:
+
+        //  Triangulate and find 3D points
+        triangulatePoints(points2d, projection_matrices, points3d);
+#endif
+      }
     }
 
     /* Euclidian reconstruction*/

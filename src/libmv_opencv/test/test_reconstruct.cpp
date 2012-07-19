@@ -100,7 +100,6 @@ TEST(Sfm_reconstruct, twoViewProjective)
     check_projection_errors(points3d, Ps, points2d);
 
     /*  Check projection errors on estimates*/
-    // should this work for the  projective case??
     check_projection_errors(points3d_estimated, Ps_estimated, points2d);
   }
 }
