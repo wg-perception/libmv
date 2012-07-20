@@ -46,12 +46,11 @@ namespace cv
   /** Triangulates enum */
   enum
   {
-      CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
-      CV_TRIANG_ALGEBRAIC = 1,   /*!< ... */
-      CV_TRIANG_BY_PLANE = 2,
+    CV_TRIANG_DLT = 0, /*!< HZ 12.2 pag.312 */
+    CV_TRIANG_ALGEBRAIC = 1, /*!< ... */
+    CV_TRIANG_BY_PLANE = 2,
   };
 
-  
   /** Triangulates the 3d position of 2d correspondences between several images
    * @param points2d a vector of vectors of 2d points (the inner vector is per image)
    * @param projection_matrices The 3 x 4 projections matrices of each image
@@ -60,8 +59,8 @@ namespace cv
    */
   CV_EXPORTS
   void
-  triangulatePoints(InputArrayOfArrays points2d, InputArrayOfArrays projection_matrices,
-                    OutputArray points3d, int method = CV_TRIANG_DLT);
+  triangulatePoints(InputArrayOfArrays points2d, InputArrayOfArrays projection_matrices, OutputArray points3d,
+                    int method = CV_TRIANG_DLT);
 
   /** Reconstruct 3d points from 2d correspondences without performing autocalibration.
    * @param points2d a vector of vectors of 2d points (the inner vector is per image)
@@ -89,8 +88,7 @@ namespace cv
   CV_EXPORTS
   void
   reconstruct(InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
-              OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence =
-                  false);
+              OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence = false);
 
   /** Converts point coordinates from homogeneous to euclidean pixel coordinates. E.g., ((x,y,z)->(x/z, y/z))
    * @param src Input vector of N-dimensional points
@@ -107,7 +105,7 @@ namespace cv
   CV_EXPORTS
   void
   EuclideanToHomogeneous(InputArray src, OutputArray dst);
-  
+
   /** This function normalizes points as done in the eight point algorithm
    * @param X Input vector of N-dimensional points
    * @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
@@ -116,6 +114,16 @@ namespace cv
   CV_EXPORTS
   void
   IsotropicScaling(InputArray X, OutputArray x, OutputArray T);
+
+  /** Computes the fundamental matrix from corresponding points in two views
+   * @param x1 2xN Array of 2D points in view 1
+   * @param x2 2xN Array of 2D points in view 2
+   * @param F Output 3x3 Fundamental matrix such that x2^Fx1=0
+   */
+  CV_EXPORTS
+  void
+  fundamental8Point(InputArray x1, OutputArray x2, OutputArray F, bool has_outliers = false);
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
