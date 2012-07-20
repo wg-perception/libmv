@@ -198,7 +198,8 @@ namespace cv
         triangulatePoints(points2d, projection_matrices, points3d);
 
 #else
-        cv::Mat F, T1, T2, x1, x2;
+        cv::Mat F(3,3,CV_64F), T1(3,3,CV_64F), T2(3,3,CV_64F);
+        cv::Mat x1, x2;
         double max_error = 0.1;
 
         // Notation base on per HZ Algo 11.1 p282 2ed
@@ -211,9 +212,6 @@ namespace cv
         // Normalize points
         IsotropicScaling(pts2d[0], x1, T1);
         IsotropicScaling(pts2d[1], x2, T2);
-        cout << T1 << endl;
-        cout << T2 << endl;
-BR
 
         // Get fundamental matrix
         libmv::vector<int> inliers;
@@ -221,11 +219,16 @@ BR
         libmv::Mat3 F_;
         cv2eigen(x1, x1_);
         cv2eigen(x2, x2_);
-        if (has_outliers)
+        if (has_outliers) // Todo: filter inlier points
           FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_, &inliers);
         else
           libmv::NormalizedEightPointSolver(x1_, x2_, &F_);
         eigen2cv(F_, F);
+        cout << T2 << endl;
+        cout << T2.t() << endl;
+        cout << F << endl;
+        cout << F.type() << endl;
+        cout << T1.type() << endl;
         F = T2.t() * F * T1; // Denormalized
 
         // Filter inliers

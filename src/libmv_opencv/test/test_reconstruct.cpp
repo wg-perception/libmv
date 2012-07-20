@@ -60,17 +60,18 @@ check_projection_errors(const Mat& points3d_estimated, const vector<Mat>& projec
   }
 }
 
-TEST(Sfm_reconstruct, twoViewProjective)
+TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
 {
   int nviews = 2;
   int npoints = 50;
   bool is_projective = true;
+  bool has_outliers = true;
 
-  for(unsigned iter =0;iter<2;++iter)
+  for (unsigned iter = 0; iter < 2; ++iter)
   {
     int depth;
     float err_max2d, err_max3d;
-    if (iter==0)
+    if (iter == 0)
     {
       depth = CV_32F;
       err_max2d = 1e-5;
@@ -94,7 +95,7 @@ TEST(Sfm_reconstruct, twoViewProjective)
     Mat points3d_estimated;
     vector<Mat> Ps_estimated;
 
-    reconstruct(points2d, Ps_estimated, points3d_estimated, is_projective);
+    reconstruct(points2d, Ps_estimated, points3d_estimated, is_projective, has_outliers);
 
     /*  Check projection errors on GT*/
     check_projection_errors(points3d, Ps, points2d);
