@@ -46,6 +46,7 @@
 #include <libmv/reconstruction/projective_reconstruction.h>
 #include <libmv/reconstruction/projective_reconstruction.h>
 #include "libmv/multiview/robust_fundamental.h"
+#include "libmv/multiview/fundamental.h"
 
 #include <iostream>
 
@@ -210,6 +211,9 @@ namespace cv
         // Normalize points
         IsotropicScaling(pts2d[0], x1, T1);
         IsotropicScaling(pts2d[1], x2, T2);
+        cout << T1 << endl;
+        cout << T2 << endl;
+BR
 
         // Get fundamental matrix
         libmv::vector<int> inliers;
@@ -217,14 +221,19 @@ namespace cv
         libmv::Mat3 F_;
         cv2eigen(x1, x1_);
         cv2eigen(x2, x2_);
-        FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_, &inliers);
+        if (has_outliers)
+          FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_, &inliers);
+        else
+          libmv::NormalizedEightPointSolver(x1_, x2_, &F_);
         eigen2cv(F_, F);
         F = T2.t() * F * T1; // Denormalized
 
-        // Get Projection matrices
+        // Filter inliers
+
+        // Get Projection matrices using inliers
         // Todo:
 
-        //  Triangulate and find 3D points
+        //  Triangulate and find 3D points using inliers
         triangulatePoints(points2d, projection_matrices, points3d);
 #endif
       }
