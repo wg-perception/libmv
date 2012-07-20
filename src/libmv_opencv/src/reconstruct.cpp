@@ -45,8 +45,6 @@
 #include <libmv/reconstruction/reconstruction.h>
 #include <libmv/reconstruction/projective_reconstruction.h>
 #include <libmv/reconstruction/projective_reconstruction.h>
-#include "libmv/multiview/robust_fundamental.h"
-#include "libmv/multiview/fundamental.h"
 
 #include <iostream>
 
@@ -159,6 +157,7 @@ namespace cv
   {
 
     int nviews = points2d.total();
+    cv::Mat F;
 
     /* OpenCV data types */
     bool result = false;
@@ -198,42 +197,11 @@ namespace cv
         triangulatePoints(points2d, projection_matrices, points3d);
 
 #else
-        cv::Mat F(3,3,CV_64F), T1(3,3,CV_64F), T2(3,3,CV_64F);
-        cv::Mat x1, x2;
-        double max_error = 0.1;
-
-        // Notation base on per HZ Algo 11.1 p282 2ed
-
-        // Using normalized 8points for robust F estimation
-        // Todo: Support less than 8 pts
-        assert(pts2d[0].cols >= 8);
-        assert(pts2d[1].cols >= 8);
-
-        // Normalize points
-        IsotropicScaling(pts2d[0], x1, T1);
-        IsotropicScaling(pts2d[1], x2, T2);
-
         // Get fundamental matrix
-        libmv::vector<int> inliers;
-        libmv::Mat x1_, x2_;
-        libmv::Mat3 F_;
-        cv2eigen(x1, x1_);
-        cv2eigen(x2, x2_);
-        if (has_outliers) // Todo: filter inlier points
-          FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_, &inliers);
-        else
-          libmv::NormalizedEightPointSolver(x1_, x2_, &F_);
-        eigen2cv(F_, F);
-        cout << T2 << endl;
-        cout << T2.t() << endl;
+        fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
         cout << F << endl;
-        cout << F.type() << endl;
-        cout << T1.type() << endl;
-        F = T2.t() * F * T1; // Denormalized
 
-        // Filter inliers
-
-        // Get Projection matrices using inliers
+        // Get Projection matrices
         // Todo:
 
         //  Triangulate and find 3D points using inliers
