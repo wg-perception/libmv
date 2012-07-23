@@ -7,7 +7,7 @@ include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
 include_directories(include)
 
 add_library(opencv_sfm src/conditioning.cpp
-#                        src/fundamental.cpp
+                       src/fundamental.cpp
                        src/projection.cpp
                        src/reconstruct.cpp
                        src/triangulate.cpp
@@ -36,7 +36,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(sfm_tests test/scene.cpp
                          test/test_conditioning.cpp
-#                          test/test_fundamental.cpp
+                         test/test_fundamental.cpp
                          test/test_main.cpp
                          test/test_precomp.cpp
                          test/test_projection.cpp
