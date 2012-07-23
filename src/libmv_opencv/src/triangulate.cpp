@@ -34,6 +34,11 @@
  */
 
 #include "opencv2/sfm/sfm.hpp"
+#include "libmv/multiview/twoviewtriangulation.h"
+#include "libmv/multiview/fundamental.h"
+
+#include <opencv2/core/eigen.hpp>
+
 
 using namespace cv;
 using namespace std;
@@ -110,25 +115,6 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
             Mat current_points3d = points3d.col(i);
             triangulateDLT<T>( xl.col(i), xr.col(i), Pl, Pr, current_points3d );
         }
-
-
-//         if( method == CV_TRIANG_DLT )
-//         {
-//             triangulateDLT<T>( xl, xr, Pl, Pr, points3d );
-//         }
-//         else if( method == CV_TRIANG_BY_PLANE )
-//         {
-//             // Fundamental matrix
-//             libmv::Mat3 F;
-//             libmv::NormalizedEightPointSolver(xl, xr, &F);
-// 
-//             // Essential matrix
-//             libmv::Mat3 E;
-// //             libmv::EssentialFromFundamental(F, K1, K2, &E);
-// 
-//             libmv::TwoViewTriangulationByPlanes(xl, xr, Pr, E, &XEuclidean);
-//         }
-
     }
     else if( nviews > 2 )
     {
@@ -157,11 +143,72 @@ triangulatePoints_(unsigned nviews, const vector<cv::Mat> & points2d, const vect
             NViewTriangulate<T>( x, projection_matrices, current_points3d );
         }
     }
-    else
-    {
-    }
 }
 
+template<typename T>
+void
+triangulatePoints_(unsigned nviews, const vector<Mat> & points2d, const vector<Mat> & K,
+                   const vector<Mat> & R, const vector<Mat> & t,
+                   Mat & points3d, int method)
+{
+    if( method == CV_TRIANG_DLT)
+    {
+        // Compute projection matrices
+        std::vector<cv::Mat> P;
+        P.resize(nviews);
+        for (unsigned i = 0; i < nviews; ++i)
+        {
+            P[i].create(3, 4, points2d.at(0).depth() );
+            cv::Mat(K[i] * R[i]).copyTo(P[i].colRange(0, 3));
+            cv::Mat(K[i] * t[i]).copyTo(P[i].col(3));
+        }
+
+        triangulatePoints_<T>(nviews, points2d, P, points3d, method);
+    }
+    else if( method == CV_TRIANG_BY_PLANE )
+    {
+        // Two view
+        if( nviews == 2 )
+        {
+            libmv::Vec3 xl, xr;
+            cv2eigen( points2d.at(0), xl );
+            cv2eigen( points2d.at(1), xr );
+
+            // Fundamental matrix
+            libmv::Mat3 F;
+            libmv::NormalizedEightPointSolver(xl, xr, &F);
+
+            libmv::Mat K1, K2;
+            cv2eigen( K.at(0), K1 );
+            cv2eigen( K.at(1), K2 );
+
+            // Essential matrix
+            libmv::Mat3 E;
+            libmv::EssentialFromFundamental(F, K1, K2, &E);
+
+            // Mat Pl; // [ I | 0 ]
+            Mat Pr;
+            cv::Mat(K[1] * R[1]).copyTo(Pr.colRange(0, 3));
+            cv::Mat(K[1] * t[1]).copyTo(Pr.col(3));
+            libmv::Mat34 P2;
+            cv2eigen( Pr, P2 );
+
+            // triangulation by planes
+            libmv::Vec4 XEuclidean;
+            libmv::TwoViewTriangulationByPlanes(xl, xr, P2, E, &XEuclidean);
+
+            eigen2cv( XEuclidean, points3d );
+        }
+        else if( nviews > 2 )
+        {
+//             CV_ERROR( CV_StsBadArg, "Invalid number of views" );
+        }
+    }
+    else
+    {
+//         CV_ERROR( CV_StsBadArg, "Invalid method" );
+    }
+}
 
 void
 triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _projection_matrices,
@@ -193,5 +240,39 @@ triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _projection_m
 
     points3d.copyTo(_points3d);
 }
+
+
+void
+triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _K,
+                  InputArrayOfArrays _R, InputArrayOfArrays _t,
+                  OutputArray _points3d, int method)
+{
+    // check
+    unsigned nviews = (unsigned) _points2d.total();
+    CV_Assert(nviews >= 2 && nviews == _R.total() && nviews == _t.total());
+
+    // inputs
+    vector<Mat> points2d, K, R, t;
+    _points2d.getMatVector(points2d);
+    _K.getMatVector(K);
+    _R.getMatVector(R);
+    _t.getMatVector(t);
+
+    // output
+    cv::Mat points3d = _points3d.getMat();
+
+    // type: float or double
+    if( _points2d.getMat(0).depth() == CV_32F )
+    {
+        triangulatePoints_<float>(nviews, points2d, K, R, t, points3d, method);
+    }
+    else
+    {
+        triangulatePoints_<float>(nviews, points2d, K, R, t, points3d, method);
+    }
+
+    points3d.copyTo(_points3d);
+}
+
 
 } /* namespace cv */

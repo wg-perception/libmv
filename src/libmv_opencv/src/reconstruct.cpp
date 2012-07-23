@@ -83,7 +83,7 @@ namespace cv
       {
 
         // Get fundamental matrix
-        fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
+//         fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
         cout << F << endl;
 
         // Get Projection matrices
