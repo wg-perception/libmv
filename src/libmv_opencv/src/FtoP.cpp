@@ -33,86 +33,61 @@
  *
  */
 
-// Eigen
-#include <Eigen/Core>
-
-// Open CV
 #include <opencv2/sfm/sfm.hpp>
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-
-// libmv headers
-#include <libmv/reconstruction/reconstruction.h>
-#include <libmv/reconstruction/projective_reconstruction.h>
-#include <libmv/reconstruction/projective_reconstruction.h>
-
-#include <iostream>
-
-using namespace cv;
-using namespace libmv;
-using namespace std;
-
-// Temp debug macro
-#define BR exit(1);
 
 namespace cv
 {
 
-  //  Reconstruction function for API
   void
-  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
-              bool is_projective, bool has_outliers, bool is_sequence)
+  FtoP(InputArray F_, OutputArrayOfArrays Ps, bool is_projective)
   {
+    Mat F = F_.getMat();
+    Mat P = Mat::eye(3, 4, CV_64F);
+    Mat Pp = Mat::zeros(3, 4, CV_64F);
 
-    int nviews = points2d.total();
-    cv::Mat F;
-
-    // OpenCV data types
-    std::vector<cv::Mat> pts2d;
-    points2d.getMatVector(pts2d);
-    int depth = pts2d[0].depth();
-
-    // Projective reconstruction
-
+    // Projective
     if (is_projective)
     {
+      cv::Mat Ep;
 
-      // Two view reconstruction
-
-      if (nviews == 2)
+      // Todo: Double check this part from matlab code - isempty(F)???
+      if (F.empty())
       {
-
-        // Get fundamental matrix
-        fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
-        cout << F << endl;
-
-        // Get Projection matrices
-        FtoP(F,projection_matrices);
-
-        //  Triangulate and find 3D points using inliers
-        triangulatePoints(points2d, projection_matrices, points3d);
-
+        // Reference: HZ2, p246, Table 9.1
+        cv::Mat ep = F.col(3);
+        skew(ep, Ep);
+        Pp = Ep * F;
       }
-    }
 
-    // Affine reconstruction
-
-    else
-    {
-
-      // Two view reconstruction
-
-      if (nviews == 2)
-      {
-
-      }
+      // Affine
       else
       {
+        // Reference: HZ2, p256, Result 9.14
+
+        // SVD
+        cv::Mat U, Vt, W;
+        cv::SVD::compute(F, W, U, Vt);
+
+        cv::Mat ep = U.col(U.cols - 1);
+        skew(ep, Ep);
+
+        Pp.colRange(0, 2) = Ep * F; // 3x3
+        Pp.col(3) = ep;
 
       }
 
     }
+    else
+    {
+      //Todo:
+    }
+
+    // Pack output
+    Ps.create(2, 1, CV_64F);
+    P.copyTo(Ps.getMatRef(0));
+    Pp.copyTo(Ps.getMatRef(1));
 
   }
 
-} // namespace cv
+}
+/* namespace cv */

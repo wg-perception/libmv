@@ -33,86 +33,63 @@
  *
  */
 
-// Eigen
-#include <Eigen/Core>
-
-// Open CV
 #include <opencv2/sfm/sfm.hpp>
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-
-// libmv headers
-#include <libmv/reconstruction/reconstruction.h>
-#include <libmv/reconstruction/projective_reconstruction.h>
-#include <libmv/reconstruction/projective_reconstruction.h>
-
-#include <iostream>
-
-using namespace cv;
-using namespace libmv;
-using namespace std;
-
-// Temp debug macro
-#define BR exit(1);
 
 namespace cv
 {
 
-  //  Reconstruction function for API
+  // Finds the skew matrix of a vector
+  // Reference: HZ2, p581, equation (A4.5)
   void
-  reconstruct(const InputArrayOfArrays points2d, OutputArrayOfArrays projection_matrices, OutputArray points3d,
-              bool is_projective, bool has_outliers, bool is_sequence)
+  skew(InputArray s_, OutputArray S)
   {
+    cv::Mat s = s_.getMat();
+    cv::Mat A;
 
-    int nviews = points2d.total();
-    cv::Mat F;
+    CV_Assert((s.type() == CV_64F) || (s.type() == CV_32F));
 
-    // OpenCV data types
-    std::vector<cv::Mat> pts2d;
-    points2d.getMatVector(pts2d);
-    int depth = pts2d[0].depth();
-
-    // Projective reconstruction
-
-    if (is_projective)
+    // double
+    if (s.type() == CV_64F)
     {
+      A.create(3, 3, CV_64F);
+      //    A=[0 -a(3) a(2); a(3) 0 -a(1); -a(2) a(1) 0];
+      A.at<double>(0, 0) = 0.0;
+      A.at<double>(0, 1) = -1.0 * s.at<double>(2, 0);
+      A.at<double>(0, 2) = s.at<double>(1, 0);
 
-      // Two view reconstruction
+      A.at<double>(1, 0) = s.at<double>(2, 0);
+      A.at<double>(1, 1) = 0.0;
+      A.at<double>(1, 2) = -1 * s.at<double>(0, 0);
 
-      if (nviews == 2)
-      {
+      A.at<double>(2, 0) = -1.0 * s.at<double>(1, 0);
+      A.at<double>(2, 1) = s.at<double>(1, 0);
+      A.at<double>(2, 2) = 0.0;
 
-        // Get fundamental matrix
-        fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
-        cout << F << endl;
-
-        // Get Projection matrices
-        FtoP(F,projection_matrices);
-
-        //  Triangulate and find 3D points using inliers
-        triangulatePoints(points2d, projection_matrices, points3d);
-
-      }
     }
 
-    // Affine reconstruction
-
+    //float
     else
     {
+      A.create(3, 3, CV_32F);
+      //    A=[0 -a(3) a(2); a(3) 0 -a(1); -a(2) a(1) 0];
+      A.at<float>(0, 0) = 0.0;
+      A.at<float>(0, 1) = -1.0 * s.at<float>(2, 0);
+      A.at<float>(0, 2) = s.at<float>(1, 0);
 
-      // Two view reconstruction
+      A.at<float>(1, 0) = s.at<float>(2, 0);
+      A.at<float>(1, 1) = 0.0;
+      A.at<float>(1, 2) = -1 * s.at<float>(0, 0);
 
-      if (nviews == 2)
-      {
-
-      }
-      else
-      {
-
-      }
+      A.at<float>(2, 0) = -1.0 * s.at<float>(1, 0);
+      A.at<float>(2, 1) = s.at<float>(1, 0);
+      A.at<float>(2, 2) = 0.0;
 
     }
+
+    // Pack output
+    A.copyTo(S.getMatRef());
 
   }
 
-} // namespace cv
+}
+/* namespace cv */
