@@ -34,10 +34,43 @@
  */
 
 #include "test_precomp.hpp"
-#include "opencv2/sfm/sfm.hpp"
+
+#include "opencv2/sfm/fundamental.hpp"
+#include <iostream>
 
 using namespace cv;
 using namespace std;
+
+TEST(Sfm_fundamental, normalizedEightPointSolver) {
+    int nviews = 2;
+    int npoints = 8;
+    bool is_projective = true;
+    int depth = CV_64F;
+
+    Mat K;
+    vector<Mat> Rs;
+    vector<Mat> ts;
+    vector<Mat> Ps;
+    Mat points3d;
+    vector<Mat> points2d;
+
+    generateScene(nviews, npoints, is_projective, depth, K, Rs, ts, Ps, points3d, points2d);
+
+    Mat F;
+    normalizedEightPointSolver(points2d[0], points2d[1], F);
+
+    for(int i=0; i<npoints; ++i)
+    {
+        Mat x1, x2;
+
+        EuclideanToHomogeneous(points2d[0].col(i), x1);
+        EuclideanToHomogeneous(points2d[1].col(i), x2);
+
+        Mat_<double> value = (x2.t() * F * x1);
+        // cout << "x2' * F * x1 = " << value(0,0) << endl;
+        EXPECT_LE( value(0,0), 1e-9 );
+    }
+}
 
 TEST(Sfm_fundamental8Point, correctness)
 {

@@ -33,7 +33,8 @@
  *
  */
 
-#include <opencv2/sfm/sfm.hpp>
+#include "opencv2/sfm/fundamental.hpp"
+
 #include "libmv/multiview/robust_fundamental.h"
 #include "libmv/multiview/fundamental.h"
 #include <opencv2/core/eigen.hpp>
@@ -41,9 +42,45 @@
 namespace cv
 {
 
-  void
-  fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outliers)
-  {
+template<typename T>
+void
+normalizedEightPointSolver( const Mat &_x1,
+                            const Mat &_x2,
+                            Mat &_F )
+{
+    libmv::Mat x1, x2;
+    libmv::Mat3 F;
+
+    cv2eigen( _x1, x1 );
+    cv2eigen( _x2, x2 );
+
+    libmv::NormalizedEightPointSolver( x1, x2, &F );
+
+    eigen2cv( F, _F );
+}
+
+void normalizedEightPointSolver(const Mat &x1,
+                                const Mat &x2,
+                                Mat &F)
+{
+    int depth = x1.depth();
+    CV_Assert( depth == x2.depth() );
+
+//     if( depth == CV_32F )
+//     {
+//         normalizedEightPointSolver<float>( x1, x2, F );
+//     }
+//     else
+//     {
+        normalizedEightPointSolver<double>( x1, x2, F );
+//     }
+}
+
+
+
+void
+fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outliers)
+{
     double max_error = 0.1;
 
     cv::Mat F(3, 3, CV_64F), T1(3, 3, CV_64F), T2(3, 3, CV_64F);
@@ -56,8 +93,8 @@ namespace cv
     assert(x2.cols >= 8);
 
     // Normalize points
-    IsotropicScaling(x1, x1, T1);
-    IsotropicScaling(x2, x2, T2);
+//     IsotropicScaling(x1, x1, T1);
+//     IsotropicScaling(x2, x2, T2);
 
     // Compute fundamental matrix
     libmv::vector<int> inliers;
@@ -78,6 +115,6 @@ namespace cv
     // Pack output
     _F.create(3, 3, CV_64F);
     F.copyTo(_F.getMat());
-  }
+}
 
 } /* namespace cv */
