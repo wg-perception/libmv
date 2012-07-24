@@ -39,6 +39,8 @@
 #include "libmv/multiview/fundamental.h"
 #include <opencv2/core/eigen.hpp>
 
+#include <iostream>
+
 namespace cv
 {
 
@@ -59,21 +61,23 @@ normalizedEightPointSolver( const Mat &_x1,
     eigen2cv( F, _F );
 }
 
-void normalizedEightPointSolver(const Mat &x1,
-                                const Mat &x2,
-                                Mat &F)
+void
+normalizedEightPointSolver(const Mat &x1,
+                           const Mat &x2,
+                           Mat &F)
 {
     int depth = x1.depth();
     CV_Assert( depth == x2.depth() );
 
-//     if( depth == CV_32F )
-//     {
+    if( depth == CV_32F )
+    {
 //         normalizedEightPointSolver<float>( x1, x2, F );
-//     }
-//     else
-//     {
+        std::cerr << "Function normalizedEightPointSolver not handled for float" <<std::endl;
+    }
+    else
+    {
         normalizedEightPointSolver<double>( x1, x2, F );
-//     }
+    }
 }
 
 
