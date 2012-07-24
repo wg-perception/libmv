@@ -3,6 +3,11 @@
 namespace cv
 {
 
+void
+projectionsFromFundamental( const Mat &F,
+                            Mat &P1,
+                            Mat &P2 );
+
 /**
  * The normalized 8-point fundamental matrix solver.
  */

@@ -46,6 +46,39 @@ namespace cv
 
 template<typename T>
 void
+projectionsFromFundamental( const Mat &_F, Mat &_P1, Mat &_P2 )
+{
+    libmv::Mat3 F;
+    libmv::Mat34 P1, P2;
+
+    cv2eigen( _F, F );
+
+    libmv::ProjectionsFromFundamental( F, &P1, &P2 );
+
+    eigen2cv( P1, _P1 );
+    eigen2cv( P2, _P2 );
+}
+
+void
+projectionsFromFundamental( const Mat &F, Mat &P1, Mat &P2 )
+{
+    int depth = F.depth();
+
+    if( depth == CV_32F )
+    {
+//         projectionsFromFundamental<float>( F, P1, P2 );
+        std::cerr << "Function projectionsFromFundamental not handled for float" <<std::endl;
+    }
+    else
+    {
+        projectionsFromFundamental<double>( F, P1, P2 );
+    }
+}
+
+
+// HZ 11.2 pag.281 (x1 = x, x2 = x')
+template<typename T>
+void
 normalizedEightPointSolver( const Mat &_x1,
                             const Mat &_x2,
                             Mat &_F )
@@ -122,3 +155,5 @@ fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outl
 }
 
 } /* namespace cv */
+
+
