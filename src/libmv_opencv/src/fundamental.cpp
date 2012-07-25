@@ -75,6 +75,42 @@ projectionsFromFundamental( const Mat &F, Mat &P1, Mat &P2 )
     }
 }
 
+template<typename T>
+void
+fundamentalFromProjections( const Mat &_P1,
+                            const Mat &_P2,
+                            Mat &_F )
+{
+    libmv::Mat34 P1, P2;
+    libmv::Mat3 F;
+
+    cv2eigen( _P1, P1 );
+    cv2eigen( _P2, P2 );
+
+    libmv::FundamentalFromProjections( P1, P2, &F );
+
+    eigen2cv( F, _F );
+}
+
+void
+fundamentalFromProjections( const Mat &P1,
+                            const Mat &P2,
+                            Mat &F )
+{
+    int depth = P1.depth();
+    CV_Assert( depth == P2.depth() && depth == F.depth() );
+
+    if( depth == CV_32F )
+    {
+        // fundamentalFromProjections<float>( P1, P2, F );
+        std::cerr << "FunctionfundamentalFromProjectionsnot handled for float" << std::endl;
+    }
+    else
+    {
+        fundamentalFromProjections<double>( P1, P2, F );
+
+    }
+}
 
 // HZ 11.2 pag.281 (x1 = x, x2 = x')
 template<typename T>
@@ -155,5 +191,3 @@ fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outl
 }
 
 } /* namespace cv */
-
-
