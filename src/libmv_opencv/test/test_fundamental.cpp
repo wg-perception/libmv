@@ -41,6 +41,29 @@
 using namespace cv;
 using namespace std;
 
+TEST(Sfm_fundamental, fundamentalFromProjections)
+{
+    Mat_<double> P1_gt(3,4), P2_gt(3,4);
+    P1_gt << 1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1, 0;
+
+    P2_gt << 1, 1, 1, 3,
+             0, 2, 0, 3,
+             0, 1, 1, 0;
+
+    Mat F_gt;
+    fundamentalFromProjections(P1_gt, P2_gt, F_gt);
+
+    Mat_<double> P1(3,4), P2(3,4);
+    projectionsFromFundamental(F_gt, P1, P2);
+
+    Mat F;
+    fundamentalFromProjections(P1, P2, F);
+
+    EXPECT_LE( norm(F_gt, F), 1e-6 );
+}
+
 TEST(Sfm_fundamental, normalizedEightPointSolver) {
     int nviews = 2;
     int npoints = 8;

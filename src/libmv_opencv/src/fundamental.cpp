@@ -98,17 +98,16 @@ fundamentalFromProjections( const Mat &P1,
                             Mat &F )
 {
     int depth = P1.depth();
-    CV_Assert( depth == P2.depth() && depth == F.depth() );
+    CV_Assert( depth == P2.depth() );
 
     if( depth == CV_32F )
     {
         // fundamentalFromProjections<float>( P1, P2, F );
-        std::cerr << "FunctionfundamentalFromProjectionsnot handled for float" << std::endl;
+        std::cerr << "Function fundamentalFromProjections not handled for float" << std::endl;
     }
     else
     {
         fundamentalFromProjections<double>( P1, P2, F );
-
     }
 }
 
