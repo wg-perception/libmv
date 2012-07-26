@@ -35,9 +35,6 @@
 
 #include "test_precomp.hpp"
 
-#include "opencv2/sfm/fundamental.hpp"
-#include <iostream>
-
 using namespace cv;
 using namespace std;
 

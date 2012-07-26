@@ -111,7 +111,6 @@ fundamentalFromProjections( const Mat &P1,
     }
 }
 
-// HZ 11.2 pag.281 (x1 = x, x2 = x')
 template<typename T>
 void
 normalizedEightPointSolver( const Mat &_x1,

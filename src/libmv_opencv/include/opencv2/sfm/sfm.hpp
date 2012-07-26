@@ -38,7 +38,8 @@
 
 #ifdef __cplusplus
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/sfm/conditioning.hpp>
+#include <opencv2/sfm/fundamental.hpp>
 
 namespace cv
 {

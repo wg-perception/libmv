@@ -35,7 +35,6 @@
 
 #include "test_precomp.hpp"
 
-#include <opencv2/sfm/conditioning.hpp>
 #include "libmv/multiview/conditioning.h"
 
 using namespace cv;
