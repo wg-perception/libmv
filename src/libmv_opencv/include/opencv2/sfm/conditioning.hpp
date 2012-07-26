@@ -50,6 +50,13 @@ namespace cv
     preconditionerFromPoints( const Mat &points,
                               Mat &T );
 
+    /** Point conditioning (isotropic)
+        Reference: HZ2 4.4.4 pag.107
+     */
+    void
+    isotropicPreconditionerFromPoints( const Mat &points,
+                                       Mat &T );
+
     void
     applyTransformationToPoints( const Mat &points,
                                  const Mat &T,

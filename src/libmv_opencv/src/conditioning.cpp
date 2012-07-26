@@ -74,6 +74,36 @@ preconditionerFromPoints( const Mat &points,
     }
 }
 
+template<typename T>
+void
+isotropicPreconditionerFromPoints( const Mat &_points,
+                                   Mat &_T )
+{
+    libmv::Mat points;
+    libmv::Mat3 Tr;
+
+    cv2eigen( _points, points );
+
+    libmv::IsotropicPreconditionerFromPoints( points, &Tr );
+
+    eigen2cv( Tr, _T );
+}
+
+void
+isotropicPreconditionerFromPoints( const Mat &points,
+                                   Mat &T )
+{
+    int depth = points.depth();
+    if( depth == CV_32F )
+    {
+        // isotropicPreconditionerFromPoints<float>( points, T );
+        std::cerr << "Function isotropicPreconditionerFromPoints not handled for float" << std::endl;
+    }
+    else
+    {
+        isotropicPreconditionerFromPoints<double>( points, T );
+    }
+}
 
 template<typename T>
 void
