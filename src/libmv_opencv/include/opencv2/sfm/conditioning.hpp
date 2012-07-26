@@ -33,42 +33,26 @@
  *
  */
 
-#include "test_precomp.hpp"
-#include "opencv2/sfm/sfm.hpp"
+#ifndef __OPENCV_CONDITIONING_HPP__
+#define __OPENCV_CONDITIONING_HPP__
 
-#include "libmv/multiview/conditioning.h"
+#ifdef __cplusplus
 
-
-
-using namespace cv;
-using namespace std;
-
-// ToDo (pablo): use cv::Mat (it is a temporal test)
-TEST(Sfm_conditioning, PreconditionerFromPoints) {
-    int n = 4;
-    libmv::Mat points(2, n);
-    points << 0, 0, 1, 1,
-              0, 2, 1, 3;
-
-    libmv::Mat3 T;
-    libmv::PreconditionerFromPoints(points, &T);
-
-    libmv::Mat normalized_points;
-    libmv::ApplyTransformationToPoints(points, T, &normalized_points);
-
-    libmv::Vec mean, variance;
-    libmv::MeanAndVarianceAlongRows(normalized_points, &mean, &variance);
-
-    std::cout << "points:\n" << points << std::endl;
-    std::cout << "normalized_points:\n" << normalized_points << std::endl;
-
-    EXPECT_NEAR(0, mean(0), 1e-8);
-    EXPECT_NEAR(0, mean(1), 1e-8);
-    EXPECT_NEAR(2, variance(0), 1e-8);
-    EXPECT_NEAR(2, variance(1), 1e-8);
-}
-
-TEST(Sfm_IsotropicScaling, correctness)
+namespace cv
 {
 
-}
+    /** Point conditioning (non isotropic)
+        Reference: HZ2 4.4.4 pag.109
+     */
+    void
+    preconditionerFromPoints( const Mat &points,
+                              Mat &T );
+
+    
+} /* namespace cv */
+
+#endif /* __cplusplus */
+
+#endif
+
+/* End of file. */

@@ -38,12 +38,46 @@
 #include <opencv2/sfm/sfm.hpp>
 #include <opencv2/core/eigen.hpp>
 
+#include <iostream>
+
 namespace cv
 {
 
-  void
-  IsotropicScaling(const InputArray _X, OutputArray _x, OutputArray _T)
-  {
+template<typename T>
+void
+preconditionerFromPoints( const Mat &_points,
+                          Mat &_Tr )
+{
+    libmv::Mat points;
+    libmv::Mat3 Tr;
+
+    cv2eigen( _points, points );
+
+    libmv::PreconditionerFromPoints( points, &Tr );
+
+    eigen2cv( Tr, _Tr );
+}
+
+void
+preconditionerFromPoints( const Mat &points,
+                          Mat &T )
+{
+    int depth = points.depth();
+    if( depth == CV_32F )
+    {
+        // preconditionerFromPoints<float>( points, T );
+        std::cerr << "Function preconditionerFromPoints not handled for float" << std::endl;
+    }
+    else
+    {
+        preconditionerFromPoints<double>( points, T );
+    }
+}
+
+
+void
+IsotropicScaling(const InputArray _X, OutputArray _x, OutputArray _T)
+{
     // input
     libmv::Mat X;
     cv2eigen<double>(_X.getMat(), X);
@@ -62,6 +96,6 @@ namespace cv
     _T.create(Xcv.rows + 1, Xcv.rows + 1, CV_64F);
     cv::Mat T_dst = _T.getMat();
     eigen2cv<double, 3, 3>(T, T_dst);
-  }
+}
 
 } /* namespace cv */
