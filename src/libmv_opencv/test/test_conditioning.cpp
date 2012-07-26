@@ -34,38 +34,35 @@
  */
 
 #include "test_precomp.hpp"
-#include "opencv2/sfm/sfm.hpp"
 
+#include <opencv2/sfm/conditioning.hpp>
 #include "libmv/multiview/conditioning.h"
-
-
 
 using namespace cv;
 using namespace std;
 
-// ToDo (pablo): use cv::Mat (it is a temporal test)
 TEST(Sfm_conditioning, PreconditionerFromPoints) {
     int n = 4;
-    libmv::Mat points(2, n);
+    Mat_<double> points(2, n);
     points << 0, 0, 1, 1,
               0, 2, 1, 3;
 
-    libmv::Mat3 T;
-    libmv::PreconditionerFromPoints(points, &T);
+    Mat T;
+    preconditionerFromPoints(points, T);
 
-    libmv::Mat normalized_points;
-    libmv::ApplyTransformationToPoints(points, T, &normalized_points);
+    Mat normalized_points;
+    applyTransformationToPoints(points, T, normalized_points);
 
-    libmv::Vec mean, variance;
-    libmv::MeanAndVarianceAlongRows(normalized_points, &mean, &variance);
+    // ToDo (pablo): rewrite libmv::MeanAndVarianceAlongRows in order to avoid the next 'for' loop
+    Mat mean, std;
+    for( int i=0; i < 2; ++i )
+    {
+        meanStdDev(normalized_points.row(i), mean, std);
 
-    std::cout << "points:\n" << points << std::endl;
-    std::cout << "normalized_points:\n" << normalized_points << std::endl;
-
-    EXPECT_NEAR(0, mean(0), 1e-8);
-    EXPECT_NEAR(0, mean(1), 1e-8);
-    EXPECT_NEAR(2, variance(0), 1e-8);
-    EXPECT_NEAR(2, variance(1), 1e-8);
+        Mat variance = std * std;
+        EXPECT_NEAR(0, mean.at<double>(0), 1e-8);
+        EXPECT_NEAR(2, variance.at<double>(0), 1e-8);
+    }
 }
 
 TEST(Sfm_IsotropicScaling, correctness)

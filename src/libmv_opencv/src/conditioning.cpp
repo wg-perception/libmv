@@ -33,9 +33,9 @@
  *
  */
 
-#include "libmv/multiview/conditioning.h"
+#include <opencv2/sfm/conditioning.hpp>
 
-#include <opencv2/sfm/sfm.hpp>
+#include "libmv/multiview/conditioning.h"
 #include <opencv2/core/eigen.hpp>
 
 #include <iostream>
