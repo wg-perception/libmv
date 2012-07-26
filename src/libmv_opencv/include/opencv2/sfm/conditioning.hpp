@@ -48,7 +48,11 @@ namespace cv
     preconditionerFromPoints( const Mat &points,
                               Mat &T );
 
-    
+    void
+    applyTransformationToPoints( const Mat &points,
+                                 const Mat &T,
+                                 Mat &transformed_points );
+
 } /* namespace cv */
 
 #endif /* __cplusplus */

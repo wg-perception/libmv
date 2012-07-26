@@ -75,6 +75,43 @@ preconditionerFromPoints( const Mat &points,
 }
 
 
+template<typename T>
+void
+applyTransformationToPoints( const Mat &_points,
+                             const Mat &_T,
+                             Mat &_transformed_points )
+{
+    libmv::Mat points, transformed_points;
+    libmv::Mat3 Tr;
+
+    cv2eigen( _points, points );
+    cv2eigen( _T, Tr );
+
+    libmv::ApplyTransformationToPoints( points, Tr, &transformed_points );
+
+    eigen2cv( transformed_points, _transformed_points );
+}
+
+void
+applyTransformationToPoints( const Mat &points,
+                             const Mat &T,
+                             Mat &transformed_points )
+{
+    int depth = points.depth();
+    CV_Assert( depth == T.depth() );
+
+    if( depth == CV_32F )
+    {
+        // applyTransformationToPoints<float>( points, T, transformed_points );
+        std::cerr << "Function applyTransformationToPoints not handled for float" << std::endl;
+    }
+    else
+    {
+        applyTransformationToPoints<double>( points, T, transformed_points );
+    }
+}
+
+
 void
 IsotropicScaling(const InputArray _X, OutputArray _x, OutputArray _T)
 {
