@@ -43,11 +43,13 @@
 namespace cv
 {
 
+CV_EXPORTS
 void
 projectionsFromFundamental( const Mat &F,
                             Mat &P1,
                             Mat &P2 );
 
+CV_EXPORTS
 void
 fundamentalFromProjections( const Mat &P1,
                             const Mat &P2,
@@ -57,6 +59,7 @@ fundamentalFromProjections( const Mat &P1,
  * The normalized 8-point fundamental matrix solver.
  * Reference: HZ2 11.2 pag.281 (x1 = x, x2 = x')
  */
+CV_EXPORTS
 void
 normalizedEightPointSolver( const cv::Mat &x1,
                             const cv::Mat &x2,

@@ -43,40 +43,53 @@
 namespace cv
 {
 
-    /** Point conditioning (non isotropic)
-        Reference: HZ2 4.4.4 pag.109
-     */
-    void
-    preconditionerFromPoints( const Mat &points,
-                              Mat &T );
+/** Point conditioning (non isotropic)
+    Reference: HZ2 4.4.4 pag.109
+*/
+CV_EXPORTS
+void
+preconditionerFromPoints( const Mat &points,
+                          Mat &T );
 
-    /** Point conditioning (isotropic)
-        Reference: HZ2 4.4.4 pag.107
-     */
-    void
-    isotropicPreconditionerFromPoints( const Mat &points,
-                                       Mat &T );
+/** Point conditioning (isotropic)
+    Reference: HZ2 4.4.4 pag.107
+*/
+CV_EXPORTS
+void
+isotropicPreconditionerFromPoints( const Mat &points,
+                                    Mat &T );
 
-    void
-    applyTransformationToPoints( const Mat &points,
-                                 const Mat &T,
-                                 Mat &transformed_points );
+/** Apply Transformation to points such that transformed_points = T * points
+*/
+CV_EXPORTS
+void
+applyTransformationToPoints( const Mat &points,
+                              const Mat &T,
+                              Mat &transformed_points );
 
-    /** This function normalizes points (non isotropic)
-    * @param X Input vector of N-dimensional points
-    * @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
-    * @param T Output transform matrix such that x = T*X
-    * Reference: HZ2 4.4.4 pag.109
-    */
-    void
-    normalizePoints( const Mat &X,
-                     Mat &x,
-                     Mat &T );
+/** This function normalizes points (non isotropic)
+* @param X Input vector of N-dimensional points
+* @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
+* @param T Output transform matrix such that x = T*X
+* Reference: HZ2 4.4.4 pag.109
+*/
+CV_EXPORTS
+void
+normalizePoints( const Mat &X,
+                  Mat &x,
+                  Mat &T );
 
-    void
-    normalizeIsotropicPoints( const Mat &points,
-                              Mat &normalized_points,
-                              Mat &T );
+/** This function normalizes points (isotropic)
+* @param X Input vector of N-dimensional points
+* @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
+* @param T Output transform matrix such that x = T*X
+* Reference: HZ2 4.4.4 pag.107
+*/
+CV_EXPORTS
+void
+normalizeIsotropicPoints( const Mat &X,
+                          Mat &x,
+                          Mat &T );
 
 } /* namespace cv */
 

@@ -43,21 +43,21 @@
 namespace cv
 {
 
-    /** Converts point coordinates from homogeneous to euclidean pixel coordinates. E.g., ((x,y,z)->(x/z, y/z))
-    * @param src Input vector of N-dimensional points
-    * @param dst Output vector of N-1-dimensional points.
-    */
-    CV_EXPORTS
-    void
-    homogeneousToEuclidean(InputArray src, OutputArray dst);
+/** Converts point coordinates from homogeneous to euclidean pixel coordinates. E.g., ((x,y,z)->(x/z, y/z))
+* @param src Input vector of N-dimensional points
+* @param dst Output vector of N-1-dimensional points.
+*/
+CV_EXPORTS
+void
+homogeneousToEuclidean(InputArray src, OutputArray dst);
 
-    /** Converts points from Euclidean to homogeneous space. E.g., ((x,y)->(x,y,1))
-    * @param src Input vector of N-dimensional points
-    * @param dst Output vector of N+1-dimensional points.
-    */
-    CV_EXPORTS
-    void
-    euclideanToHomogeneous(InputArray src, OutputArray dst);
+/** Converts points from Euclidean to homogeneous space. E.g., ((x,y)->(x,y,1))
+* @param src Input vector of N-dimensional points
+* @param dst Output vector of N+1-dimensional points.
+*/
+CV_EXPORTS
+void
+euclideanToHomogeneous(InputArray src, OutputArray dst);
 
 } /* namespace cv */
 
