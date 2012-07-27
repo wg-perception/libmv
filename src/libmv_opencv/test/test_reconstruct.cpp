@@ -45,11 +45,11 @@ check_projection_errors(const Mat& points3d_estimated, const vector<Mat>& projec
                         const vector<Mat>& points2d)
 {
   Mat X;
-  EuclideanToHomogeneous(points3d_estimated, X); // 3D point
+  euclideanToHomogeneous(points3d_estimated, X); // 3D point
   for (int m = 0; m < points2d.size(); ++m)
   {
     Mat x;
-    HomogeneousToEuclidean(projection_matrices_estimated[m] * X, x); // 2d projection
+    homogeneousToEuclidean(projection_matrices_estimated[m] * X, x); // 2d projection
     Mat projerr = points2d[m] - x;
 //    cout << projerr << endl;
     for (int n = 0; n < projerr.cols; ++n)

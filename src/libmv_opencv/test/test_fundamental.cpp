@@ -83,8 +83,8 @@ TEST(Sfm_fundamental, normalizedEightPointSolver) {
     {
         Mat x1, x2;
 
-        EuclideanToHomogeneous(points2d[0].col(i), x1);
-        EuclideanToHomogeneous(points2d[1].col(i), x2);
+        euclideanToHomogeneous(points2d[0].col(i), x1);
+        euclideanToHomogeneous(points2d[1].col(i), x2);
 
         Mat_<double> value = (x2.t() * F * x1);
         // cout << "x2' * F * x1 = " << value(0,0) << endl;

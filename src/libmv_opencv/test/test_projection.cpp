@@ -39,14 +39,14 @@
 using namespace cv;
 using namespace std;
 
-TEST(Sfm_HomogeneousToEuclidean, correctness)
+TEST(Sfm_homogeneousToEuclidean, correctness)
 {
     Matx33f X(1, 2, 3,
               4, 5, 6,
               2, 1, 0);
 
     Matx23f XEuclidean;
-    HomogeneousToEuclidean(X,XEuclidean);
+    homogeneousToEuclidean(X,XEuclidean);
 
     EXPECT_EQ( X.rows-1, XEuclidean.rows );
 
@@ -56,7 +56,7 @@ TEST(Sfm_HomogeneousToEuclidean, correctness)
                 EXPECT_LE( std::abs(X(y,x)/X(X.rows-1, x) - XEuclidean(y,x)), 1e-4 );
 }
 
-TEST(Sfm_EuclideanToHomogeneous, correctness)
+TEST(Sfm_euclideanToHomogeneous, correctness)
 {
     // Testing with floats
     Matx33f x(1, 2, 3,
@@ -64,7 +64,7 @@ TEST(Sfm_EuclideanToHomogeneous, correctness)
               2, 1, 0);
 
     Matx43f XHomogeneous;
-    EuclideanToHomogeneous(x,XHomogeneous);
+    euclideanToHomogeneous(x,XHomogeneous);
 
     EXPECT_EQ( x.rows+1, XHomogeneous.rows );
     for(int i=0;i<x.cols;++i)
@@ -75,7 +75,7 @@ TEST(Sfm_EuclideanToHomogeneous, correctness)
     Vec2d x2(4,3);
     Vec3d X2;
 
-    EuclideanToHomogeneous(x2,X2);
+    euclideanToHomogeneous(x2,X2);
 
     EXPECT_EQ( x2.rows+1, X2.rows );
     EXPECT_EQ( 4, X2(0) );

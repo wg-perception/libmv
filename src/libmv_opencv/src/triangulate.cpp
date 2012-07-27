@@ -63,7 +63,7 @@ triangulateDLT( const Mat_<T> &xl, const Mat_<T> &xr, const Mat_<T> &Pl, const M
     Matx<T, 4, 1> XHomogeneous;
     cv::SVD::solveZ(design, XHomogeneous);
 
-    HomogeneousToEuclidean(XHomogeneous, points3d);
+    homogeneousToEuclidean(XHomogeneous, points3d);
 }
 
 // x's are 2D coordinates (x,y,1) in each image; Ps are projective cameras.
@@ -86,7 +86,7 @@ NViewTriangulate(const Mat &x, const vector<Mat> &Ps, Mat &X)
 
     Mat_<T> X_and_alphas;
     cv::SVD::solveZ(design, X_and_alphas);
-    HomogeneousToEuclidean(X_and_alphas.rowRange(0, 4), X);
+    homogeneousToEuclidean(X_and_alphas.rowRange(0, 4), X);
 }
 
 template<typename T>

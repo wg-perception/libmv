@@ -68,7 +68,7 @@ namespace cvtest
       // get 3d points
       Mat X, X_homogeneous;
       triangulatePoints(points2d, Ps, X);
-      EuclideanToHomogeneous(X, X_homogeneous);
+      euclideanToHomogeneous(X, X_homogeneous);
 
       for (int i = 0; i < npoints; ++i)
       {
@@ -76,7 +76,7 @@ namespace cvtest
         for (int k = 0; k < nviews; ++k)
         {
           Mat x_reprojected;
-          HomogeneousToEuclidean( Ps[k]*X_homogeneous.col(i), x_reprojected );
+          homogeneousToEuclidean( Ps[k]*X_homogeneous.col(i), x_reprojected );
           double error = norm( x_reprojected - points2d[k].col(i) );
           EXPECT_LE(error*error, err_max2d);
         }
