@@ -7,8 +7,7 @@ include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
 include_directories(include)
 
 add_library(opencv_sfm src/conditioning.cpp
-                       src/fundamental.cpp
-                       src/FtoP.cpp      
+                       src/fundamental.cpp    
                        src/skew.cpp                                                              
                        src/projection.cpp
                        src/reconstruct.cpp

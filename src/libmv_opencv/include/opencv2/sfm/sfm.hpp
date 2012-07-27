@@ -117,14 +117,6 @@ namespace cv
   void
   fundamental8Point(InputArray x1, OutputArray x2, OutputArray F, bool has_outliers = true);
 
-  /** Computes the projection matrices from the fundamental matrix
-   * @param F Input 3x3 Fundamental matrix
-   * @param Ps Output vector of 3x4 projection matrices
-   */
-  CV_EXPORTS
-  void
-  FtoP(InputArray F, OutputArrayOfArrays Ps, bool is_projective = true);
-
   /** Computes the skew matrix of a vector
       Reference: HZ2, p581, equation (A4.5)
    * @param s Input 3x1 vector
