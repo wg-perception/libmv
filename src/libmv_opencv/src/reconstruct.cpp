@@ -87,7 +87,6 @@ namespace cv
         cout << F << endl;
 
         // Get Projection matrices
-//        FtoP(F, projection_matrices);
         cv::Mat P, Pp;
         projectionsFromFundamental(F, P, Pp);
         projection_matrices.create(1, 2, depth);
