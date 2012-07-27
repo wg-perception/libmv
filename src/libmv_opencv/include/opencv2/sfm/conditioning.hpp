@@ -73,6 +73,11 @@ namespace cv
                      Mat &x,
                      Mat &T );
 
+    void
+    normalizeIsotropicPoints( const Mat &points,
+                              Mat &normalized_points,
+                              Mat &T );
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
