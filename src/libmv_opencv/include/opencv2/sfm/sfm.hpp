@@ -40,6 +40,7 @@
 
 #include <opencv2/sfm/conditioning.hpp>
 #include <opencv2/sfm/fundamental.hpp>
+#include <opencv2/sfm/projection.hpp>
 
 namespace cv
 {
@@ -106,22 +107,6 @@ namespace cv
   void
   reconstruct(InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
               OutputArray points3d, bool is_projective = false, bool has_outliers = false, bool is_sequence = false);
-
-  /** Converts point coordinates from homogeneous to euclidean pixel coordinates. E.g., ((x,y,z)->(x/z, y/z))
-   * @param src Input vector of N-dimensional points
-   * @param dst Output vector of N-1-dimensional points.
-   */
-  CV_EXPORTS
-  void
-  HomogeneousToEuclidean(InputArray src, OutputArray dst);
-
-  /** Converts points from Euclidean to homogeneous space. E.g., ((x,y)->(x,y,1))
-   * @param src Input vector of N-dimensional points
-   * @param dst Output vector of N+1-dimensional points.
-   */
-  CV_EXPORTS
-  void
-  EuclideanToHomogeneous(InputArray src, OutputArray dst);
 
   /** Computes the fundamental matrix from corresponding points in two views
    * @param x1 2xN Array of 2D points in view 1
