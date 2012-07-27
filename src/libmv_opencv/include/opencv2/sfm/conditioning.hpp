@@ -62,6 +62,17 @@ namespace cv
                                  const Mat &T,
                                  Mat &transformed_points );
 
+    /** This function normalizes points (non isotropic)
+    * @param X Input vector of N-dimensional points
+    * @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
+    * @param T Output transform matrix such that x = T*X
+    * Reference: HZ2 4.4.4 pag.109
+    */
+    void
+    normalizePoints( const Mat &X,
+                     Mat &x,
+                     Mat &T );
+
 } /* namespace cv */
 
 #endif /* __cplusplus */

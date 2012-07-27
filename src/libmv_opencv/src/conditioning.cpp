@@ -141,6 +141,24 @@ applyTransformationToPoints( const Mat &points,
     }
 }
 
+void
+normalizePoints( const Mat &points,
+                 Mat &normalized_points,
+                 Mat &T )
+{
+    int depth = points.depth();
+    if( depth == CV_32F )
+    {
+        preconditionerFromPoints<float>( points, T );
+        applyTransformationToPoints<float>( points, T, normalized_points );
+    }
+    else
+    {
+        preconditionerFromPoints<double>( points, T );
+        applyTransformationToPoints<double>( points, T, normalized_points );
+    }
+}
+
 
 void
 IsotropicScaling(const InputArray _X, OutputArray _x, OutputArray _T)

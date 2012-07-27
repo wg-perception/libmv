@@ -40,17 +40,14 @@
 using namespace cv;
 using namespace std;
 
-TEST(Sfm_conditioning, PreconditionerFromPoints) {
+TEST(Sfm_conditioning, normalizePoints) {
     int n = 4;
     Mat_<double> points(2, n);
     points << 0, 0, 1, 1,
               0, 2, 1, 3;
 
-    Mat T;
-    preconditionerFromPoints(points, T);
-
-    Mat normalized_points;
-    applyTransformationToPoints(points, T, normalized_points);
+    Mat T, normalized_points;
+    normalizePoints( points, normalized_points, T );
 
     // ToDo (pablo): rewrite libmv::MeanAndVarianceAlongRows in order to avoid the next 'for' loop
     Mat mean, std;
