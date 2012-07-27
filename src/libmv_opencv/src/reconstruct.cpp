@@ -87,7 +87,12 @@ namespace cv
         cout << F << endl;
 
         // Get Projection matrices
-        FtoP(F,projection_matrices);
+//        FtoP(F, projection_matrices);
+        cv::Mat P, Pp;
+        projectionsFromFundamental(F, P, Pp);
+        projection_matrices.create(1, 2, depth);
+        P.copyTo(projection_matrices.getMat(0));
+        Pp.copyTo(projection_matrices.getMat(1));
 
         //  Triangulate and find 3D points using inliers
         triangulatePoints(points2d, projection_matrices, points3d);
