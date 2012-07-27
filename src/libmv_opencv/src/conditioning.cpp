@@ -177,27 +177,4 @@ normalizeIsotropicPoints( const Mat &points,
     }
 }
 
-void
-IsotropicScaling(const InputArray _X, OutputArray _x, OutputArray _T)
-{
-    // input
-    libmv::Mat X;
-    cv2eigen<double>(_X.getMat(), X);
-
-    // normalization
-    libmv::Mat x;
-    libmv::Mat3 T;
-    libmv::NormalizeIsotropicPoints(X, &x, &T);
-
-    // output
-    cv::Mat Xcv = _X.getMat();
-    _x.create(Xcv.rows, Xcv.cols, CV_64F);
-    cv::Mat x_dst = _x.getMat();
-    eigen2cv<double>(x, x_dst);
-
-    _T.create(Xcv.rows + 1, Xcv.rows + 1, CV_64F);
-    cv::Mat T_dst = _T.getMat();
-    eigen2cv<double, 3, 3>(T, T_dst);
-}
-
 } /* namespace cv */

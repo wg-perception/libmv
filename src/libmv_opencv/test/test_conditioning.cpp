@@ -61,7 +61,7 @@ TEST(Sfm_conditioning, normalizePoints) {
     }
 }
 
-TEST(Sfm_IsotropicScaling, correctness)
+TEST(Sfm_conditioning, normalizeIsotropicPoints)
 {
 
 }

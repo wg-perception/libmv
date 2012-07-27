@@ -123,15 +123,6 @@ namespace cv
   void
   EuclideanToHomogeneous(InputArray src, OutputArray dst);
 
-  /** This function normalizes points as done in the eight point algorithm
-   * @param X Input vector of N-dimensional points
-   * @param x Output vector of the same N-dimensional points but with mean 0 and average norm sqrt(2)
-   * @param T Output transform matrix such that x = T*X
-   */
-  CV_EXPORTS
-  void
-  IsotropicScaling(InputArray X, OutputArray x, OutputArray T);
-
   /** Computes the fundamental matrix from corresponding points in two views
    * @param x1 2xN Array of 2D points in view 1
    * @param x2 2xN Array of 2D points in view 2

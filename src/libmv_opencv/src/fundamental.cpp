@@ -164,8 +164,8 @@ fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outl
     assert(x2.cols >= 8);
 
     // Normalize points
-//     IsotropicScaling(x1, x1, T1);
-//     IsotropicScaling(x2, x2, T2);
+//     normalizeIsotropicPoints(x1, x1, T1);
+//     normalizeIsotropicPoints(x2, x2, T2);
 
     // Compute fundamental matrix
     libmv::vector<int> inliers;
@@ -181,7 +181,7 @@ fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outl
     eigen2cv(F_, F);
 
     // Denormalized
-    F = T2.t() * F * T1;
+//     F = T2.t() * F * T1;
 
     // Pack output
     _F.create(3, 3, CV_64F);
