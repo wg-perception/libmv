@@ -40,6 +40,7 @@
 
 #include <opencv2/sfm/conditioning.hpp>
 #include <opencv2/sfm/fundamental.hpp>
+#include <opencv2/sfm/numeric.hpp>
 #include <opencv2/sfm/projection.hpp>
 
 namespace cv

@@ -8,7 +8,8 @@ include_directories(include)
 
 add_library(opencv_sfm src/conditioning.cpp
                        src/fundamental.cpp    
-                       src/skew.cpp                                                              
+                       src/skew.cpp
+                       src/numeric.cpp
                        src/projection.cpp
                        src/reconstruct.cpp
                        src/triangulate.cpp
@@ -40,6 +41,7 @@ add_executable(sfm_tests test/scene.cpp
                          test/test_fundamental.cpp
                          test/test_main.cpp
                          test/test_precomp.cpp
+                         test/test_numeric.cpp
                          test/test_projection.cpp
                          test/test_reconstruct.cpp
                          test/test_triangulate.cpp
