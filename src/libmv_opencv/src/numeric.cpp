@@ -46,19 +46,36 @@ namespace cv
 
 template<typename T>
 void
-meanAndVarianceAlongRows( const Mat &_A,
+meanAndVarianceAlongRows( const Mat_<T> &A,
                           Mat &_mean,
                           Mat &_variance )
 {
-    libmv::Mat A;
-    libmv::Vec mean, variance;
+    int n = A.rows;
+    int m = A.cols;
 
-    cv2eigen( _A, A );
+    _mean.create( n, 1, A.type() );
+    _variance.create( n, 1, A.type() );
 
-    libmv::MeanAndVarianceAlongRows( A, &mean, &variance );
+    Mat_<T> mean( _mean );
+    Mat_<T> variance( _variance );
 
-    eigen2cv( mean, _mean );
-    eigen2cv( variance, _variance );
+    for( int i = 0; i < n; ++i )
+    {
+        mean(i) = 0;
+        variance(i) = 0;
+
+        for( int j = 0; j < m; ++j )
+        {
+            double x = A(i,j);
+            mean(i) += x;
+            variance(i) += x*x;
+        }
+    }
+
+    mean /= m;
+    for (int i = 0; i < n; ++i) {
+        variance(i) = variance(i) / m - (mean(i)*mean(i));
+    }
 }
 
 void
@@ -69,8 +86,7 @@ meanAndVarianceAlongRows( const Mat &A,
     int depth = A.depth();
     if( depth == CV_32F )
     {
-        // meanAndVarianceAlongRows<float>( A, mean, variance );
-        std::cerr << "Function meanAndVarianceAlongRows not handled for float" << std::endl;
+        meanAndVarianceAlongRows<float>( A, mean, variance );
     }
     else
     {
