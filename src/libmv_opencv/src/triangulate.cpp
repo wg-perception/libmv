@@ -268,7 +268,7 @@ triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _K,
     }
     else
     {
-        triangulatePoints_<float>(nviews, points2d, K, R, t, points3d, method);
+        triangulatePoints_<double>(nviews, points2d, K, R, t, points3d, method);
     }
 
     points3d.copyTo(_points3d);
