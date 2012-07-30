@@ -84,18 +84,17 @@ namespace cv
 
         // Get fundamental matrix
         fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
-        cout << F << endl;
 
         // Get Projection matrices
         cv::Mat P, Pp;
         projectionsFromFundamental(F, P, Pp);
-        projection_matrices.create(1, 2, depth);
-        P.copyTo(projection_matrices.getMat(0));
-        Pp.copyTo(projection_matrices.getMat(1));
+        projection_matrices.create(2, 1, depth);
+        projection_matrices.create(2, 1, depth, 0);
+        P.copyTo(projection_matrices.getMatRef(0));
+        Pp.copyTo(projection_matrices.getMatRef(1));
 
         //  Triangulate and find 3D points using inliers
         triangulatePoints(points2d, projection_matrices, points3d);
-
       }
     }
 
