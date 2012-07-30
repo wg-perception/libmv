@@ -150,7 +150,7 @@ normalizedEightPointSolver(const Mat &x1,
 
 
 void
-fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outliers)
+fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outliers)
 {
     double max_error = 0.1;
 
@@ -160,8 +160,9 @@ fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outl
     x2 = _x2.getMat();
 
     // Need at least 8 pts
-    assert(x1.cols >= 8);
-    assert(x2.cols >= 8);
+    CV_Assert(x1.cols >= 8 && x1.cols == x2.cols);
+    CV_Assert(x1.depth() == x2.depth());
+    int depth = x1.depth();
 
     // Normalize points
 //     normalizeIsotropicPoints(x1, x1, T1);
@@ -184,8 +185,7 @@ fundamental8Point(InputArray _x1, OutputArray _x2, OutputArray _F, bool has_outl
 //     F = T2.t() * F * T1;
 
     // Pack output
-    _F.create(3, 3, CV_64F);
-    F.copyTo(_F.getMat());
+    F.convertTo(_F.getMatRef(), depth);
 }
 
 } /* namespace cv */

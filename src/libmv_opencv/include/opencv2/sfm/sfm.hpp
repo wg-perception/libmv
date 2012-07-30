@@ -116,7 +116,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  fundamental8Point(InputArray x1, OutputArray x2, OutputArray F, bool has_outliers = true);
+  fundamental8Point(InputArray x1, InputArray x2, OutputArray F, bool has_outliers = true);
 
   /** Computes the skew matrix of a vector
       Reference: HZ2, p581, equation (A4.5)

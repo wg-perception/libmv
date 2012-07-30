@@ -67,7 +67,7 @@ TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
   bool is_projective = true;
   bool has_outliers = true;
 
-  for (unsigned iter = 0; iter < 2; ++iter)
+  for (unsigned iter = 1; iter < 2; ++iter)
   {
     int depth;
     float err_max2d, err_max3d;

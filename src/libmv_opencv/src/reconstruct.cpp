@@ -89,7 +89,6 @@ namespace cv
         cv::Mat P, Pp;
         projectionsFromFundamental(F, P, Pp);
         projection_matrices.create(2, 1, depth);
-        projection_matrices.create(2, 1, depth, 0);
         P.copyTo(projection_matrices.getMatRef(0));
         Pp.copyTo(projection_matrices.getMatRef(1));
 
