@@ -38,18 +38,36 @@
 using namespace cv;
 using namespace std;
 
-TEST(Sfm_numeric, meanAndVarianceAlongRows)
+
+template<typename T>
+static void
+test_meanAndVarianceAlongRows( void )
 {
     int n = 4;
-    Mat_<double> points(2,n);
+    Mat_<T> points(2,n);
     points << 0, 0, 1, 1,
               0, 2, 1, 3;
 
-    Mat_<double> mean, variance;
+    Mat_<T> mean, variance;
     meanAndVarianceAlongRows(points, mean, variance);
 
     EXPECT_NEAR(0.5, mean(0), 1e-8);
     EXPECT_NEAR(1.5, mean(1), 1e-8);
     EXPECT_NEAR(0.25, variance(0), 1e-8);
     EXPECT_NEAR(1.25, variance(1), 1e-8);
+}
+
+TEST(Sfm_numeric, meanAndVarianceAlongRows)
+{
+    for(unsigned iter=0; iter<2; ++iter)
+    {
+        if (iter==0)
+        {
+            test_meanAndVarianceAlongRows<float>();
+        }
+        else
+        {
+            test_meanAndVarianceAlongRows<double>();
+        }
+    }
 }
