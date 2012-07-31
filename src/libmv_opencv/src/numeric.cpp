@@ -66,7 +66,7 @@ meanAndVarianceAlongRows( const Mat_<T> &A,
 
         for( int j = 0; j < m; ++j )
         {
-            double x = A(i,j);
+            T x = A(i,j);
             mean(i) += x;
             variance(i) += x*x;
         }
