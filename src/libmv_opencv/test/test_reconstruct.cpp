@@ -37,70 +37,54 @@
 
 using namespace cv;
 using namespace std;
-using namespace cvtest;
 
 /* Check projection errors */
-void
-check_projection_errors(const Mat& points3d_estimated, const vector<Mat>& projection_matrices_estimated,
-                        const vector<Mat>& points2d)
+static void
+check_projection_errors(const Mat& X_estimated, const vector<Mat>& Ps,
+                        const vector<Mat>& xs, float err_max2d)
 {
-  Mat X;
-  euclideanToHomogeneous(points3d_estimated, X); // 3D point
-  for (int m = 0; m < points2d.size(); ++m)
-  {
-    Mat x;
-    homogeneousToEuclidean(projection_matrices_estimated[m] * X, x); // 2d projection
-    Mat projerr = points2d[m] - x;
-//    cout << projerr << endl;
-    for (int n = 0; n < projerr.cols; ++n)
+    Mat X;
+    euclideanToHomogeneous(X_estimated, X);   // 3D point
+
+    for (int m = 0; m < xs.size(); ++m)
     {
-      double d = cv::norm(projerr.col(n));
-      EXPECT_NEAR(0, d, 1e-4);
+        Mat x;
+        homogeneousToEuclidean(Ps[m] * X, x); // 2d projection
+        Mat projerr = xs[m] - x;
+
+        for (int n = 0; n < projerr.cols; ++n)
+        {
+            double d = cv::norm(projerr.col(n));
+            EXPECT_NEAR(0, d, err_max2d);
+        }
     }
-  }
 }
 
-TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
+static void
+test_twoViewProjectiveOutliers(int depth, float err_max2d)
 {
-  int nviews = 2;
-  int npoints = 50;
-  bool is_projective = true;
-  bool has_outliers = true;
+    int nviews = 2;
+    int npoints = 50;
+    bool is_projective = true;
+    bool has_outliers = true;
 
-  for (unsigned iter = 1; iter < 2; ++iter)
-  {
-    int depth;
-    float err_max2d, err_max3d;
-    if (iter == 0)
-    {
-      depth = CV_32F;
-      err_max2d = 1e-5;
-      err_max3d = 1e-9;
-    }
-    else
-    {
-      depth = CV_64F;
-      err_max2d = 1e-7;
-      err_max3d = 1e-9;
-    }
-
-    cv::Mat K;
-    std::vector<cv::Mat> Rs;
-    std::vector<cv::Mat> ts;
-    std::vector<cv::Mat> Ps;
-    cv::Mat points3d;
-    std::vector<cv::Mat> points2d;
+    vector<Mat> points2d, Rs, ts, Ps;
+    Mat K, points3d;
     generateScene(nviews, npoints, is_projective, depth, K, Rs, ts, Ps, points3d, points2d);
 
     Mat points3d_estimated;
     vector<Mat> Ps_estimated;
-
     reconstruct(points2d, Ps_estimated, points3d_estimated, is_projective, has_outliers);
 
-    /*  Check projection errors on GT*/
-    check_projection_errors(points3d, Ps, points2d);
+    /* Check projection errors on GT */
+    check_projection_errors(points3d, Ps, points2d, err_max2d);
 
-    /*  Check projection errors on estimates*/
-    check_projection_errors(points3d_estimated, Ps_estimated, points2d);
-  }
+    /* Check projection errors on estimates */
+    check_projection_errors(points3d_estimated, Ps_estimated, points2d, err_max2d);
+}
+
+TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
+{
+    // test_twoViewProjectiveOutliers(CV_32F, 1e-5);
+    test_twoViewProjectiveOutliers(CV_64F, 1e-7);
 }

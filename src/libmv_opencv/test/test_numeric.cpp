@@ -59,15 +59,6 @@ test_meanAndVarianceAlongRows( void )
 
 TEST(Sfm_numeric, meanAndVarianceAlongRows)
 {
-    for(unsigned iter=0; iter<2; ++iter)
-    {
-        if (iter==0)
-        {
-            test_meanAndVarianceAlongRows<float>();
-        }
-        else
-        {
-            test_meanAndVarianceAlongRows<double>();
-        }
-    }
+    test_meanAndVarianceAlongRows<float>();
+    test_meanAndVarianceAlongRows<double>();
 }
