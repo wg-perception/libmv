@@ -62,3 +62,29 @@ TEST(Sfm_numeric, meanAndVarianceAlongRows)
     test_meanAndVarianceAlongRows<float>();
     test_meanAndVarianceAlongRows<double>();
 }
+
+
+TEST(Sfm_numeric, skewMat)
+{
+    // Testing with floats
+    Vec3f a;
+    a << 1,2,3;
+
+    Mat_<float> ax = skewMat(a);
+
+    EXPECT_FLOAT_EQ( 0, trace(ax)[0] );
+    EXPECT_FLOAT_EQ( ax(0,1), -ax(1,0) );
+    EXPECT_FLOAT_EQ( ax(0,2), -ax(2,0) );
+    EXPECT_FLOAT_EQ( ax(1,2), -ax(2,1) );
+
+    // Testing with doubles
+    Matx31d b;
+    b << 1,2,3;
+
+    Mat_<double> bx = skewMat(b);
+
+    EXPECT_DOUBLE_EQ( 0, trace(bx)[0] );
+    EXPECT_DOUBLE_EQ( bx(0,1), -bx(1,0) );
+    EXPECT_DOUBLE_EQ( bx(0,2), -bx(2,0) );
+    EXPECT_DOUBLE_EQ( bx(1,2), -bx(2,1) );
+}

@@ -43,10 +43,17 @@
 namespace cv
 {
 
+CV_EXPORTS
 void
 meanAndVarianceAlongRows( const Mat &A,
                           Mat &mean,
                           Mat &variance );
+
+
+CV_EXPORTS
+Mat
+skewMat( InputArray x );
+
 
 } /* namespace cv */
 
