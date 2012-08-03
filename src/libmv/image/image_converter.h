@@ -22,6 +22,7 @@
 #define LIBMV_IMAGE_IMAGE_CONVERTER_H
 
 #include "libmv/image/array_nd.h"
+#include "libmv/image/image.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/core/types_c.h"
@@ -76,6 +77,15 @@ void Image2Mat( const Array3D<T> &imaIn, cv::OutputArray imaOut ) {
   // We could have a non-copy function for efficiency but that could create random bugs and we would need to count
   // references in both type. This function Image2Mat is not meant for speed anyway but for compatibility
   imgTmp.reshape(k,n).copyTo(imaOut);
+}
+
+static inline void Image2Mat( const Image &imaIn, cv::OutputArray imaOut ) {
+  Array3Du * ima = imaIn.AsArray3Du();
+  if (ima == NULL) {
+    Array3Df * imaf = imaIn.AsArray3Df();
+    Image2Mat<float>(*imaf, imaOut);
+  } else
+    Image2Mat<unsigned char>(*ima, imaOut);
 }
 
 template<class T>
