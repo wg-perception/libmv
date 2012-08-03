@@ -53,7 +53,7 @@ namespace cv
    */
   CV_EXPORTS
   void
-  reconstructVideo(std::string videofilename, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
+  reconstructVideo(InputArrayOfArrays track, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
                    OutputArrayOfArrays t);
 
 } /* namespace cv */

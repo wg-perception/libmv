@@ -38,12 +38,9 @@
 namespace cv
 {
   void
-    reconstructVideo(std::string videofilename, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
+    reconstructVideo(InputArrayOfArrays tracks, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
                      OutputArrayOfArrays t)
   {
-
-    // Get frames from video and get key points (array of arrays)
-
 
     // Select key frames by looking at how key points change accross frames
 
