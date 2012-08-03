@@ -110,6 +110,19 @@ void Mat2Image( const cv::Mat &imaIn, Array3D<T> &imaOut ) {
   imaOut.CopyFrom(array);
 }
 
+static inline void Mat2Image( const cv::Mat &imaIn, Image &imaOut ) {
+  if (imaIn.depth() == CV_8U) {
+    Array3Du ima;
+    Mat2Image( imaIn, ima );
+    imaOut = Image(&ima);
+  } else {
+    Array3Df ima;
+    Mat2Image( imaIn, ima );
+    imaOut = Image(&ima);
+  }
+}
+
+
 } // namespace libmv
 
 #endif  // LIBMV_IMAGE_IMAGE_CONVERTER_H
