@@ -17,7 +17,6 @@ TARGET_LINK_LIBRARIES(tvr
                       glog
                       gflags
                       fast
-                      daisy
                       ${QT_QTCORE_LIBRARY}
                       ${QT_QTGUI_LIBRARY}
                       ${QT_QTOPENGL_LIBRARY}
