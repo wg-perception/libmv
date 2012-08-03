@@ -9,8 +9,7 @@ SET(CORRESPONDENCE_SRC
                        robust_tracker.cc
                        planar_tracker.cc
                        nRobustViewMatching.cc
-                       export_matches_txt.cc
-                       import_matches_txt.cc)
+)
 
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB CORRESPONDENCE_HDRS *.h)
