@@ -1,8 +1,10 @@
+find_package(OpenCV)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 ADD_SUBDIRECTORY(base)
 ADD_SUBDIRECTORY(camera)
 ADD_SUBDIRECTORY(correspondence)
 ADD_SUBDIRECTORY(descriptor)
-ADD_SUBDIRECTORY(detector)
 ADD_SUBDIRECTORY(image)
 ADD_SUBDIRECTORY(multiview)
 ADD_SUBDIRECTORY(numeric)

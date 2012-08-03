@@ -33,10 +33,6 @@
 
 namespace libmv {
 
-class Feature;
-class PointFeature;
-class LineFeature;
-
 class Matches {
  public:
   typedef int ImageID;
@@ -61,12 +57,11 @@ class Matches {
 
    private:
     void Skip() {
-      while (r_ && !dynamic_cast<const FeatureT *>(r_.edge())) ++r_;
+      while (r_ && !(const Feature *)(r_.edge())) ++r_;
     }
     Graph::Range r_;
   };
   typedef Features<PointFeature> Points;
-  typedef Features<LineFeature> Lines;
 
   template<typename T>
   Features<T> All() const { return Features<T>(graph_.All()); }

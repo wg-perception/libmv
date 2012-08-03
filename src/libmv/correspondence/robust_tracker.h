@@ -28,7 +28,7 @@ namespace tracker {
 
 class RobustTracker : public Tracker {
  public:
-  RobustTracker(detector::Detector *detector, 
+  RobustTracker(cv::Ptr<cv::FeatureDetector> detector,
                 descriptor::Describer *describer,
                 correspondence::ArrayMatcher<float> *matcher) : 
                  Tracker(detector, describer, matcher) {

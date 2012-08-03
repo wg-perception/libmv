@@ -1,7 +1,7 @@
 FIND_PACKAGE( OpenCV REQUIRED )
 
 # define the source files
-SET(CORRESPONDENCE_SRC feature.cc 
+SET(CORRESPONDENCE_SRC 
                        matches.cc 
                        feature_matching.cc
 #                      feature_matching_FLANN.cc

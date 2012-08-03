@@ -21,6 +21,7 @@
 #include "tracker.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature.h"
+#include "libmv/image/image_converter.h"
 
 using namespace libmv;
 using namespace tracker;
@@ -30,12 +31,22 @@ bool Tracker::Track(const Image &image1,
                     FeaturesGraph *new_features_graph,
                     bool keep_single_feature) {
   // we detect good features to track
-  detector::DetectorData **data = NULL;
   vector<Feature *> features1;
-  detector_->Detect(image1, &features1, data);
+  std::vector<cv::KeyPoint> features1_cv, features2_cv;
+  cv::Mat image1_cv, image2_cv;
+  Image2Mat(image1, image1_cv);
+  Image2Mat(image2, image2_cv);
+  detector_->detect(image1_cv, features1_cv);
         
   vector<Feature *> features2;
-  detector_->Detect(image2, &features2, data);
+  detector_->detect(image2_cv, features2_cv);
+
+  features1.resize(features1_cv.size());
+  features2.resize(features2_cv.size());
+  for(size_t i=0; i<features1.size(); ++i) {
+    features1[i] = new Feature(features1_cv[i]);
+    features2[i] = new Feature(features2_cv[i]);
+  }
 
   // we compute the feature descriptors on every feature
   detector::DetectorData *detector_data = NULL;
@@ -123,9 +134,15 @@ bool Tracker::Track(const Image &image,
                     Matches::ImageID *image_id,
                     bool keep_single_feature) {
   // we detect good features to track
-  detector::DetectorData **data = NULL;
   vector<Feature *> features;
-  detector_->Detect(image, &features, data);
+  std::vector<cv::KeyPoint> features_cv;
+  cv::Mat image_cv;
+  Image2Mat(image, image_cv);
+  detector_->detect(image_cv, features_cv);
+  features.resize(features_cv.size());
+  for(size_t i=0; i<features.size(); ++i)
+    features[i] = new Feature(features_cv[i]);
+
   
   // we compute the feature descriptors on every feature
   detector::DetectorData *detector_data = NULL;

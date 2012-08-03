@@ -29,7 +29,7 @@ namespace tracker {
 // This class robustly tracks points that are in a plan.
 class PlanarTracker : public Tracker {
  public:
-  PlanarTracker(detector::Detector *detector, 
+  PlanarTracker(cv::Ptr<cv::FeatureDetector> detector,
               descriptor::Describer *describer,
               correspondence::ArrayMatcher<float> *matcher) : 
                Tracker(detector, describer, matcher) {

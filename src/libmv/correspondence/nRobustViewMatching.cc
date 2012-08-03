@@ -25,7 +25,6 @@
 #include "libmv/correspondence/nRobustViewMatching.h"
 #include "libmv/descriptor/descriptor.h"
 #include "libmv/descriptor/vector_descriptor.h"
-#include "libmv/detector/detector.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_io.h"
 #include "libmv/image/image_converter.h"
@@ -36,12 +35,11 @@ using namespace correspondence;
 using namespace std;
 
 nRobustViewMatching::nRobustViewMatching(){
-   m_pDetector = NULL;
   m_pDescriber = NULL;
 }
 
 nRobustViewMatching::nRobustViewMatching(
-  detector::Detector * pDetector,
+    cv::Ptr<cv::FeatureDetector> pDetector,
   descriptor::Describer * pDescriber){
   m_pDetector = pDetector;
   m_pDescriber = pDescriber;
@@ -72,9 +70,15 @@ bool nRobustViewMatching::computeData(const string & filename)
       img_array = new Array3Du(imageTemp);      
     }
     Image im(img_array);
+    cv::Mat im_cv;
+    Image2Mat(im, im_cv);
 
     libmv::vector<libmv::Feature *> features;
-    m_pDetector->Detect( im, &features, NULL);
+    std::vector<cv::KeyPoint> features_cv;
+    m_pDetector->detect( im_cv, features_cv );
+    features.resize(features_cv.size());
+    for(size_t i=0; i<features_cv.size(); ++i)
+      features[i] = new libmv::Feature(features_cv[i]);
 
     libmv::vector<descriptor::Descriptor *> descriptors;
     m_pDescriber->Describe(features, im, NULL, &descriptors);

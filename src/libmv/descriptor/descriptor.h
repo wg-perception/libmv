@@ -22,10 +22,11 @@
 #define LIBMV_DESCRIPTOR_DESCRIPTOR_H
 
 #include "libmv/base/vector.h"
+#include "libmv/correspondence/feature.h"
 
 namespace libmv {
 
-class Feature;
+class PointFeature;
 class Image;
 
 namespace detector {

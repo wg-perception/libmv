@@ -66,7 +66,7 @@ class FeatureSet {
    private:
     void Skip() {
       while (r_ != end_
-             && !dynamic_cast<const FeatureT *>(r_->second)) {
+             && !(const Feature *)(r_->second)) {
         ++r_;
       }
     }
