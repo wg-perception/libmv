@@ -43,6 +43,7 @@ add_executable(sfm_tests test/scene.cpp
                          test/test_numeric.cpp
                          test/test_projection.cpp
                          test/test_reconstruct.cpp
+                         test/test_simple_pipeline.cpp
                          test/test_triangulate.cpp
 )
 
@@ -57,3 +58,5 @@ set_target_properties(sfm_tests PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/tests)
 
 add_test(sfm_tests  ${PROJECT_BINARY_DIR}/bin/tests/sfm_tests)
+
+ADD_DEFINITIONS(-DTEST_DATA_DIR="\\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/cv/sfm/\\"")
