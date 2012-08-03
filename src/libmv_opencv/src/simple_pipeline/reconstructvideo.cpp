@@ -38,7 +38,7 @@
 namespace cv
 {
   void
-    reconstructVideo(std::string videofilename, OutputArray points3d, OutputArrayOfArrays K, OutputArrayOfArrays R,
+    reconstructVideo(std::string videofilename, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
                      OutputArrayOfArrays t)
   {
 
