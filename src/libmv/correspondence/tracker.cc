@@ -44,8 +44,8 @@ bool Tracker::Track(const Image &image1,
   features1.resize(features1_cv.size());
   features2.resize(features2_cv.size());
   for(size_t i=0; i<features1.size(); ++i) {
-    features1[i] = new Feature(features1_cv[i]);
-    features2[i] = new Feature(features2_cv[i]);
+    features1[i] = new PointFeature(features1_cv[i]);
+    features2[i] = new PointFeature(features2_cv[i]);
   }
 
   // we compute the feature descriptors on every feature
@@ -141,7 +141,7 @@ bool Tracker::Track(const Image &image,
   detector_->detect(image_cv, features_cv);
   features.resize(features_cv.size());
   for(size_t i=0; i<features.size(); ++i)
-    features[i] = new Feature(features_cv[i]);
+    features[i] = new PointFeature(features_cv[i]);
 
   
   // we compute the feature descriptors on every feature

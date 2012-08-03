@@ -78,7 +78,7 @@ bool nRobustViewMatching::computeData(const string & filename)
     m_pDetector->detect( im_cv, features_cv );
     features.resize(features_cv.size());
     for(size_t i=0; i<features_cv.size(); ++i)
-      features[i] = new libmv::Feature(features_cv[i]);
+      features[i] = new libmv::PointFeature(features_cv[i]);
 
     libmv::vector<descriptor::Descriptor *> descriptors;
     m_pDescriber->Describe(features, im, NULL, &descriptors);

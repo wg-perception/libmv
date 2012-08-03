@@ -25,9 +25,16 @@
 
 #include "libmv/numeric/numeric.h"
 
-namespace libmv {
+namespace libmv
+{
+  class Feature
+  {
+  public:
+    virtual
+    ~Feature() {};
+  };
 
-class PointFeature {
+class PointFeature : public Feature {
  public:
   PointFeature(float xx=0.0f, float yy=0.0f) {
     coords[0] = xx;
@@ -49,8 +56,6 @@ class PointFeature {
   float scale;        // In pixels.
   float orientation;  // In radians.
 };
-
-typedef PointFeature Feature;
 
 }  // namespace libmv
 

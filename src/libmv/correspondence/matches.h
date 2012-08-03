@@ -57,7 +57,7 @@ class Matches {
 
    private:
     void Skip() {
-      while (r_ && !(const Feature *)(r_.edge())) ++r_;
+      while (r_ && !dynamic_cast<const FeatureT *> (r_.edge())) ++r_;
     }
     Graph::Range r_;
   };

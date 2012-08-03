@@ -314,7 +314,7 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   detector->detect(im_cv, features_cv);
   features.resize(features_cv.size());
   for(size_t i=0; i < features_cv.size(); ++i)
-    features[i] = new libmv::Feature(features_cv[i]);
+    features[i] = new libmv::PointFeature(features_cv[i]);
 
   vector<descriptor::Descriptor *> descriptors;
   scoped_ptr<descriptor::Describer> describer(descriptor::CreateSimpliestDescriber());
