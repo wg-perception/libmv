@@ -22,12 +22,12 @@
 #ifndef LIBMV_CORRESPONDENCE_FEATURE_MATCHING_H_
 #define LIBMV_CORRESPONDENCE_FEATURE_MATCHING_H_
 
+#include <iostream>
+
 #include "libmv/base/vector.h"
 #include "libmv/correspondence/kdtree.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/matches.h"
-#include "libmv/descriptor/descriptor.h"
-#include "libmv/descriptor/vector_descriptor.h"
 
 using namespace libmv;
 
@@ -35,14 +35,18 @@ using namespace libmv;
 /// A PointFeature (x,y,scale,orientation),
 /// And a descriptor (a vector of floats).
 struct KeypointFeature : public ::PointFeature {
-  descriptor::VecfDescriptor descriptor;
+  cv::Mat descriptor;
   // Match kdtree traits: with this, the Feature can act as a kdtree point.
-  float operator[](int i) const { return descriptor.coords(i); }
+  float operator[](int i) const {
+    if (descriptor.depth() != CV_32F)
+      std::cerr << "KeypointFeature does not contain floats" << std::endl;
+    return descriptor.at<float>(i);
+  }
 };
 
 /// FeatureSet : Store an array of KeypointFeature ( Keypoint and descriptor).
 struct FeatureSet {
-  libmv::vector<KeypointFeature> features;
+  std::vector<KeypointFeature> features;
 
   /// return a float * containing the concatenation of descriptor data.
   /// Must be deleted with []

@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include <opencv2/core/core.hpp>
+
 #include "libmv/correspondence/ArrayMatcher.h"
 #include "libmv/correspondence/ArrayMatcher_BruteForce.h"
 #include "libmv/correspondence/ArrayMatcher_Kdtree_Flann.h"
@@ -31,7 +33,6 @@ using testing::Types;
 namespace {
 
 using namespace libmv;
-using namespace libmv::descriptor;
 using namespace libmv::correspondence;
 
 template <class Kernel>
@@ -57,9 +58,8 @@ TYPED_TEST(MatchingKernelTest, MatcherInterfaceSymmetry)
   for (int i=0; i < 4; ++i)
   {
     KeypointFeature feat;
-    Vecf desc(descriptorSize);
-    desc << i+1, i+1;
-    feat.descriptor = VecfDescriptor(desc);
+    cv::Mat tmp = (cv::Mat_<float>(1, descriptorSize) << i+1, i+1);
+    feat.descriptor = tmp;
     featureSet.features.push_back(feat);
   }
 
@@ -104,9 +104,7 @@ TYPED_TEST(MatchingKernelTest, MatcherInterface)
   for (int i=0; i < 4; ++i)
   {
     KeypointFeature feat;
-    Vecf desc(descriptorSize);
-    desc << i*2, i*2;
-    feat.descriptor = VecfDescriptor(desc);
+    feat.descriptor = (cv::Mat_<float>(1, descriptorSize) << i*2, i*2);
     featureSetA.features.push_back(feat);
   }
 
@@ -115,9 +113,7 @@ TYPED_TEST(MatchingKernelTest, MatcherInterface)
   for (int i=0; i < 5; ++i)
   {
     KeypointFeature feat;
-    Vecf desc(descriptorSize);
-    desc << i*2, i*2;
-    feat.descriptor = VecfDescriptor(desc);
+    feat.descriptor = (cv::Mat_<float>(1, descriptorSize) << i*2, i*2);
     featureSetB.features.push_back(feat);
   }
 

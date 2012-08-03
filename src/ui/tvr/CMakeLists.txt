@@ -16,8 +16,6 @@ TARGET_LINK_LIBRARIES(tvr
                       flann
                       glog
                       gflags
-                      detector
-                      descriptor
                       fast
                       daisy
                       ${QT_QTCORE_LIBRARY}

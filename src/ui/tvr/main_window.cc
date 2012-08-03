@@ -29,9 +29,6 @@
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/feature_matching_FLANN.h"
-#include "libmv/descriptor/descriptor.h"
-#include "libmv/descriptor/daisy_descriptor.h"
-#include "libmv/descriptor/simpliest_descriptor.h"
 #include "libmv/image/array_nd.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
@@ -316,21 +313,20 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   for(size_t i=0; i < features_cv.size(); ++i)
     features[i] = new libmv::PointFeature(features_cv[i]);
 
-  vector<descriptor::Descriptor *> descriptors;
-  scoped_ptr<descriptor::Describer> describer(descriptor::CreateSimpliestDescriber());
+  cv::Mat descriptors;
+  cv::Ptr<cv::DescriptorExtractor> describer = cv::DescriptorExtractor::create("ORB");
   //scoped_ptr<descriptor::Describer> describer(descriptor::CreateDaisyDescriber());
-  describer->Describe(features, im, NULL, &descriptors);
+  describer->compute(im_cv, features_cv, descriptors);
 
   // Copy data.
-  fs.features.resize(descriptors.size());
-  for(int i = 0;i < descriptors.size(); ++i)
+  fs.features.resize(descriptors.rows);
+  for(int i = 0;i < descriptors.rows; ++i)
   {
     KeypointFeature & feat = fs.features[i];
-    feat.descriptor = *(descriptor::VecfDescriptor*)descriptors[i];
+    descriptors.row(i).copyTo(feat.descriptor);
     *(PointFeature*)(&feat) = *(PointFeature*)features[i];
   }
 
-  DeleteElements(&descriptors);
   DeleteElements(&features);
   /*// Display information to the user.
   QMainWindow::statusBar()->showMessage("End : Build kd-Tree for image : "

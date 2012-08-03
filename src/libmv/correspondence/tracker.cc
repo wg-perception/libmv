@@ -49,28 +49,25 @@ bool Tracker::Track(const Image &image1,
   }
 
   // we compute the feature descriptors on every feature
-  detector::DetectorData *detector_data = NULL;
-  vector<descriptor::Descriptor *> descriptors1;
-  
-  describer_->Describe(features1, image1, detector_data, &descriptors1);
-  vector<descriptor::Descriptor *> descriptors2;
-  describer_->Describe(features2, image2, detector_data, &descriptors2);
+  cv::Mat descriptors1_cv, descriptors2_cv;
+  describer_->compute(image1_cv, features1_cv, descriptors1_cv);
+  describer_->compute(image2_cv, features2_cv, descriptors2_cv);
   
   // Copy data form generic feature to Keypoints since the matcher is
   // a point matcher
   FeatureSet *feature_set1 = new_features_graph->CreateNewFeatureSet();
-  feature_set1->features.resize(descriptors1.size());
-  for (size_t i = 0; i < descriptors1.size(); i++) {
+  feature_set1->features.resize(descriptors1_cv.rows);
+  for (size_t i = 0; i < descriptors1_cv.rows; i++) {
     KeypointFeature& feature = feature_set1->features[i];
-    feature.descriptor = *(descriptor::VecfDescriptor*) descriptors1[i];
+    descriptors1_cv.row(i).copyTo(feature.descriptor);
     *(PointFeature*)(&feature) = *(PointFeature*)features1[i];
   }
   
   FeatureSet *feature_set2 = new_features_graph->CreateNewFeatureSet();
-  feature_set2->features.resize(descriptors2.size());
-  for (size_t i = 0; i < descriptors2.size(); i++) {
+  feature_set2->features.resize(descriptors2_cv.rows);
+  for (size_t i = 0; i < descriptors2_cv.rows; i++) {
     KeypointFeature& feature = feature_set2->features[i];
-    feature.descriptor = *(descriptor::VecfDescriptor*) descriptors2[i];
+    descriptors2_cv.row(i).copyTo(feature.descriptor);
     *(PointFeature*)(&feature) = *(PointFeature*)features2[i];
   }
   
@@ -119,9 +116,7 @@ bool Tracker::Track(const Image &image1,
       }
     }
   }
-  
-  DeleteElements(&descriptors1);
-  DeleteElements(&descriptors2);
+
   DeleteElements(&features1);
   DeleteElements(&features2);
   
@@ -145,17 +140,16 @@ bool Tracker::Track(const Image &image,
 
   
   // we compute the feature descriptors on every feature
-  detector::DetectorData *detector_data = NULL;
-  vector<descriptor::Descriptor *> descriptors;
-  describer_->Describe(features, image, detector_data, &descriptors);
+  cv::Mat descriptors;
+  describer_->compute(image_cv, features_cv, descriptors);
   
   // Copy data form generic feature to Keypoints since the matcher is
   // a point matcher
   FeatureSet *feature_set = new_features_graph->CreateNewFeatureSet();
-  feature_set->features.resize(descriptors.size());
-  for (size_t i = 0; i < descriptors.size(); i++) {
+  feature_set->features.resize(descriptors.rows);
+  for (size_t i = 0; i < descriptors.rows; i++) {
     KeypointFeature& feature = feature_set->features[i];
-    feature.descriptor = *(descriptor::VecfDescriptor*) descriptors[i];
+    descriptors.row(i).copyTo(feature.descriptor);
     *(PointFeature*)(&feature) = *(PointFeature*)features[i];
   }
   if (known_features_graph.matches_.NumImages() == 0)
@@ -225,7 +219,6 @@ bool Tracker::Track(const Image &image,
     }
   }
   
-  DeleteElements(&descriptors);
   DeleteElements(&features);  
   
   return true;

@@ -30,7 +30,7 @@ namespace tracker {
 class PlanarTracker : public Tracker {
  public:
   PlanarTracker(cv::Ptr<cv::FeatureDetector> detector,
-              descriptor::Describer *describer,
+                cv::Ptr<cv::DescriptorExtractor> describer,
               correspondence::ArrayMatcher<float> *matcher) : 
                Tracker(detector, describer, matcher) {
     minimum_number_inliers_ = 4; // at least 4 points are needed

@@ -26,8 +26,6 @@
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/matches.h"
-#include "libmv/descriptor/descriptor.h"
-#include "libmv/descriptor/vector_descriptor.h"
 
 using namespace libmv;
 

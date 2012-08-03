@@ -23,8 +23,6 @@
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
-#include "libmv/descriptor/descriptor.h"
-#include "libmv/descriptor/vector_descriptor.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_io.h"
 #include "libmv/image/image_converter.h"
@@ -40,7 +38,7 @@ nRobustViewMatching::nRobustViewMatching(){
 
 nRobustViewMatching::nRobustViewMatching(
     cv::Ptr<cv::FeatureDetector> pDetector,
-  descriptor::Describer * pDescriber){
+    cv::Ptr<cv::DescriptorExtractor> pDescriber){
   m_pDetector = pDetector;
   m_pDescriber = pDescriber;
 }
@@ -80,22 +78,21 @@ bool nRobustViewMatching::computeData(const string & filename)
     for(size_t i=0; i<features_cv.size(); ++i)
       features[i] = new libmv::PointFeature(features_cv[i]);
 
-    libmv::vector<descriptor::Descriptor *> descriptors;
-    m_pDescriber->Describe(features, im, NULL, &descriptors);
+    cv::Mat descriptors;
+    m_pDescriber->compute(im_cv, features_cv, descriptors);
 
     // Copy data.
     m_ViewData.insert( make_pair(filename,FeatureSet()) );
     FeatureSet & KeypointData = m_ViewData[filename];
-    KeypointData.features.resize(descriptors.size());
-    for(int i = 0;i < descriptors.size(); ++i)
+    KeypointData.features.resize(descriptors.rows);
+    for(int i = 0;i < descriptors.rows; ++i)
     {
       KeypointFeature & feat = KeypointData.features[i];
-      feat.descriptor = *(descriptor::VecfDescriptor*)descriptors[i];
+      descriptors.row(i).copyTo(feat.descriptor);
       *(PointFeature*)(&feat) = *(PointFeature*)features[i];
     }
 
     DeleteElements(&features);
-    DeleteElements(&descriptors);
 
     return true;
   }
