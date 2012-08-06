@@ -22,7 +22,6 @@
 #define LIBMV_CORRESPONDENCE_N_VIEW_MATCHING_INTERFACE_H_
 
 #include <string>
-#include "libmv/base/vector.h"
 
 namespace libmv {
 namespace correspondence  {
@@ -62,7 +61,7 @@ class nViewMatchingInterface {
   *
   * \return True if success (and any matches was found).
   */
-  virtual bool computeCrossMatch( const libmv::vector<string> & vec_data)=0;
+  virtual bool computeCrossMatch( const std::vector<string> & vec_data)=0;
 };
 
 } // using namespace correspondence

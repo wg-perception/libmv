@@ -26,8 +26,6 @@
 #include <string>
 
 
-#include "libmv/base/vector.h"
-#include "libmv/base/vector_utils.h"
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/feature.h"
@@ -121,7 +119,7 @@ int main(int argc, char **argv) {
   google::SetUsageMessage("NViewMatching Demo.");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  libmv::vector<string> image_vector;
+  std::vector<string> image_vector;
 
   for (int i = 1;i < argc;++i) {
     std::string arg (argv[i]);

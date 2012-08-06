@@ -269,7 +269,7 @@ void MainWindow::ComputeMatches() {
     // TODO(julien) create a UI to selection the detector/describer we want
     nViewMatcher_ = correspondence::nRobustViewMatching(pDetector, pDescriber);
 
-    libmv::vector<std::string> image_vector;
+    std::vector<std::string> image_vector;
     foreach (ImageView* image, images) 
       image_vector.push_back(image->path().toStdString());
     nViewMatcher_.computeCrossMatch(image_vector);

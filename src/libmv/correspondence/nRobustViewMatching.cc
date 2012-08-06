@@ -163,7 +163,7 @@ bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB)
 *
 * \return True if success (and any matches was found).
 */
-bool nRobustViewMatching::computeCrossMatch( const libmv::vector<string> & vec_data)
+bool nRobustViewMatching::computeCrossMatch( const std::vector<string> & vec_data)
 {
   if (m_pDetector == NULL || m_pDescriber == NULL)  {
     LOG(FATAL) << "Invalid Detector or Describer.";
@@ -191,7 +191,7 @@ bool nRobustViewMatching::computeCrossMatch( const libmv::vector<string> & vec_d
 }
 
 bool nRobustViewMatching::computeRelativeMatch(
-    const libmv::vector<string>& vec_data) {
+    const std::vector<string>& vec_data) {
   if (m_pDetector == NULL || m_pDescriber == NULL)  {
     LOG(FATAL) << "Invalid Detector or Describer.";
     return false;
