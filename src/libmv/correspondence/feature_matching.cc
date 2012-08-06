@@ -18,10 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/correspondence/feature_matching.h"
+#include <opencv2/features2d/features2d.hpp>
 
-#include "libmv/correspondence/ArrayMatcher.h"
-#include "libmv/correspondence/ArrayMatcher_Kdtree_Flann.h"
+#include "libmv/correspondence/feature_matching.h"
 
 // Compute candidate matches between 2 sets of features.  Two features A and B
 // are a candidate match if A is the nearest neighbor of B and B is the nearest
@@ -29,80 +28,51 @@
 void FindCandidateMatches(const FeatureSet &left,
                           const FeatureSet &right,
                           Matches *matches) {
-  if (left.features.size() == 0 ||
-      right.features.size() == 0 )  {
+  if (left.features.empty() ||
+      right.features.empty() )  {
     return;
   }
-  int descriptorSize = left.features[0].descriptor.cols;
 
-  correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-  correspondence::ArrayMatcher<float> * pArrayMatcherB = NULL;
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
-      pArrayMatcherB = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
+  cv::FlannBasedMatcher matcherA;
+  cv::FlannBasedMatcher matcherB;
 
-  if (pArrayMatcherA != NULL && pArrayMatcherB != NULL) {
+  // Paste the necessary data in contiguous arrays.
+  cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
+  cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-    // Paste the necessary data in contiguous arrays.
-    float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
-    float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
+  matcherA.add(arrayA);
+  matcherB.add(arrayB);
+  std::vector<cv::DMatch> matchesA, matchesB;
+  matcherA.match(arrayB, matchesA);
+  matcherB.match(arrayA, matchesB);
 
-    libmv::vector<int> indices, indicesReverse;
-    libmv::vector<float> distances, distancesReverse;
-
-    bool breturn = false;
-    if (pArrayMatcherA->build(arrayA,left.features.size(),descriptorSize) &&
-        pArrayMatcherB->build(arrayB,right.features.size(),descriptorSize) )  {
-
-      const int NN = 1;
-      breturn =
-        pArrayMatcherB->searchNeighbours(arrayA,left.features.size(),
-          &indices, &distances, NN) &&
-        pArrayMatcherA->searchNeighbours(arrayB,right.features.size(),
-          &indicesReverse, &distancesReverse, NN);
+  // From putative matches get symmetric matches.
+  int max_track_number = 0;
+  for (size_t i = 0; i < matchesA.size(); ++i)
+  {
+    // Add the match only if we have a symmetric result.
+    if (i == matchesB[matchesA[i].trainIdx].trainIdx)
+    {
+      matches->Insert(0, max_track_number, &left.features[i]);
+      matches->Insert(1, max_track_number, &right.features[matchesA[i].trainIdx]);
+      ++max_track_number;
     }
-    delete pArrayMatcherA;
-    delete pArrayMatcherB;
-
-    delete [] arrayA;
-    delete [] arrayB;
-
-    // From putative matches get symmetric matches.
-    if (breturn)  {
-      //TODO(pmoulon) clear previous matches.
-      int max_track_number = 0;
-      for (size_t i = 0; i < indices.size(); ++i) {
-        // Add the match only if we have a symmetric result.
-        if (i == indicesReverse[indices[i]])  {
-          matches->Insert(0, max_track_number, &left.features[i]);
-          matches->Insert(1, max_track_number, &right.features[indices[i]]);
-          ++max_track_number;
-        }
-      }
-    }
-    else  {
-      LOG(INFO) << "[FindCandidateMatches] Cannot compute symmetric matches.";
-    }
-  }
-  else  {
-    LOG(INFO) << "[FindCandidateMatches] Unknown input match method.";
   }
 }
 
-float * FeatureSet::FeatureSetDescriptorsToContiguousArray
+cv::Mat FeatureSet::FeatureSetDescriptorsToContiguousArray
   ( const FeatureSet & featureSet ) {
 
-  if (featureSet.features.size() == 0)  {
-    return NULL;
+  if (featureSet.features.empty())  {
+    return cv::Mat();
   }
   int descriptorSize = featureSet.features[0].descriptor.cols;
   // Allocate and paste the necessary data.
-  float * array = new float[featureSet.features.size()*descriptorSize];
+  cv::Mat array(featureSet.features.size(), descriptorSize, CV_32F);
 
   //-- Paste data in the contiguous array :
   for (int i = 0; i < (int)featureSet.features.size(); ++i) {
-    for (int j = 0;j < descriptorSize; ++j)
-      array[descriptorSize*i + j] = (float)featureSet.features[i][j];
+    featureSet.features[i].descriptor.copyTo(array.row(i));
   }
   return array;
 }
@@ -112,116 +82,62 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
                           const FeatureSet &right,
                           Matches *matches,
                           float fRatio) {
-
-  if (left.features.size() == 0 ||
-      right.features.size() == 0 )  {
+  if (left.features.empty() || right.features.empty())
     return;
-  }
-  int descriptorSize = left.features[0].descriptor.cols;
 
-  correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
+  cv::FlannBasedMatcher matcherA;
 
-  const int NN = 2;
-  if (pArrayMatcherA != NULL) {
+  // Paste the necessary data in contiguous arrays.
+  cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
+  cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-    // Paste the necessary data in contiguous arrays.
-    float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
-    float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
+  matcherA.add(arrayA);
+  std::vector < std::vector<cv::DMatch> > matchesA;
+  matcherA.knnMatch(arrayB, matchesA, 2);
 
-    libmv::vector<int> indices;
-    libmv::vector<float> distances;
-
-    bool breturn = false;
-    if (pArrayMatcherA->build(arrayB,right.features.size(),descriptorSize))  {
-      breturn =
-        pArrayMatcherA->searchNeighbours(arrayA,left.features.size(),
-          &indices, &distances, NN);
-    }
-    delete pArrayMatcherA;
-    delete [] arrayA;
-    delete [] arrayB;
-
-    // From putative matches get matches that fit the "Ratio" heuristic.
-    if (breturn)  {
-      //TODO(pmoulon) clear previous matches.
-      int max_track_number = 0;
-
-      for (size_t i = 0; i < left.features.size(); ++i) {
-        // Test distance ratio :
-        float distance0 = distances[i*NN];
-        float distance1 = distances[i*NN+NN-1];
-
-        if (distance0 < fRatio * distance1) {
-          matches->Insert(0, max_track_number, &left.features[i]);
-          matches->Insert(1, max_track_number, &right.features[indices[i*NN]]);
-          ++max_track_number;
-        }
+  // From putative matches get matches that fit the "Ratio" heuristic.
+  int max_track_number = 0;
+  for (size_t i = 0; i < matchesA.size(); ++i)
+  {
+    float distance0 = matchesA[i][0].distance;
+    float distance1 = matchesA[i][1].distance;
+    // Add the match only if we have a symmetric result.
+    if (distance0 < fRatio * distance1)
+    {
+      {
+        matches->Insert(0, max_track_number, &left.features[i]);
+        matches->Insert(1, max_track_number, &right.features[matchesA[i][0].trainIdx]);
+        ++max_track_number;
       }
     }
-    else  {
-      LOG(INFO) << "[FindCandidateMatches_Ratio] Cannot compute matches.";
-    }
-  }
-  else  {
-    LOG(INFO) << "[FindCandidateMatches_Ratio] Unknow input match method.";
   }
 }
-
 
 // Compute correspondences that match between 2 sets of features with a ratio.
 void FindCorrespondences(const FeatureSet &left,
                          const FeatureSet &right,
                          std::map<size_t, size_t> *correspondences,
                          float fRatio) {
-  if (left.features.size() == 0 ||
-      right.features.size() == 0 )  {
+  if (left.features.empty() || right.features.empty())
     return;
-  }
-  int descriptorSize = left.features[0].descriptor.cols;
 
-  correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
+  cv::FlannBasedMatcher matcherA;
 
-  const int NN = 2;
-  if (pArrayMatcherA != NULL) {
+  // Paste the necessary data in contiguous arrays.
+  cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
+  cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-    // Paste the necessary data in contiguous arrays.
-    float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
-    float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
+  matcherA.add(arrayA);
+  std::vector < std::vector<cv::DMatch> > matchesA;
+  matcherA.knnMatch(arrayB, matchesA, 2);
 
-    libmv::vector<int> indices;
-    libmv::vector<float> distances;
-
-    bool breturn = false;
-    if (pArrayMatcherA->build(arrayB,right.features.size(),descriptorSize))  {
-      breturn =
-        pArrayMatcherA->searchNeighbours(arrayA,left.features.size(),
-          &indices, &distances, NN);
-    }
-    delete pArrayMatcherA;
-    delete [] arrayA;
-    delete [] arrayB;
-
-    // From putative matches get matches that fit the "Ratio" heuristic.
-    if (breturn)  {
-      for (size_t i = 0; i < left.features.size(); ++i) {
-        // Test distance ratio :
-        float distance0 = distances[i*NN];
-        float distance1 = distances[i*NN+NN-1];
-
-        if (distance0 < fRatio * distance1) {
-          (*correspondences)[i] = indices[i*NN];
-        }
-      }
-    }
-    else  {
-      LOG(INFO) << "[FindCandidateMatches_Ratio] Cannot compute matches.";
-    }
-  }
-  else  {
-    LOG(INFO) << "[FindCandidateMatches_Ratio] Unknow input match method.";
+  // From putative matches get matches that fit the "Ratio" heuristic.
+  for (size_t i = 0; i < matchesA.size(); ++i)
+  {
+    float distance0 = matchesA[i][0].distance;
+    float distance1 = matchesA[i][1].distance;
+    // Add the match only if we have a symmetric result.
+    if (distance0 < fRatio * distance1)
+      (*correspondences)[i] = matchesA[i][0].trainIdx;
   }
 }

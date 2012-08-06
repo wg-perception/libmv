@@ -28,7 +28,6 @@
 
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
-#include "libmv/correspondence/ArrayMatcher.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/matches.h"
 #include "libmv/image/image.h"
@@ -80,7 +79,7 @@ class Tracker {
  public:
   Tracker(cv::Ptr<cv::FeatureDetector> detector,
            cv::Ptr<cv::DescriptorExtractor> describer,
-          correspondence::ArrayMatcher<float> *matcher) : 
+           cv::Ptr<cv::DescriptorMatcher> matcher) :
            detector_(detector),
            describer_(describer),
            matcher_(matcher) {
@@ -106,7 +105,7 @@ class Tracker {
  protected:
   cv::Ptr<cv::FeatureDetector>  detector_;
   cv::Ptr<cv::DescriptorExtractor> describer_;
-   scoped_ptr<correspondence::ArrayMatcher<float> > matcher_;
+  cv::Ptr<cv::DescriptorMatcher> matcher_;
 };
 
 } // using namespace tracker

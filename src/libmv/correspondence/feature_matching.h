@@ -24,6 +24,8 @@
 
 #include <iostream>
 
+#include <opencv2/core/core.hpp>
+
 #include "libmv/base/vector.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/matches.h"
@@ -49,7 +51,7 @@ struct FeatureSet {
 
   /// return a float * containing the concatenation of descriptor data.
   /// Must be deleted with []
-  static float *FeatureSetDescriptorsToContiguousArray
+  static cv::Mat FeatureSetDescriptorsToContiguousArray
     ( const FeatureSet & featureSet );
 };
 

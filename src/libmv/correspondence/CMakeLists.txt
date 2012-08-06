@@ -25,5 +25,4 @@ LIBMV_INSTALL_LIB(correspondence)
             
 LIBMV_TEST(bipartite_graph "")
 LIBMV_TEST(matches "correspondence;image;numeric")
-LIBMV_TEST(Array_Matcher "correspondence;numeric;flann")
 # LIBMV_TEST(tracker "correspondence;reconstruction;numeric;flann")

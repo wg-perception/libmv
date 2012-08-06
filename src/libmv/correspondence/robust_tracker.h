@@ -30,7 +30,7 @@ class RobustTracker : public Tracker {
  public:
   RobustTracker(cv::Ptr<cv::FeatureDetector> detector,
                   cv::Ptr<cv::DescriptorExtractor> describer,
-                correspondence::ArrayMatcher<float> *matcher) : 
+                  cv::Ptr<cv::DescriptorMatcher> matcher) :
                  Tracker(detector, describer, matcher) {
     minimum_number_inliers_ = 8; // from the 8 point algorithm
     rms_threshold_inlier_   = 0.3;
