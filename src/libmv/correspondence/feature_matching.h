@@ -25,7 +25,6 @@
 #include <iostream>
 
 #include "libmv/base/vector.h"
-#include "libmv/correspondence/kdtree.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/matches.h"
 
