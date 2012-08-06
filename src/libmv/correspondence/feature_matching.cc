@@ -30,8 +30,7 @@
 // neighbor of A.
 void FindCandidateMatches(const FeatureSet &left,
                           const FeatureSet &right,
-                          Matches *matches,
-                          eLibmvMatchMethod eMatchMethod) {
+                          Matches *matches) {
   if (left.features.size() == 0 ||
       right.features.size() == 0 )  {
     return;
@@ -40,30 +39,9 @@ void FindCandidateMatches(const FeatureSet &left,
 
   correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
   correspondence::ArrayMatcher<float> * pArrayMatcherB = NULL;
-  switch (eMatchMethod)
-  {
-  case eMATCH_KDTREE:
-    {
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree<float>;
-      pArrayMatcherB = new correspondence::ArrayMatcher_Kdtree<float>;
-    }
-    break;
-    case eMATCH_KDTREE_FLANN:
-    {
       // Build the arrays matcher in order to compute matches pair.
       pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
       pArrayMatcherB = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
-    }
-    break;
-    case eMATCH_LINEAR:
-    {
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_BruteForce<float>;
-      pArrayMatcherB = new correspondence::ArrayMatcher_BruteForce<float>;
-    }
-    break;
-  };
 
   if (pArrayMatcherA != NULL && pArrayMatcherB != NULL) {
 
@@ -135,7 +113,6 @@ float * FeatureSet::FeatureSetDescriptorsToContiguousArray
 void FindCandidateMatches_Ratio(const FeatureSet &left,
                           const FeatureSet &right,
                           Matches *matches,
-                          eLibmvMatchMethod eMatchMethod,
                           float fRatio) {
 
   if (left.features.size() == 0 ||
@@ -145,28 +122,8 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
   int descriptorSize = left.features[0].descriptor.cols;
 
   correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-  switch (eMatchMethod)
-  {
-  case eMATCH_KDTREE:
-    {
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree<float>;
-    }
-    break;
-    case eMATCH_KDTREE_FLANN:
-    {
       // Build the arrays matcher in order to compute matches pair.
       pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
-    }
-    break;
-    case eMATCH_LINEAR:
-    {
-      // Build the arrays matcher in order to compute matches pair.
-      LOG(INFO) << "Not yet implemented.";
-      return;
-    }
-    break;
-  };
 
   const int NN = 2;
   if (pArrayMatcherA != NULL) {
@@ -219,7 +176,6 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
 void FindCorrespondences(const FeatureSet &left,
                          const FeatureSet &right,
                          std::map<size_t, size_t> *correspondences,
-                         eLibmvMatchMethod eMatchMethod,
                          float fRatio) {
   if (left.features.size() == 0 ||
       right.features.size() == 0 )  {
@@ -228,28 +184,8 @@ void FindCorrespondences(const FeatureSet &left,
   int descriptorSize = left.features[0].descriptor.cols;
 
   correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-  switch (eMatchMethod)
-  {
-  case eMATCH_KDTREE:
-    {
-      // Build the arrays matcher in order to compute matches pair.
-      pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree<float>;
-    }
-    break;
-    case eMATCH_KDTREE_FLANN:
-    {
       // Build the arrays matcher in order to compute matches pair.
       pArrayMatcherA = new correspondence::ArrayMatcher_Kdtree_Flann<float>;
-    }
-    break;
-    case eMATCH_LINEAR:
-    {
-      // Build the arrays matcher in order to compute matches pair.
-      LOG(INFO) << "Not yet implemented.";
-      return;
-    }
-    break;
-  };
 
   const int NN = 2;
   if (pArrayMatcherA != NULL) {

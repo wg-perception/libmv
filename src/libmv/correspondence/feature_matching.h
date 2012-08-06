@@ -54,20 +54,12 @@ struct FeatureSet {
     ( const FeatureSet & featureSet );
 };
 
-enum eLibmvMatchMethod
-{
-  eMATCH_LINEAR,
-  eMATCH_KDTREE,
-  eMATCH_KDTREE_FLANN
-};
-
 // Compute candidate matches between 2 sets of features.  Two features a and b
 // are a candidate match if a is the nearest neighbor of b and b is the nearest
 // neighbor of a.
 void FindCandidateMatches(const FeatureSet &left,
                           const FeatureSet &right,
-                          Matches *matches,
-                          eLibmvMatchMethod eMatchMethod = eMATCH_KDTREE_FLANN);
+                          Matches *matches);
 
 // Compute candidate matches between 2 sets of features.
 // Keep only strong and distinctive matches by using the Davide Lowe's ratio
@@ -81,7 +73,6 @@ void FindCandidateMatches(const FeatureSet &left,
 void FindCandidateMatches_Ratio(const FeatureSet &left,
                           const FeatureSet &right,
                           Matches *matches,
-                          eLibmvMatchMethod eMatchMethod = eMATCH_KDTREE_FLANN,
                           float fRatio = 0.8f);
 // TODO(pmoulon) Add Lowe's ratio symmetric match method.
 // Compute correspondences that match between 2 sets of features with a ratio.
@@ -89,7 +80,6 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
 void FindCorrespondences(const FeatureSet &left,
                          const FeatureSet &right,
                          std::map<size_t, size_t> *correspondences,
-                         eLibmvMatchMethod eMatchMethod = eMATCH_KDTREE_FLANN,
                          float fRatio = 0.8f);
 
 #endif //LIBMV_CORRESPONDENCE_FEATURE_MATCHING_H_
