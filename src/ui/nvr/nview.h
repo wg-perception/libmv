@@ -28,16 +28,12 @@
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/reconstruction/reconstruction.h"
-#include "libmv/descriptor/descriptor_factory.h"
-#include "libmv/detector/detector_factory.h"
 
 #include "glwidget.h"
 
 // TODO(julien) avoid using namespace in headers!
 using namespace libmv;
 using namespace libmv::correspondence;
-using namespace libmv::descriptor;
-using namespace libmv::detector;
 
 /// an image displayed with matches
 class ImageView : public QWidget {
@@ -128,8 +124,9 @@ public slots:
     
     void UpdateGraph();
     void WarningNotFunctional();
-    bool SelectDetectorDescriber(eDetector *detector, eDescriber *describer);
-signals:
+  bool
+  SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> pDetector, cv::Ptr<cv::DescriptorExtractor> pDescriber);
+  signals:
     void setFilter(int i);
     void clearFilter();
 private:

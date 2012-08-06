@@ -4,6 +4,9 @@ FIND_PACKAGE(OpenGL REQUIRED)
 SET(QT_USE_QTOPENGL ON)
 INCLUDE(${QT_USE_FILE})
 
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 SET(HEADERS nview.h)
 SET(SOURCES nview.cpp 
             glwidget.cc)
@@ -22,6 +25,8 @@ TARGET_LINK_LIBRARIES(nview
                       glog
                       fast
                       multiview
-                      reconstruction)
+                      reconstruction
+                            ${OpenCV_INCLUDE_DIRS}
+)
 
 LIBMV_INSTALL_EXE(nview)

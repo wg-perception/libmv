@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QLabel>
 
-#include "libmv/correspondence/ArrayMatcher_Kdtree.h"
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/robust_tracker.h"
@@ -233,41 +232,26 @@ void MainWindow::WarningNotFunctional() {
                         "This process is STILL in development.");
 }
 
-bool MainWindow::SelectDetectorDescriber(eDetector *detector, 
-                                         eDescriber *describer) {
-  // Set the detector
-  std::map<std::string, detector::eDetector> detectorMap;
-  detectorMap["FAST"] = detector::FAST_DETECTOR;
-  detectorMap["SURF"] = detector::SURF_DETECTOR;
-  detectorMap["STAR"] = detector::STAR_DETECTOR;
-  detectorMap["MSER"] = detector::MSER_DETECTOR;
-  
-  // Set the descriptor
-  std::map<std::string, descriptor::eDescriber> descriptorMap;
-  descriptorMap["SIMPLEST"] = descriptor::SIMPLEST_DESCRIBER;
-  descriptorMap["SURF"]      = descriptor::SURF_DESCRIBER;
-  descriptorMap["DIPOLE"]    = descriptor::DIPOLE_DESCRIBER;
-  descriptorMap["DAISY"]     = descriptor::DAISY_DESCRIBER;
-    
+bool MainWindow::SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> pDetector,
+                                         cv::Ptr<cv::DescriptorExtractor> pDescriber) {
   QStringList detector_list;
   detector_list << tr("FAST") << tr("SURF") 
                 << tr("STAR") << tr("MSER");
   
   QStringList descriptor_list;
-  descriptor_list << tr("SIMPLEST") << tr("SURF") 
-                  << tr("DIPOLE") << tr("DAISY");
+  descriptor_list << tr("SIMPLEST") << tr("DAISY");
   
   bool ok;
   QString item = QInputDialog::getItem(this, tr("Choose a detector..."),
                                         tr("Detector:"), 
                                         detector_list, 0, false, &ok);
   if (ok && !item.isEmpty())    
-    *detector = detectorMap[item.toStdString()];
+    pDetector = cv::FeatureDetector::create(item.toStdString());
   item = QInputDialog::getItem(this, tr("Choose a describer..."),
                                         tr("Descriptor:"), 
                                         descriptor_list, 3, false, &ok);
   if (ok && !item.isEmpty())    
-    *describer = descriptorMap[item.toStdString()];
+    pDescriber = cv::DescriptorExtractor::create(item.toStdString());
   
   return ok;
 }
@@ -276,13 +260,11 @@ void MainWindow::ComputeMatches() {
     QProgressDialog progress("Computing matches...","Abort", 0, 
                              images.count(), this);
     progress.setWindowModality(Qt::WindowModal);
-    eDetector detector   = detector::FAST_DETECTOR;
-    eDescriber describer = descriptor::DAISY_DESCRIBER;
-    SelectDetectorDescriber(&detector, &describer);
+    cv::Ptr<cv::FeatureDetector> pDetector;
+    cv::Ptr<cv::DescriptorExtractor> pDescriber;
+    SelectDetectorDescriber(pDetector, pDescriber);
     // TODO(julien) create a UI to selection the detector/describer we want
-    Detector * pdetector  = detectorFactory(detector);
-    Describer* pdescriber = describerFactory(describer);
-    nViewMatcher_ = correspondence::nRobustViewMatching(pdetector, pdescriber);
+    nViewMatcher_ = correspondence::nRobustViewMatching(pDetector, pDescriber);
 
     libmv::vector<std::string> image_vector;
     foreach (ImageView* image, images) 
@@ -365,14 +347,11 @@ void MainWindow::ComputeRelativeMatches() {
                              images.count(), this);
     WarningNotFunctional();
     progress.setWindowModality(Qt::WindowModal);
-    eDetector detector   = detector::FAST_DETECTOR;
-    eDescriber describer = descriptor::DAISY_DESCRIBER;
-    SelectDetectorDescriber(&detector, &describer);
+    cv::Ptr<cv::FeatureDetector> pdetector;
+    cv::Ptr<cv::DescriptorExtractor> pdescriber;
+    SelectDetectorDescriber(pdetector, pdescriber);
     // TODO(julien) create a UI to selection the detector/describer we want
-    Detector * pdetector  = detectorFactory(detector);
-    Describer* pdescriber = describerFactory(describer);
-    correspondence::ArrayMatcher_Kdtree<float> *matcher = 
-      new correspondence::ArrayMatcher_Kdtree<float>();
+    cv::Ptr<cv::DescriptorMatcher> matcher(new cv::FlannBasedMatcher());
 
     // Track the sequence of images
     std::list<std::string> image_list;

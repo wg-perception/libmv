@@ -7,7 +7,7 @@ INCLUDE(${QT_USE_FILE})
 #########################
 
 ADD_SUBDIRECTORY(tvr)
-#ADD_SUBDIRECTORY(nvr)
+ADD_SUBDIRECTORY(nvr)
 
 
 OPTION(USE_FFMPEG "Add video support to Qt Tracker using ffmpeg" ON)
