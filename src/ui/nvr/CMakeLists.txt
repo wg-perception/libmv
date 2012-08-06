@@ -20,12 +20,8 @@ TARGET_LINK_LIBRARIES(nview
                       image
                       gflags
                       glog
-                      detector
                       fast
-                      flann
-                      descriptor
                       multiview
-                      daisy 
                       reconstruction)
 
 LIBMV_INSTALL_EXE(nview)

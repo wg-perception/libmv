@@ -139,9 +139,6 @@ bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB)
   FindCandidateMatches(m_ViewData[dataA],
                        m_ViewData[dataB],
                        &matches);
-  /*FindCandidateMatches_Ratio(m_ViewData[dataA],
-                       m_ViewData[dataB],
-                       &matches,eMATCH_KDTREE_FLANN , 0.6f);*/
   Matches consistent_matches;
   if (computeConstrainMatches(matches,iDataA,iDataB,&consistent_matches))
   {

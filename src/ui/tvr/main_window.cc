@@ -352,14 +352,6 @@ void TvrMainWindow::ComputeCandidateMatches() {
   QMainWindow::statusBar()->showMessage("Start : ComputeCandidateMatches");
 
   clock_t startTime = clock();
-  /*FindSymmetricCandidateMatches_FLANN(document_.feature_sets[0],
-                                      document_.feature_sets[1],
-                                      &document_.matches);*/
-
-  /*FindCandidateMatchesDistanceRatio_FLANN(document_.feature_sets[0],
-                                    document_.feature_sets[1],
-                                    &document_.matches,
-                                    0.8f);*/
 
   FindCandidateMatches( document_.feature_sets[0],
                         document_.feature_sets[1],

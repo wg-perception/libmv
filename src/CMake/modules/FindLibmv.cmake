@@ -29,11 +29,7 @@ ENDIF (LIBMV_INCLUDE_DIR)
 
 SET(LIBMV_LIBRARIES_NAMES camera 
                           correspondence
-                          daisy
-                          descriptor
-                          detector
                           fast
-                          flann
                           gflags
                           glog
                           image

@@ -25,7 +25,6 @@ TARGET_LINK_LIBRARIES(tracker
                       correspondence
                       numeric
                       multiview
-                      flann
                       glog
                       gflags
                       fast
@@ -39,7 +38,6 @@ TARGET_LINK_LIBRARIES(nViewMatching
                       image
                       gflags
                       glog
-                      flann
                       multiview
                       )
 LIBMV_INSTALL_EXE(nViewMatching)
@@ -50,7 +48,6 @@ TARGET_LINK_LIBRARIES(reconstruct_video
                       correspondence
                       numeric
                       multiview
-                      flann
                       glog
                       gflags
                       reconstruction
@@ -66,7 +63,6 @@ TARGET_LINK_LIBRARIES(undistort
                       camera
                       glog
                       gflags
-                      flann
                       )
 LIBMV_INSTALL_EXE(reconstruct_video)
 

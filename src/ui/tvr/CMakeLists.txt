@@ -13,7 +13,6 @@ TARGET_LINK_LIBRARIES(tvr
                       numeric
                       multiview
                       simple_pipeline
-                      flann
                       glog
                       gflags
                       fast
