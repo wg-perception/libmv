@@ -40,8 +40,8 @@ void FindCandidateMatches(const FeatureSet &left,
   cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  matcherA.add(arrayA);
-  matcherB.add(arrayB);
+  matcherA.add(std::vector<cv::Mat>(1, arrayA));
+  matcherB.add(std::vector<cv::Mat>(1, arrayB));
   std::vector<cv::DMatch> matchesA, matchesB;
   matcherA.match(arrayB, matchesA);
   matcherB.match(arrayA, matchesB);
@@ -91,7 +91,7 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
   cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  matcherA.add(arrayA);
+  matcherA.add(std::vector<cv::Mat>(1, arrayA));
   std::vector < std::vector<cv::DMatch> > matchesA;
   matcherA.knnMatch(arrayB, matchesA, 2);
 
@@ -127,7 +127,7 @@ void FindCorrespondences(const FeatureSet &left,
   cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  matcherA.add(arrayA);
+  matcherA.add(std::vector<cv::Mat>(1, arrayA));
   std::vector < std::vector<cv::DMatch> > matchesA;
   matcherA.knnMatch(arrayB, matchesA, 2);
 
