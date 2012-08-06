@@ -16,6 +16,9 @@ TARGET_LINK_LIBRARIES(experimental
 LIBMV_INSTALL_EXE(experimental)
 ENDIF (BUILD_TESTS)
 
+find_package(OpenCV REQUIRED)
+include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+
 ADD_EXECUTABLE(tracker tracker.cc)
 TARGET_LINK_LIBRARIES(tracker
                       image
@@ -25,10 +28,7 @@ TARGET_LINK_LIBRARIES(tracker
                       flann
                       glog
                       gflags
-                      detector
-                      descriptor
                       fast
-                      daisy
                       reconstruction
                       )
 LIBMV_INSTALL_EXE(tracker)
@@ -39,12 +39,8 @@ TARGET_LINK_LIBRARIES(nViewMatching
                       image
                       gflags
                       glog
-                      detector
-                      fast
                       flann
-                      descriptor
                       multiview
-                      daisy
                       )
 LIBMV_INSTALL_EXE(nViewMatching)
 
@@ -57,10 +53,6 @@ TARGET_LINK_LIBRARIES(reconstruct_video
                       flann
                       glog
                       gflags
-                      detector
-                      descriptor
-                      fast
-                      daisy
                       reconstruction
                       )
 LIBMV_INSTALL_EXE(reconstruct_video)

@@ -25,7 +25,6 @@
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
-#include "libmv/correspondence/ArrayMatcher_Kdtree.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/correspondence/robust_tracker.h"
@@ -275,38 +274,33 @@ int main (int argc, char *argv[]) {
 
   bool is_keep_new_detected_features = true;
 
-  // Create the tracker
-  correspondence::ArrayMatcher<float> *matcher  = NULL;
-  // Set the detector
-  detector::eDetector edetector = detector::FAST_DETECTOR;
-  std::map<std::string, detector::eDetector> detectorMap;
-  detectorMap["FAST"] = detector::FAST_DETECTOR;
-  detectorMap["SURF"] = detector::SURF_DETECTOR;
-  detectorMap["STAR"] = detector::STAR_DETECTOR;
-  detectorMap["MSER"] = detector::MSER_DETECTOR;
-  if (detectorMap.find(FLAGS_detector) != detectorMap.end()) {
-    edetector = detectorMap[FLAGS_detector];
+
+  cv::Ptr<cv::FeatureDetector> pDetector;
+  if (FLAGS_detector == "FAST") {
+    pDetector = cv::FeatureDetector::create("FAST");
+  } else if (FLAGS_detector == "SURF") {
+    pDetector = cv::FeatureDetector::create("SURF");
+  } else if (FLAGS_detector == "STAR") {
+    pDetector = cv::FeatureDetector::create("STAR");
+  } else if (FLAGS_detector == "MSER") {
+    pDetector = cv::FeatureDetector::create("MSER");
   } else {
     LOG(FATAL) << "ERROR : undefined Detector !";
   }
-  detector::Detector * pDetector = detectorFactory(edetector);
 
-  // Set the descriptor
-  descriptor::eDescriber edescriber = descriptor::DAISY_DESCRIBER;
-  std::map<std::string, descriptor::eDescriber> descriptorMap;
-  descriptorMap["SIMPLIEST"] = descriptor::SIMPLEST_DESCRIBER;
-  descriptorMap["SURF"]      = descriptor::SURF_DESCRIBER;
-  descriptorMap["DIPOLE"]    = descriptor::DIPOLE_DESCRIBER;
-  descriptorMap["DAISY"]     = descriptor::DAISY_DESCRIBER;
-  if (descriptorMap.find(FLAGS_describer) != descriptorMap.end()) {
-    edescriber = descriptorMap[FLAGS_describer];
+  cv::Ptr<cv::DescriptorExtractor> pDescriber;
+  if (FLAGS_describer == "SIMPLIEST") {
+  } else if (FLAGS_describer == "SURF") {
+    pDescriber = cv::DescriptorExtractor::create("SURF");
+  } else if (FLAGS_describer == "DIPOLE") {
+  } else if (FLAGS_describer == "DAISY") {
+    pDescriber = cv::DescriptorExtractor::create("DAISY");
   } else {
     LOG(FATAL) << "ERROR : undefined Describer !";
   }
-  descriptor::Describer * pDescriber = describerFactory(edescriber);
 
   // Set the matcher
-  matcher = new correspondence::ArrayMatcher_Kdtree<float>();
+  cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("FLANN");
 
   tracker::Tracker *points_tracker = NULL;
   if (FLAGS_non_robust_tracker) {
@@ -384,7 +378,6 @@ int main (int argc, char *argv[]) {
   }
 
   // Exports all matches
-  ExportMatchesToTxt(all_features_graph.matches_, FLAGS_o);
   DisplayMatches(all_features_graph.matches_);
 
   // Estimates the camera trajectory and 3D structure of the scene

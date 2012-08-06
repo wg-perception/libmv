@@ -29,12 +29,9 @@
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/base/scoped_ptr.h"
-#include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
-#include "libmv/detector/detector_factory.h"
-#include "libmv/descriptor/descriptor_factory.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/image/image_drawing.h"
@@ -132,46 +129,36 @@ int main(int argc, char **argv) {
     }
   }
 
-  detector::eDetector edetector = detector::FAST_DETECTOR;
+  cv::Ptr<cv::FeatureDetector> edetector;
   if (FLAGS_detector == "FAST") {
-    edetector = detector::FAST_DETECTOR;
+    edetector = cv::FeatureDetector::create("FAST");
   } else if (FLAGS_detector == "SURF") {
-    edetector = detector::SURF_DETECTOR;
+    edetector = cv::FeatureDetector::create("SURF");
   } else if (FLAGS_detector == "STAR") {
-    edetector = detector::STAR_DETECTOR;
+    edetector = cv::FeatureDetector::create("STAR");
   } else if (FLAGS_detector == "MSER") {
-    edetector = detector::MSER_DETECTOR;
+    edetector = cv::FeatureDetector::create("MSER");
   } else {
     LOG(FATAL) << "ERROR : undefined Detector !";
   }
-  scoped_ptr<detector::Detector> spDetector = detectorFactory(edetector);
 
-  descriptor::eDescriber edescriber = descriptor::DIPOLE_DESCRIBER;
+  cv::Ptr<cv::DescriptorExtractor> edescriber;
   if (FLAGS_describer == "SIMPLIEST") {
-    edescriber = descriptor::SIMPLEST_DESCRIBER;
   } else if (FLAGS_describer == "SURF") {
-    edescriber = descriptor::SURF_DESCRIBER;
+    edescriber = cv::DescriptorExtractor::create("SURF");
   } else if (FLAGS_describer == "DIPOLE") {
-    edescriber = descriptor::DIPOLE_DESCRIBER;
   } else if (FLAGS_describer == "DAISY") {
-    edescriber = descriptor::DAISY_DESCRIBER;
+    edescriber = cv::DescriptorExtractor::create("DAISY");
   } else {
     LOG(FATAL) << "ERROR : undefined Describer !";
   }
-  scoped_ptr<descriptor::Describer> spDescriber  = describerFactory(edescriber);
 
-  libmv::correspondence::nRobustViewMatching nViewMatcher(spDetector.get(),
-                                                          spDescriber.get());
+  libmv::correspondence::nRobustViewMatching nViewMatcher(edetector, edescriber);
 
   nViewMatcher.computeCrossMatch(image_vector);
 
   // Show Cross Matches
   DisplayMatches(nViewMatcher.getMatches());
-  
-  //-- Export the matches
-  if (FLAGS_save_matches_file) {
-    ExportMatchesToTxt(nViewMatcher.getMatches(), FLAGS_matches_out);
-  }
 
   //-- Export and visualize data (show matches between the images)
   if (FLAGS_save_matches_results) {

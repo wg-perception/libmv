@@ -49,7 +49,6 @@
 #include "libmv/camera/lens_distortion.h"
 #include "libmv/camera/pinhole_camera.h"
 #include "libmv/correspondence/feature.h"
-#include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/matches.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/cached_image_sequence.h"
