@@ -29,6 +29,7 @@
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/base/scoped_ptr.h"
+#include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
@@ -159,6 +160,11 @@ int main(int argc, char **argv) {
 
   // Show Cross Matches
   DisplayMatches(nViewMatcher.getMatches());
+
+  //-- Export the matches
+  if (FLAGS_save_matches_file) {
+    ExportMatchesToTxt(nViewMatcher.getMatches(), FLAGS_matches_out);
+  }
 
   //-- Export and visualize data (show matches between the images)
   if (FLAGS_save_matches_results) {

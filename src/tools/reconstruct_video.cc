@@ -20,6 +20,7 @@
 #include <list>
 #include <string>
 
+#include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/logging/logging.h"
 #include "libmv/reconstruction/euclidean_reconstruction.h"
@@ -69,7 +70,7 @@ int main (int argc, char *argv[]) {
   FeatureSet *fs = fg.CreateNewFeatureSet();
   
   VLOG(0) << "Loading Matches file... Got removed so the code will fail" << std::endl;
-  //ImportMatchesFromTxt(FLAGS_i, &fg.matches_, fs);
+  ImportMatchesFromTxt(FLAGS_i, &fg.matches_, fs);
   VLOG(0) << "Loading Matches file...[DONE]." << std::endl;
   
   // Estimates the camera trajectory and 3D structure of the scene

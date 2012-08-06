@@ -25,6 +25,7 @@
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
+#include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/correspondence/robust_tracker.h"
@@ -378,6 +379,7 @@ int main (int argc, char *argv[]) {
   }
 
   // Exports all matches
+  ExportMatchesToTxt(all_features_graph.matches_, FLAGS_o);
   DisplayMatches(all_features_graph.matches_);
 
   // Estimates the camera trajectory and 3D structure of the scene

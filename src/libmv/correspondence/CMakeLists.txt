@@ -6,6 +6,8 @@ SET(CORRESPONDENCE_SRC
                        feature_matching.cc
 #                      feature_matching_FLANN.cc
                        tracker.cc
+                       export_matches_txt.cc
+                       import_matches_txt.cc
                        robust_tracker.cc
                        planar_tracker.cc
                        nRobustViewMatching.cc
