@@ -38,7 +38,6 @@ ENDMACRO (IMAGE_TEST)
 
 IMAGE_TEST(array_nd)
 IMAGE_TEST(convolve)
-IMAGE_TEST(derivative)
 IMAGE_TEST(filtered_sequence)
 IMAGE_TEST(image)
 IMAGE_TEST(image_io)
