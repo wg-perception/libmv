@@ -28,7 +28,6 @@
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature_matching.h"
-#include "libmv/correspondence/feature_matching_FLANN.h"
 #include "libmv/image/array_nd.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
