@@ -125,7 +125,7 @@ public slots:
     void UpdateGraph();
     void WarningNotFunctional();
   bool
-  SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> pDetector, cv::Ptr<cv::DescriptorExtractor> pDescriber);
+  SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> &pDetector, cv::Ptr<cv::DescriptorExtractor> &pDescriber);
   signals:
     void setFilter(int i);
     void clearFilter();

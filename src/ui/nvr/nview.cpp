@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QLabel>
 
+#include <opencv2/nonfree/nonfree.hpp>
+
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/robust_tracker.h"
@@ -232,14 +234,15 @@ void MainWindow::WarningNotFunctional() {
                         "This process is STILL in development.");
 }
 
-bool MainWindow::SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> pDetector,
-                                         cv::Ptr<cv::DescriptorExtractor> pDescriber) {
+bool MainWindow::SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> &pDetector,
+                                         cv::Ptr<cv::DescriptorExtractor> &pDescriber) {
   QStringList detector_list;
+  cv::initModule_nonfree();
   detector_list << tr("FAST") << tr("SURF") 
                 << tr("STAR") << tr("MSER");
   
   QStringList descriptor_list;
-  descriptor_list << tr("SIMPLEST") << tr("DAISY");
+  descriptor_list << tr("SURF") << tr("ORB");
   
   bool ok;
   QString item = QInputDialog::getItem(this, tr("Choose a detector..."),
