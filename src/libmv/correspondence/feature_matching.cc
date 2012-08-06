@@ -40,11 +40,11 @@ void FindCandidateMatches(const FeatureSet &left,
   cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  matcherA.add(std::vector<cv::Mat>(1, arrayA));
-  matcherB.add(std::vector<cv::Mat>(1, arrayB));
+  matcherA.add(std::vector<cv::Mat>(1, arrayB));
+  matcherB.add(std::vector<cv::Mat>(1, arrayA));
   std::vector<cv::DMatch> matchesA, matchesB;
-  matcherA.match(arrayB, matchesA);
-  matcherB.match(arrayA, matchesB);
+  matcherA.match(arrayA, matchesA);
+  matcherB.match(arrayB, matchesB);
 
   // From putative matches get symmetric matches.
   int max_track_number = 0;
@@ -91,9 +91,9 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
   cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  matcherA.add(std::vector<cv::Mat>(1, arrayA));
+  matcherA.add(std::vector<cv::Mat>(1, arrayB));
   std::vector < std::vector<cv::DMatch> > matchesA;
-  matcherA.knnMatch(arrayB, matchesA, 2);
+  matcherA.knnMatch(arrayA, matchesA, 2);
 
   // From putative matches get matches that fit the "Ratio" heuristic.
   int max_track_number = 0;
@@ -127,9 +127,9 @@ void FindCorrespondences(const FeatureSet &left,
   cv::Mat arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   cv::Mat arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  matcherA.add(std::vector<cv::Mat>(1, arrayA));
+  matcherA.add(std::vector<cv::Mat>(1, arrayB));
   std::vector < std::vector<cv::DMatch> > matchesA;
-  matcherA.knnMatch(arrayB, matchesA, 2);
+  matcherA.knnMatch(arrayA, matchesA, 2);
 
   // From putative matches get matches that fit the "Ratio" heuristic.
   for (size_t i = 0; i < matchesA.size(); ++i)
