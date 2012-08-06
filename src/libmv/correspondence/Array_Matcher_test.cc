@@ -21,9 +21,7 @@
 #include <opencv2/core/core.hpp>
 
 #include "libmv/correspondence/ArrayMatcher.h"
-#include "libmv/correspondence/ArrayMatcher_BruteForce.h"
 #include "libmv/correspondence/ArrayMatcher_Kdtree_Flann.h"
-#include "libmv/correspondence/ArrayMatcher_Kdtree.h"
 
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/logging/logging.h"
@@ -43,8 +41,7 @@ struct MatchingKernelTest : public testing::Test {
 // - Libmv Kdtree,
 // - Linear matching FLANN,
 // - FLANN Kdtree.
-typedef Types< ArrayMatcher_Kdtree<float>,
-               ArrayMatcher_BruteForce<float>,
+typedef Types<
                ArrayMatcher_Kdtree_Flann<float>
                > MatchingKernelImpl;
 

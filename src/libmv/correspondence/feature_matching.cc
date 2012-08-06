@@ -21,9 +21,7 @@
 #include "libmv/correspondence/feature_matching.h"
 
 #include "libmv/correspondence/ArrayMatcher.h"
-#include "libmv/correspondence/ArrayMatcher_BruteForce.h"
 #include "libmv/correspondence/ArrayMatcher_Kdtree_Flann.h"
-#include "libmv/correspondence/ArrayMatcher_Kdtree.h"
 
 // Compute candidate matches between 2 sets of features.  Two features A and B
 // are a candidate match if A is the nearest neighbor of B and B is the nearest
