@@ -21,6 +21,7 @@ target_link_libraries(opencv_sfm  ${OpenCV_LIBRARIES}
                                   multiview
                                   multiview_test_data
                                   numeric
+                                  simple_pipeline
 )
 
 install(TARGETS opencv_sfm
