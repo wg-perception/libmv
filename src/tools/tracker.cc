@@ -279,6 +279,7 @@ int main (int argc, char *argv[]) {
   cv::Ptr<cv::FeatureDetector> pDetector;
   if (FLAGS_detector == "FAST") {
     pDetector = cv::FeatureDetector::create("FAST");
+    pDetector->set("threshold", 30);
   } else if (FLAGS_detector == "SURF") {
     pDetector = cv::FeatureDetector::create("SURF");
   } else if (FLAGS_detector == "STAR") {

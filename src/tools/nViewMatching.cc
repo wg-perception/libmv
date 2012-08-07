@@ -131,6 +131,7 @@ int main(int argc, char **argv) {
   cv::Ptr<cv::FeatureDetector> edetector;
   if (FLAGS_detector == "FAST") {
     edetector = cv::FeatureDetector::create("FAST");
+    edetector->set("threshold", 30);
   } else if (FLAGS_detector == "SURF") {
     edetector = cv::FeatureDetector::create("SURF");
   } else if (FLAGS_detector == "STAR") {

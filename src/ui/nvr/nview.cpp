@@ -52,8 +52,12 @@ void ImageView::paintEvent(QPaintEvent*) {
     for (int i=0; i<features.count(); i++ ) {
         if( filter>=0 && i != filter && index != filter ) continue;
         foreach(KeypointFeature f, features[i] ) {
-            p.drawEllipse(QPointF(f.x(), f.y()), f.scale, f.scale );
-            p.drawLine(QPoint(f.x(), f.y()),
+            if (f.scale==0)
+              p.drawEllipse(QPointF(f.x(), f.y()), 10, 10 );
+            else
+              p.drawEllipse(QPointF(f.x(), f.y()), f.scale, f.scale );
+            if (f.orientation >=0)
+              p.drawLine(QPoint(f.x(), f.y()),
                        QPoint( f.x() + f.scale*cos(f.orientation),
                                f.y() + f.scale*sin(f.orientation) ) );
         }
@@ -248,8 +252,11 @@ bool MainWindow::SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> &pDetector
   QString item = QInputDialog::getItem(this, tr("Choose a detector..."),
                                         tr("Detector:"), 
                                         detector_list, 0, false, &ok);
-  if (ok && !item.isEmpty())    
+  if (ok && !item.isEmpty()) {
     pDetector = cv::FeatureDetector::create(item.toStdString());
+    if (item.toStdString() == "FAST")
+      pDetector->set("threshold", 30);
+  }
   item = QInputDialog::getItem(this, tr("Choose a describer..."),
                                         tr("Descriptor:"), 
                                         descriptor_list, 3, false, &ok);
