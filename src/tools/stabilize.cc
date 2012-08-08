@@ -44,7 +44,7 @@
 #include "libmv/correspondence/matches.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_drawing.h"
+#include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/sample.h"
@@ -287,7 +287,7 @@ void Stabilize(const std::vector<std::string> &image_files,
                         imageArrayBytes.cols,
                         imageArrayBytes.depth());
   image_stab.Fill(0);
-  float lines_color[3] = {1, 1, 1};
+  cv::Scalar lines_color(255,255,255);
   FloatImage *image = NULL;
   ImageCache cache;
   scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
@@ -296,20 +296,18 @@ void Stabilize(const std::vector<std::string> &image_files,
       H = Hs[i - 1].inv() * H;
     image = source->GetFloatImage(i);
     if (image) {
+      cv::Mat image_cv;
+      Image2Mat(image, image_cv);
       //VLOG(1) << "H = \n" << H << "\n";
       if (draw_lines) {
-        DrawLine<FloatImage, float[3]>(0, 0, 0, images_size(1) - 1, 
-                                       lines_color, image);
-        DrawLine<FloatImage, float[3]>(0, 0, images_size(0) - 1, 0, 
-                                       lines_color, image);
-        DrawLine<FloatImage, float[3]>(               0, images_size(1)-1, 
-                                       images_size(0)-1, images_size(1)-1, 
-                                       lines_color, image);
-        DrawLine<FloatImage, float[3]>(images_size(0)-1,                0, 
-                                       images_size(0)-1, images_size(1)-1, 
-                                       lines_color, image); 
+        cv::line(image_cv, cv::Point2f(0, 0), cv::Point2f(image_cv.cols - 1, 0), lines_color);
+        cv::line(image_cv, cv::Point2f(0, image_cv.cols - 1), cv::Point2f(image_cv.rows - 1, image_cv.cols - 1),
+                 lines_color);
+        cv::line(image_cv, cv::Point2f(image_cv.rows - 1, image_cv.cols - 1), cv::Point2f(image_cv.rows - 1, 0),
+                 lines_color);
+        cv::line(image_cv, cv::Point2f(image_cv.rows - 1, 0), cv::Point2f(0, 0), lines_color);
       }
-      cv::Mat image_cv, image_stab;
+      cv::Mat image_stab;
       cv::warpPerspective(image_cv, H, image_stab, image_cv.size());
 
       // Saves the stabilized image

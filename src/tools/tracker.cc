@@ -34,7 +34,6 @@
 #include "libmv/image/array_nd.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
-#include "libmv/image/image_drawing.h"
 #include "libmv/image/image_pyramid.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/bundle.h"

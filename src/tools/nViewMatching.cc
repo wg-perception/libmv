@@ -34,7 +34,6 @@
 #include "libmv/correspondence/nRobustViewMatching.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
-#include "libmv/image/image_drawing.h"
 #include "libmv/tools/tool.h"
 
 using namespace libmv;
@@ -175,28 +174,12 @@ int main(int argc, char **argv) {
         Matches::Features<KeypointFeature> features =
           nViewMatcher.getMatches().InImage<KeypointFeature>(i);
         int cpt = 0;
-        Array3Du bigIma;
+        cv::Mat bigIma;
         if (i!=j && features) {
-          cv::Mat im2_cv = cv::imread(image_vector[j], 0);
-          Image im2 = Mat2Image(im2_cv);
+          cv::Mat im2 = cv::imread(image_vector[j], 0);
 
-          //-- Concat the two images (TODO move this function in IMAGE module)
-          // With horizontal, vertical option
-          int width = max(im2_cv.cols, im_cv.cols) + min(im2_cv.cols, im_cv.cols);
-          int height = max(im2_cv.rows, im_cv.rows);
-          //-- Paste data
-          bigIma = Array3Du(height,width);
-          for (int jj=0;jj<im_cv.rows;++jj)
-          for (int ii=0;ii<im_cv.cols;++ii) {
-            bigIma(jj,ii)= (*im.AsArray3Du())(jj,ii);
-          }
-          for (int jj=0;jj<im2_cv.rows;++jj)
-          for (int ii=0;ii<im2_cv.cols;++ii) {
-            bigIma(jj,ii+min(im2_cv.cols, im_cv.cols))=
-              (*im2.AsArray3Du())(jj,ii);
-          }
-
-
+          std::vector<cv::DMatch> matches;
+          std::vector<cv::KeyPoint> keypoints1, keypoints2;
           while (features) {
             Matches::TrackID id_track = features.track();
             const Feature * ref = features.feature();
@@ -204,20 +187,25 @@ int main(int argc, char **argv) {
             if (f && ref)  {
               KeypointFeature * pt0 = ((KeypointFeature*)ref);
               KeypointFeature * pt1 = ((KeypointFeature*)f);
-              DrawCircle(pt0->x(), pt0->y(),
-                          pt0->scale, (unsigned char)255, &bigIma);
-              DrawCircle(pt1->x()+min(im_cv.cols, im2_cv.cols),
-                          pt1->y(), pt1->scale, (unsigned char)255, &bigIma);
-              DrawLine( pt0->x(),
-                        pt0->y(),
-                        pt1->x()+min(im2_cv.cols, im_cv.cols),
-                        pt1->y(),
-                        255,
-                        &bigIma);
+              cv::KeyPoint keypoint1, keypoint2;
+              keypoint1.pt = cv::Point2f(pt0->x(), pt0->y());
+              keypoint1.octave = pt0->scale;
+              keypoint1.angle = pt0->orientation;
+              keypoints1.push_back(keypoint1);
+              keypoint2.pt = cv::Point2f(pt1->x(), pt1->y());
+              keypoint2.octave = pt1->scale;
+              keypoint2.angle = pt1->orientation;
+              keypoints2.push_back(keypoint2);
+              cv::DMatch match;
+              match.queryIdx = cpt;
+              match.trainIdx = cpt;
+              match.imgIdx = 0;
+              matches.push_back(match);
               ++cpt;
             }
             features.operator++();
           }
+          cv::drawMatches(im_cv, keypoints1, im2, keypoints2, matches, bigIma);
         }
         //-- If many point have been added
         if (cpt> 4*2) {
@@ -225,12 +213,10 @@ int main(int argc, char **argv) {
           os<< "TOTO_" << ExtractFilename(image_vector[i].c_str()) << "_"
             << ExtractFilename(image_vector[j].c_str()) << "___"
             << cpt << "__matches" << ".jpeg";
-          cv::Mat bigIma_cv;
-          Image2Mat(bigIma, bigIma_cv);
           std::vector<int> compression_params;
           compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
           compression_params.push_back(100);
-          cv::imwrite(os.str(), bigIma_cv, compression_params);
+          cv::imwrite(os.str(), bigIma, compression_params);
         }
       }
     }

@@ -44,7 +44,6 @@
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
-#include "libmv/image/image_drawing.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/sample.h"
@@ -331,7 +330,7 @@ void BuildMosaic(const std::vector<std::string> &image_files,
           0, 0, 1;
   //for (size_t i = 0; i < image_files.size() / 2; ++i)
   //  Hreg = Hreg * Hs[i];
-  float lines_color[3] = {1, 1, 1};
+  cv::Scalar lines_color(255,255,255);
   FloatImage *image = NULL;
   ImageCache cache;
   scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
@@ -340,21 +339,17 @@ void BuildMosaic(const std::vector<std::string> &image_files,
       H = Hs[i - 1].inv() * H;
     image = source->GetFloatImage(i);
     if (image) {
-      if (draw_lines) {
-        DrawLine<FloatImage, float[3]>(0, 0, 0, images_size(1) - 1, 
-                                       lines_color, image);
-        DrawLine<FloatImage, float[3]>(0, 0, images_size(0) - 1, 0, 
-                                       lines_color, image);
-        DrawLine<FloatImage, float[3]>(               0, images_size(1)-1, 
-                                       images_size(0)-1, images_size(1)-1, 
-                                       lines_color, image);
-        DrawLine<FloatImage, float[3]>(images_size(0)-1,                0, 
-                                       images_size(0)-1, images_size(1)-1, 
-                                       lines_color,
-                                       image);
-      }
       cv::Mat image_cv, image_cv_warp;
       Image2Mat(image, image_cv);
+      if (draw_lines)
+      {
+        cv::line(image_cv, cv::Point2f(0, 0), cv::Point2f(image_cv.cols - 1, 0), lines_color);
+        cv::line(image_cv, cv::Point2f(0, image_cv.cols - 1), cv::Point2f(image_cv.rows - 1, image_cv.cols - 1),
+                 lines_color);
+        cv::line(image_cv, cv::Point2f(image_cv.rows - 1, image_cv.cols - 1), cv::Point2f(image_cv.rows - 1, 0),
+                 lines_color);
+        cv::line(image_cv, cv::Point2f(image_cv.rows - 1, 0), cv::Point2f(0, 0), lines_color);
+      }
       cv::warpPerspective(image_cv, H, image_cv_warp, image_cv.size());
       mosaic = (1 - blending_ratio) * image_cv + blending_ratio * image_cv_warp;
     }
