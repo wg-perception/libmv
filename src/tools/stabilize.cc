@@ -42,7 +42,6 @@
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_drawing.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/image_transform_linear.h"
 #include "libmv/image/cached_image_sequence.h"
@@ -268,15 +267,15 @@ void Stabilize(const std::vector<std::string> &image_files,
   
   // Get the size of the first image
   Vec2u images_size;
-  ByteImage imageArrayBytes;
-  ReadImage (image_files[0].c_str(), &imageArrayBytes);
-  images_size << imageArrayBytes.Width(), imageArrayBytes.Height();
+  cv::Mat imageArrayBytes;
+  cv::imread(image_files[0], imageArrayBytes);
+  images_size << imageArrayBytes.cols, imageArrayBytes.rows;
   
   Mat3 H;
   H.setIdentity(); 
-  FloatImage image_stab(imageArrayBytes.Height(),
-                        imageArrayBytes.Width(), 
-                        imageArrayBytes.Depth());
+  FloatImage image_stab(imageArrayBytes.rows,
+                        imageArrayBytes.cols,
+                        imageArrayBytes.depth());
   image_stab.Fill(0);
   float lines_color[3] = {1, 1, 1};
   FloatImage *image = NULL;

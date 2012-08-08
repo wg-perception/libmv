@@ -4,9 +4,10 @@
 #include <iostream>
 using namespace std;
 
+#include <opencv2/highgui/highgui.hpp>
+
 #include "libmv/numeric/numeric.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/convolve.h"
 #include "ui/imageviewer.h"
 #include "ui/scrubber.h"
@@ -45,15 +46,16 @@ void ImageViewer::open()
       tr("Open File"), QDir::currentPath());
   if (!fileName.isEmpty()) {
 
-    libmv::ByteImage mv_image;
+    cv::Mat mv_image, mv_image_float;
+    cv::imread(fileName.toStdString(), mv_image);
     if(!libmv::ReadImage(fileName.toStdString().c_str(), &mv_image))  {
       QMessageBox::information(this, tr("Libmv Testbed"),
           tr("Cannot load %1.").arg(fileName));
       return;
     }
-    
+    mv_image.convertTo(mv_image_float, CV_32F);
     libmv::FloatImage float_mv_image;
-    float_mv_image.CopyFrom(mv_image);
+    Mat2Image(mv_image_float, float_mv_image);
     libmv::FloatImage blurred_mv_image;
     libmv::Vec gauss, dgauss;
     libmv::ComputeGaussianKernel(5, &gauss, &dgauss);
@@ -70,13 +72,13 @@ void ImageViewer::open()
     libmv::FloatArrayToScaledByteArray(blurred_mv_image, &mv_image);
 //    mv_image.CopyFrom(float_mv_image);
 
-    printf("w=%d,h=%d,d=%d\n", mv_image.Width(), mv_image.Height(),
-                 mv_image.Depth());
+    printf("w=%d,h=%d,d=%d\n", mv_image.cols, mv_image.rows,
+                 mv_image.depth());
 
     QImage image;
-    if (mv_image.Depth() == 1) {
-      image = QImage(mv_image.Data(), mv_image.Width(), mv_image.Height(), QImage::Format_Indexed8);
-    } else if (mv_image.Depth() == 3) {
+    if (mv_image.depth() == 1) {
+      image = QImage(mv_image.data, mv_image.cols, mv_image.rows, QImage::Format_Indexed8);
+    } else if (mv_image.depth() == 3) {
       //Sorry QImage::Format_RGB888 isn't implemented in qt 4.3 the version on my computer (Daniel).
       QMessageBox::information(this, tr("Libmv Testbed"),
           tr("Cannot load %1. Try converting your image to greyscale.").arg(fileName));
@@ -84,7 +86,7 @@ void ImageViewer::open()
     }
     
     image.setNumColors(256);
-    for (int i = 0, count = image.numColors(); i < count; ++i) {
+    for (int i = 0, count = image.channels(); i < count; ++i) {
       image.setColor(i, qRgb(i,i,i));
     }
 

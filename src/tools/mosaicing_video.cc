@@ -41,7 +41,6 @@
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/image.h"
 #include "libmv/image/image_drawing.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/image_transform_linear.h"
 #include "libmv/image/cached_image_sequence.h"
@@ -289,10 +288,10 @@ void BuildMosaic(const std::vector<std::string> &image_files,
   
   // Get the size of the first image
   Vec2u images_size;
-  ByteImage imageArrayBytes;
-  ReadImage (image_files[0].c_str(), &imageArrayBytes);
-  images_size << imageArrayBytes.Width(), imageArrayBytes.Height();
-  unsigned int depth = imageArrayBytes.Depth();
+  cv::Mat imageArrayBytes;
+  cv::imread(image_files[0], imageArrayBytes);
+  images_size << imageArrayBytes.cols, imageArrayBytes.rows;
+  unsigned int depth = imageArrayBytes.depth();
 
   Vec4i bbox;
   VLOG(0) << "Computing global bounding box..." << std::endl;

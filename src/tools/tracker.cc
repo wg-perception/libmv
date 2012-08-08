@@ -22,6 +22,8 @@
 #include <list>
 #include <string>
 
+#include <opencv2/features2d/features2d.hpp>
+
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
@@ -81,36 +83,11 @@ DEFINE_double(principal_point_v, 0,
 
 DEFINE_string(o, "matches.txt", "Matches output file");
 
-void DrawFeatures(ByteImage &imageArrayBytes,
-                  Matches::Features<PointFeature> &features,
-                  bool is_draw_orientation) {
-  while(features) {
-    Byte color = 255;
-    float scale = features.feature()->scale;
-    float angle = features.feature()->orientation;
-    DrawCircle<ByteImage, Byte>(features.feature()->x(),
-                                features.feature()->y(),
-                                scale,
-                                color,
-                                &imageArrayBytes);
-    if (is_draw_orientation) {
-      DrawLine(features.feature()->x(),
-               features.feature()->y(),
-               features.feature()->x() + scale * cos(angle),
-               features.feature()->y() + scale * sin(angle),
-               color,
-               &imageArrayBytes);
-    }
-    features.operator++();
-  }
-}
-
-void DrawMatches(ByteImage &imageArrayBytes,
+void DrawMatches(cv::Mat &imageArrayBytes,
                  const Matches::ImageID id_image,
                  tracker::FeaturesGraph all_features_graph) {
   Matches::Features<KeypointFeature> features =
    all_features_graph.matches_.InImage<KeypointFeature>(id_image);
-  Byte color = 255;
   size_t NumImages = all_features_graph.matches_.NumImages();
   while(features) {
     Matches::TrackID id_track = features.track();
@@ -118,63 +95,15 @@ void DrawMatches(ByteImage &imageArrayBytes,
     for (size_t j = 0; j < NumImages; j++) {
       const Feature * f = all_features_graph.matches_.Get(j, id_track);
       if (f && ref && j != id_track) {
-	      color = 255 * (NumImages-1 - j)/((float)NumImages);
         //Draw a line between the two points :
         KeypointFeature * pt0 = ((KeypointFeature*)ref);
         KeypointFeature * pt1 = ((KeypointFeature*)f);
-        DrawLine(pt0->x(), pt0->y(),
-                 pt1->x(), pt1->y(),
-                 color,
-                 &imageArrayBytes);
+        cv::line(imageArrayBytes, cv::Point2f(pt0->x(), pt0->y()), cv::Point2f(pt1->x(), pt1->y()),
+                 cv::Scalar(255 * (NumImages-1 - j)/((float)NumImages), 0, 0));
       }
     }
     features.operator++();
   }
-}
-
-void SaveImage(const ByteImage &imageArrayBytes,
-               const std::string out_file_path,
-               const std::string file_suffix) {
-  std::string s = out_file_path;
-  size_t index_dot = s.find_last_of(".");
-  std::string ext = s.substr(index_dot);
-  s.erase(index_dot,s.size());
-  s.append(file_suffix);
-  s.append(ext);
-  cv::Mat imageArrayBytes_cv;
-  Image2Mat(imageArrayBytes, imageArrayBytes_cv);
-  cv::imwrite(s, imageArrayBytes_cv);
-}
-
-void BlendImages(const ByteImage &imageArrayBytesA,
-                 const ByteImage &imageArrayBytesB,
-                 ByteImage &imageArrayBytesOut,
-                 float alpha = 0.2) {
-  unsigned int h = std::max(imageArrayBytesA.Height(),
-                            imageArrayBytesB.Height());
-  unsigned int w = std::max(imageArrayBytesA.Width(),
-                            imageArrayBytesB.Width());
-  unsigned int d = std::max(imageArrayBytesA.Depth(),
-                            imageArrayBytesB.Depth());
-  imageArrayBytesOut.Resize(h, w, d);
-  imageArrayBytesOut.Fill(0);
-
-  size_t dA=0,dB=0;
-  if (imageArrayBytesA.Depth() == 3) dA = 1;
-  if (imageArrayBytesB.Depth() == 3) dB = 1;
-
-  for(size_t j=0; j < h; ++j)
-    for(size_t i=0; i < w; ++i) {
-      imageArrayBytesOut(j,i,0) = (1 - alpha) * imageArrayBytesA(j,i,0)
-       + alpha * imageArrayBytesB(j,i,0);
-      if (d == 3) {
-        imageArrayBytesOut(j,i,1) = (1 - alpha) * imageArrayBytesA(j,i,dA)
-         + alpha * imageArrayBytesB(j,i,dB);
-
-        imageArrayBytesOut(j,i,2) = (1 - alpha) * imageArrayBytesA(j,i,2*dA)
-         + alpha * imageArrayBytesB(j,i,2*dB);
-      }
-    }
 }
 
 void DisplayMatches(Matches &matches) {
@@ -349,11 +278,23 @@ int main (int argc, char *argv[]) {
         current_previous_fg[i_new].matches_.InImage<PointFeature>(new_image_id);
 
       if (FLAGS_save_features)
-        DrawFeatures(*(image.AsArray3Du()), features_set, false);
-      if (FLAGS_save_matches)
-        DrawMatches(*(image.AsArray3Du()), new_image_id, all_features_graph);
+      {
+        std::vector<cv::KeyPoint> features_vec;
+        while (features_set)
+        {
+          cv::KeyPoint feature;
+          feature.pt = cv::Point2f(features_set.feature()->x(), features_set.feature()->y());
+          feature.octave = features_set.feature()->scale;
+          feature.angle = features_set.feature()->orientation;
+          features_vec.push_back(feature);
+          features_set.operator++();
+        }
 
-      Image2Mat(image, image_cv);
+        cv::drawKeypoints(image_cv, features_vec, image_cv);
+      }
+      if (FLAGS_save_matches)
+        DrawMatches(image_cv, new_image_id, all_features_graph);
+
       cv::imwrite(image_path + "-features", image_cv);
     }
 
