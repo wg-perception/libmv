@@ -25,14 +25,12 @@
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/matches.h"
 #include "libmv/correspondence/feature.h"
-#include "libmv/correspondence/klt.h"
+#include "libmv/tracking/klt.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_pyramid.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/pyramid_sequence.h"
-#include "third_party/gflags/gflags.h"
 
 DEFINE_bool(debug_images, true, "Output debug images.");
 DEFINE_double(sigma, 0.9, "Blur filter strength.");

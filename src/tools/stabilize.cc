@@ -36,6 +36,7 @@
 #include <vector>
 
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/feature.h"
@@ -69,6 +70,16 @@ DEFINE_string(of, "./",     "Output folder.");
 DEFINE_string(os, "_stab",  "Output file suffix.");
 
 using namespace libmv;
+
+cv::Matx33d
+MatToMatx(const Mat3 & mat3)
+{
+  cv::Matx33d matx;
+  for (char j = 0; j < 3; ++j)
+    for (char i = 0; i < 3; ++i)
+      matx(j, i) = mat3(j, i);
+  return matx;
+}
 
 /// TODO(julien) Put this somewhere else...
 std::string ReplaceFolder(const std::string &s,
@@ -113,7 +124,7 @@ std::string ReplaceFolder(const std::string &s,
  * TODO(julien) put this in reconstruction
  */
 void ComputeRelativeEuclideanMatrices(const Matches &matches,
-                                      vector<Mat3> *Es,
+                                      vector<cv::Matx33d> *Es,
                                       double outliers_prob = 1e-2,
                                       double max_error_2d = 1) {
   Es->reserve(matches.NumImages() - 1);
@@ -130,8 +141,8 @@ void ComputeRelativeEuclideanMatrices(const Matches &matches,
                                                    max_error_2d , 
                                                    &E, NULL, 
                                                    outliers_prob);
-        Es->push_back(E);
-        VLOG(2) << "E = " << std::endl << E << std::endl;
+        Es->push_back(MatToMatx(E));
+        VLOG(2) << "E = " << std::endl << cv::Mat(MatToMatx(E)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -151,7 +162,7 @@ void ComputeRelativeEuclideanMatrices(const Matches &matches,
  * TODO(julien) put this in reconstruction
  */
 void ComputeRelativeSimilarityMatrices(const Matches &matches,
-                                       vector<Mat3> *Ss,
+                                       vector<cv::Matx33d> *Ss,
                                        double outliers_prob = 1e-2,
                                        double max_error_2d = 1) {
   Ss->reserve(matches.NumImages() - 1);
@@ -168,8 +179,8 @@ void ComputeRelativeSimilarityMatrices(const Matches &matches,
                                                     max_error_2d , 
                                                     &S, NULL, 
                                                     outliers_prob);
-        Ss->push_back(S);
-        VLOG(2) << "S = " << std::endl << S << std::endl;
+        Ss->push_back(MatToMatx(S));
+        VLOG(2) << "S = " << std::endl << cv::Mat(MatToMatx(S)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -189,7 +200,7 @@ void ComputeRelativeSimilarityMatrices(const Matches &matches,
  * TODO(julien) put this in reconstruction
  */
 void ComputeRelativeAffineMatrices(const Matches &matches,
-                                   vector<Mat3> *As,
+                                   vector<cv::Matx33d> *As,
                                    double outliers_prob = 1e-2,
                                    double max_error_2d = 1) {
   As->reserve(matches.NumImages() - 1);
@@ -206,8 +217,8 @@ void ComputeRelativeAffineMatrices(const Matches &matches,
                                                 max_error_2d , 
                                                 &A, NULL, 
                                                 outliers_prob);
-        As->push_back(A);
-        VLOG(2) << "A = " << std::endl << A << std::endl;
+        As->push_back(MatToMatx(A));
+        VLOG(2) << "A = " << std::endl << cv::Mat(MatToMatx(A)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -227,7 +238,7 @@ void ComputeRelativeAffineMatrices(const Matches &matches,
  * TODO(julien) Put this in reconstruction
  */
 void ComputeRelativeHomographyMatrices(const Matches &matches,
-                                       vector<Mat3> *Hs,
+                                       vector<cv::Matx33d> *Hs,
                                        double outliers_prob = 1e-2,
                                        double max_error_2d = 1) {
   Hs->reserve(matches.NumImages() - 1);
@@ -244,8 +255,8 @@ void ComputeRelativeHomographyMatrices(const Matches &matches,
                                                     max_error_2d, 
                                                     &H, NULL, 
                                                     outliers_prob);
-        Hs->push_back(H);
-        VLOG(2) << "H = " << std::endl << H << std::endl;
+        Hs->push_back(MatToMatx(H));
+        VLOG(2) << "H = " << std::endl << cv::Mat(MatToMatx(H)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -262,18 +273,16 @@ void ComputeRelativeHomographyMatrices(const Matches &matches,
  * TODO(julien) propose a way for a moving camera ("mean" H)
  */
 void Stabilize(const std::vector<std::string> &image_files,
-               const vector<Mat3> &Hs,
+               const vector<cv::Matx33d> &Hs,
                bool draw_lines) {
   assert(image_files.size() == Hs.size() - 1);
   
   // Get the size of the first image
   Vec2u images_size;
-  cv::Mat imageArrayBytes;
-  cv::imread(image_files[0], imageArrayBytes);
+  cv::Mat imageArrayBytes = cv::imread(image_files[0]);
   images_size << imageArrayBytes.cols, imageArrayBytes.rows;
   
-  Mat3 H;
-  H.setIdentity(); 
+  cv::Matx33d H = cv::Matx33d::eye();
   FloatImage image_stab(imageArrayBytes.rows,
                         imageArrayBytes.cols,
                         imageArrayBytes.depth());
@@ -284,7 +293,7 @@ void Stabilize(const std::vector<std::string> &image_files,
   scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
   for (size_t i = 0; i < image_files.size(); ++i) {
     if (i > 0)
-      H = Hs[i - 1].inverse() * H;
+      H = Hs[i - 1].inv() * H;
     image = source->GetFloatImage(i);
     if (image) {
       //VLOG(1) << "H = \n" << H << "\n";
@@ -339,7 +348,7 @@ int main(int argc, char **argv) {
   ImportMatchesFromTxt(FLAGS_m, &fg.matches_, fs);
   VLOG(0) << "Loading Matches file...[DONE]." << std::endl;
     
-  vector<Mat3> Hs;
+  vector<cv::Matx33d> Hs;
   VLOG(0) << "Estimating relative matrices..." << std::endl;
   switch (FLAGS_transformation) {
     // TODO(julien) add custom degree of freedom selection (e.g. x, y, x & y, ...)

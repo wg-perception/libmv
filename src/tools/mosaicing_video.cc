@@ -34,12 +34,16 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/matches.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/image.h"
+#include "libmv/image/image_converter.h"
 #include "libmv/image/image_drawing.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
@@ -66,6 +70,16 @@ DEFINE_bool(draw_lines, false, "Draw image bounds");
              
 using namespace libmv;
 
+cv::Matx33d
+MatToMatx(const Mat3 & mat3)
+{
+  cv::Matx33d matx;
+  for (char j = 0; j < 3; ++j)
+    for (char i = 0; i < 3; ++i)
+      matx(j, i) = mat3(j, i);
+  return matx;
+}
+
 /**
  * Computes relative euclidean matrices
  *
@@ -80,7 +94,7 @@ using namespace libmv;
  * TODO(julien) put this in reconstruction
  */
 void ComputeRelativeEuclideanMatrices(const Matches &matches,
-                                      vector<Mat3> *Es,
+                                      vector<cv::Matx33d> *Es,
                                       double outliers_prob = 1e-2,
                                       double max_error_2d = 1) {
   Es->reserve(matches.NumImages() - 1);
@@ -97,8 +111,8 @@ void ComputeRelativeEuclideanMatrices(const Matches &matches,
                                                    max_error_2d , 
                                                    &E, NULL, 
                                                    outliers_prob);
-        Es->push_back(E);
-        VLOG(2) << "E = " << std::endl << E << std::endl;
+        Es->push_back(MatToMatx(E));
+        VLOG(2) << "E = " << std::endl << cv::Mat(MatToMatx(E)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -118,7 +132,7 @@ void ComputeRelativeEuclideanMatrices(const Matches &matches,
  * TODO(julien) put this in reconstruction
  */
 void ComputeRelativeSimilarityMatrices(const Matches &matches,
-                                       vector<Mat3> *Ss,
+                                       vector<cv::Matx33d> *Ss,
                                        double outliers_prob = 1e-2,
                                        double max_error_2d = 1) {
   Ss->reserve(matches.NumImages() - 1);
@@ -135,8 +149,8 @@ void ComputeRelativeSimilarityMatrices(const Matches &matches,
                                                     max_error_2d , 
                                                     &S, NULL, 
                                                     outliers_prob);
-        Ss->push_back(S);
-        VLOG(2) << "S = " << std::endl << S << std::endl;
+        Ss->push_back(MatToMatx(S));
+        VLOG(2) << "S = " << std::endl << cv::Mat(MatToMatx(S)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -156,7 +170,7 @@ void ComputeRelativeSimilarityMatrices(const Matches &matches,
  * TODO(julien) put this in reconstruction
  */
 void ComputeRelativeAffineMatrices(const Matches &matches,
-                                   vector<Mat3> *As,
+                                   vector<cv::Matx33d> *As,
                                    double outliers_prob = 1e-2,
                                    double max_error_2d = 1) {
   As->reserve(matches.NumImages() - 1);
@@ -173,8 +187,8 @@ void ComputeRelativeAffineMatrices(const Matches &matches,
                                                 max_error_2d , 
                                                 &A, NULL, 
                                                 outliers_prob);
-        As->push_back(A);
-        VLOG(2) << "A = " << std::endl << A << std::endl;
+        As->push_back(MatToMatx(A));
+        VLOG(2) << "A = " << std::endl << cv::Mat(MatToMatx(A)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -194,7 +208,7 @@ void ComputeRelativeAffineMatrices(const Matches &matches,
  * TODO(julien) Put this in reconstruction
  */
 void ComputeRelativeHomographyMatrices(const Matches &matches,
-                                       vector<Mat3> *Hs,
+                                       vector<cv::Matx33d> *Hs,
                                        double outliers_prob = 1e-2,
                                        double max_error_2d = 1) {
   Hs->reserve(matches.NumImages() - 1);
@@ -211,8 +225,8 @@ void ComputeRelativeHomographyMatrices(const Matches &matches,
                                                     max_error_2d, 
                                                     &H, NULL, 
                                                     outliers_prob);
-        Hs->push_back(H);
-        VLOG(2) << "H = " << std::endl << H << std::endl;
+        Hs->push_back(MatToMatx(H));
+        VLOG(2) << "H = " << std::endl << cv::Mat(MatToMatx(H)) << std::endl;
       } // TODO(julien) what to do when no enough points?
     ++prev_image_iter;
   }
@@ -228,24 +242,28 @@ void ComputeRelativeHomographyMatrices(const Matches &matches,
  * TODO(julien) put this in image/image_warp? 
  */
 void ComputeGlobalBoundingBox(const Vec2u &images_size,
-                              const vector<Mat3> &Hs,
+                              const vector<cv::Matx33d> &Hs,
                               Vec4i *bbox) {
-  Mat3 H;
-  H.setIdentity(); 
-  Mat34 q_bounds;  
-  q_bounds << 0, 0,              images_size(0), images_size(0),
-              0, images_size(1), images_size(1), 0,
-              1, 1,              1,              1;
-                    
-  (*bbox) << images_size(0), 0, images_size(1), 0;
-  Vec3 q;
+  cv::Matx33d H = cv::Matx33d::eye();
+  cv::Matx34d q_bounds = cv::Matx34d::zeros();
+  q_bounds(0, 2) = images_size(0);
+  q_bounds(0, 3) = images_size(0);
+  q_bounds(1, 1) = images_size(1);
+  q_bounds(1, 2) = images_size(1);
+  q_bounds(0, 0) = 1;
+  q_bounds(0, 1) = 1;
+  q_bounds(0, 2) = 1;
+  q_bounds(0, 3) = 1;
+
+  cv::Matx<double, 3, 1> q;
   for (size_t i = 0; i < Hs.size(); ++i) {
-    H = Hs[i].inverse() * H;
-    H /= H(2, 2);
-    VLOG(1) << "H = " << std::endl << H << std::endl;
-    for (int i = 0; i < 4; ++i) {
+    H = Hs[i].inv() * H;
+    H = H * (1.0 / H(2, 2));
+    VLOG(1) << "H = " << std::endl << cv::Mat(H) << std::endl;
+    for (int i = 0; i < 4; ++i)
+    {
       q = H * q_bounds.col(i);
-      q /= q(2);
+      q = q * (1.0 / q(2));
       q(0) = ceil0<double>(q(0));
       q(1) = ceil0<double>(q(1));
       if (q(0) < (*bbox)(0))
@@ -278,17 +296,15 @@ void ComputeGlobalBoundingBox(const Vec2u &images_size,
  * TODO(julien) This rendering doesn't scale well?
  */
 void BuildMosaic(const std::vector<std::string> &image_files,
-                 const vector<Mat3> &Hs,
+                 const vector<cv::Matx33d> &Hs,
                  float blending_ratio,
                  bool draw_lines,
-                 FloatImage *mosaic) {
-  assert(mosaic != NULL);
+                 cv::Mat & mosaic) {
   assert(image_files.size() == Hs.size() - 1);
   
   // Get the size of the first image
   Vec2u images_size;
-  cv::Mat imageArrayBytes;
-  cv::imread(image_files[0], imageArrayBytes);
+  cv::Mat imageArrayBytes = cv::imread(image_files[0], 0);
   images_size << imageArrayBytes.cols, imageArrayBytes.rows;
   unsigned int depth = imageArrayBytes.depth();
 
@@ -300,17 +316,16 @@ void BuildMosaic(const std::vector<std::string> &image_files,
   assert(bbox(1) < bbox(0));
   assert(bbox(3) < bbox(2));
   
-  Mat3 H;
-  H.setIdentity(); 
+  cv::Matx33d H = cv::Matx33d::eye();
   const unsigned int w = bbox(1) - bbox(0);
   const unsigned int h = bbox(3) - bbox(2);
-  mosaic->Resize(h, w, depth);
-  VLOG(0) << "Image size: h=" << mosaic->Height() << " "
-          << "w="             << mosaic->Width() << " "
-          << "d="             << mosaic->Depth() << std::endl;
-  mosaic->Fill(0);
+
+  VLOG(0) << "Image size: h=" << h << " "
+          << "w="             << w << " "
+          << "d="             << depth << std::endl;
+
   // Register everyone so that the min (x, y) are (0, 0)
-  Mat3 Hreg;
+  cv::Matx33d Hreg;
   Hreg << 1, 0, -bbox(0),
           0, 1, -bbox(2),
           0, 0, 1;
@@ -322,7 +337,7 @@ void BuildMosaic(const std::vector<std::string> &image_files,
   scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
   for (size_t i = 0; i < image_files.size(); ++i) {
     if (i > 0)
-      H = Hs[i - 1].inverse() * H;
+      H = Hs[i - 1].inv() * H;
     image = source->GetFloatImage(i);
     if (image) {
       if (draw_lines) {
@@ -341,7 +356,7 @@ void BuildMosaic(const std::vector<std::string> &image_files,
       cv::Mat image_cv, image_cv_warp;
       Image2Mat(image, image_cv);
       cv::warpPerspective(image_cv, H, image_cv_warp, image_cv.size());
-      Mat2Image((1 - blending_ratio) * image_cv + blending_ratio * image_cv_warp, *mosaic);
+      mosaic = (1 - blending_ratio) * image_cv + blending_ratio * image_cv_warp;
     }
     source->Unpin(i);
   }
@@ -375,7 +390,7 @@ int main(int argc, char **argv) {
   ImportMatchesFromTxt(FLAGS_m, &fg.matches_, fs);
   VLOG(0) << "Loading Matches file...[DONE]." << std::endl;
     
-  vector<Mat3> Hs;
+  vector<cv::Matx33d> Hs;
   double outliers_prob = 1e-2;
   VLOG(0) << "Estimating relative matrices..." << std::endl;
   switch (FLAGS_transformation) {
@@ -395,17 +410,17 @@ int main(int argc, char **argv) {
   }
   VLOG(0) << "Estimating relative matrices...[DONE]." << std::endl;
 
-  Image mosaic(new FloatImage());
+  cv::Mat mosaic;
   VLOG(0) << "Building mosaic..." << std::endl;
   BuildMosaic(files, Hs, 
               FLAGS_blending_ratio, 
               FLAGS_draw_lines,
-              mosaic.AsArray3Df());
+              mosaic);
   VLOG(0) << "Building mosaic...[DONE]." << std::endl;
   
   // Write the mosaic
   VLOG(0) << "Saving mosaic image." << std::endl;
-  WriteImage(*mosaic.AsArray3Df(), FLAGS_o.c_str());
+  cv::imwrite(FLAGS_o, mosaic);
   // Delete the features graph
   fg.DeleteAndClear();
   return 0;

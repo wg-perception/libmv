@@ -22,34 +22,33 @@
 #include <iostream>
 #include <string>
 
-#include "libmv/base/vector.h"
-#include "libmv/correspondence/klt.h"
-#include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
-#include "libmv/image/image_drawing.h"
-#include "libmv/image/surf.h"
-#include "libmv/image/surf_descriptor.h"
-#include "libmv/tools/tool.h"
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/nonfree/nonfree.hpp>
 
-DEFINE_string(detector, "fast", "Detector type.");
+#include "libmv/tools/tool.h"
 
 using namespace libmv;
 using namespace std;
 
-void usage() {
-  LOG(ERROR) << " interest_points ImageNameIn.pgm ImageNameOut.pgm " <<std::endl
-    << " ImageNameIn.pgm  : the input image on which surf features will be extrated, " << std::endl
-    << " ImageNameOut.pgm : the surf keypoints will be displayed on it. " << std::endl
-    << " INFO : work with pgm image only." << std::endl;
+void
+usage()
+{
+  LOG(ERROR)<< " interest_points ImageNameIn.pgm ImageNameOut.pgm " <<std::endl
+  << " ImageNameIn.pgm  : the input image on which surf features will be extrated, " << std::endl
+  << " ImageNameOut.pgm : the surf keypoints will be displayed on it. " << std::endl
+  << " INFO : work with pgm image only." << std::endl;
 }
-void DrawSurfFeatures( FloatImage & im, const libmv::vector<libmv::SurfFeature> & feat);
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv)
+{
   libmv::Init("Extract surf feature from an image", &argc, &argv);
 
-  if (argc != 3 || !(GetFormat(argv[1])==Pnm && GetFormat(argv[2])==Pnm)) {
+  if (argc != 3)
+  {
     usage();
-    LOG(ERROR) << "Missing parameters or errors in the command line.";
+    LOG(ERROR)<< "Missing parameters or errors in the command line.";
     return 1;
   }
 
@@ -57,47 +56,21 @@ int main(int argc, char **argv) {
   const string sImageIn = argv[1];
   const string sImageOut = argv[2];
 
-
-  Array3Du imageIn;
-  if (!ReadPnm(sImageIn.c_str(), &imageIn)) {
-    LOG(FATAL) << "Failed loading image: " << sImageIn;
+  cv::Mat imageIn = cv::imread(sImageIn, 0);
+  if (imageIn.empty())
+  {
+    LOG(FATAL)<< "Failed loading image: " << sImageIn;
     return 0;
   }
 
-  Array3Df image;
-  ByteArrayToScaledFloatArray(imageIn, &image);
-  // TODO(pmoulon) Assert that the image value is within [0.f;255.f]
-  for(int j=0; j < image.Height(); ++j)
-  for(int i=0; i < image.Width(); ++i)
-    image(j,i) *=255;
+  cv::SURF surf;
+  std::vector<cv::KeyPoint> keypoints;
+  surf(imageIn, cv::Mat(), keypoints);
+  cv::Mat image;
+  cv::drawKeypoints(imageIn, keypoints, image);
 
-  libmv::vector<libmv::SurfFeature> features;
-  libmv::SurfFeatures(image, 4, 4, &features);
-
-  DrawSurfFeatures(image, features);
-  if (!WritePnm(image, sImageOut.c_str())) {
-    LOG(FATAL) << "Failed saving output image: " << sImageOut;
-  }
+  cv::waitKey(0);
+  cv::imwrite(sImageOut, image);
 
   return 0;
 }
-
-void DrawSurfFeatures( FloatImage & im, const libmv::vector<libmv::SurfFeature> & feat)
-{
-  std::cout << feat.size() << " Detected points " <<std::endl;
-  for (int i = 0; i < feat.size(); ++i)
-  {
-    const libmv::SurfFeature & feature = feat[i];
-    const int x = feature.x();
-    const int y = feature.y();
-    const float scale = 2*feature.scale;
-    //std::cout << i << " " << x << " " << y << " " << feature.getScale() <<std::endl;
-
-    DrawCircle(x, y, scale, (unsigned char)255, &im);
-    const float angle = feature.orientation;
-    DrawLine(x, y, x + scale * cos(angle), y + scale*sin(angle),
-             (unsigned char) 255, &im);
-  }
-}
-
-
