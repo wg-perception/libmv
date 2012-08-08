@@ -15,7 +15,7 @@ ENDIF(WIN32)
 SET(IMAGE_SRC image.cc convolve.cc image_pyramid.cc array_nd.cc
               image_sequence.cc image_sequence_io.cc image_sequence_filters.cc
               filtered_sequence.cc pyramid_sequence.cc
-              image_transform_linear.cc)
+)
 
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB IMAGE_HDRS *.h)
@@ -42,7 +42,6 @@ IMAGE_TEST(image_sequence_filters)
 IMAGE_TEST(image_sequence_io)
 IMAGE_TEST(image_drawing)
 IMAGE_TEST(image_converter)
-IMAGE_TEST(image_transform_linear)
 IMAGE_TEST(lru_cache)
 IMAGE_TEST(pyramid_sequence)
 IMAGE_TEST(sample)

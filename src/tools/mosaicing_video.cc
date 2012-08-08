@@ -42,7 +42,6 @@
 #include "libmv/image/image.h"
 #include "libmv/image/image_drawing.h"
 #include "libmv/image/image_sequence_io.h"
-#include "libmv/image/image_transform_linear.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/sample.h"
 #include "libmv/multiview/robust_affine.h"
@@ -336,9 +335,13 @@ void BuildMosaic(const std::vector<std::string> &image_files,
                                        lines_color, image);
         DrawLine<FloatImage, float[3]>(images_size(0)-1,                0, 
                                        images_size(0)-1, images_size(1)-1, 
-                                       lines_color, image); 
+                                       lines_color,
+                                       image);
       }
-      WarpImageBlend(*image, (Hreg * H), mosaic, blending_ratio);
+      cv::Mat image_cv, image_cv_warp;
+      Image2Mat(image, image_cv);
+      cv::warpPerspective(image_cv, H, image_cv_warp, image_cv.size());
+      Mat2Image((1 - blending_ratio) * image_cv + blending_ratio * image_cv_warp, *mosaic);
     }
     source->Unpin(i);
   }

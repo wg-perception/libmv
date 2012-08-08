@@ -35,6 +35,8 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/highgui/highgui.hpp>
+
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/import_matches_txt.h"
@@ -43,7 +45,6 @@
 #include "libmv/image/image.h"
 #include "libmv/image/image_drawing.h"
 #include "libmv/image/image_sequence_io.h"
-#include "libmv/image/image_transform_linear.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/sample.h"
 #include "libmv/multiview/robust_affine.h"
@@ -298,9 +299,10 @@ void Stabilize(const std::vector<std::string> &image_files,
         DrawLine<FloatImage, float[3]>(images_size(0)-1,                0, 
                                        images_size(0)-1, images_size(1)-1, 
                                        lines_color, image); 
-      }        
-      WarpImage(*image, H, &image_stab);
-      
+      }
+      cv::Mat image_cv, image_stab;
+      cv::warpPerspective(image_cv, H, image_stab, image_cv.size());
+
       // Saves the stabilized image
       std::stringstream s;
       s << ReplaceFolder(image_files[i].substr(0, image_files[i].rfind(".")), 
@@ -308,7 +310,7 @@ void Stabilize(const std::vector<std::string> &image_files,
       s << FLAGS_os;
       s << image_files[i].substr(image_files[i].rfind("."), 
                                  image_files[i].size());
-      WriteImage(image_stab, s.str().c_str());
+      cv::imwrite(s.str(), image_stab);
     }
     source->Unpin(i);
   }
