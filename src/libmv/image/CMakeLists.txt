@@ -14,7 +14,7 @@ ENDIF(WIN32)
 # define the source files
 SET(IMAGE_SRC image.cc convolve.cc image_pyramid.cc array_nd.cc
               image_sequence.cc image_sequence_io.cc image_sequence_filters.cc
-              filtered_sequence.cc pyramid_sequence.cc
+              filtered_sequence.cc
 )
 
 # define the header files (make the headers appear in IDEs.)
@@ -42,6 +42,5 @@ IMAGE_TEST(image_sequence_filters)
 IMAGE_TEST(image_sequence_io)
 IMAGE_TEST(image_converter)
 IMAGE_TEST(lru_cache)
-IMAGE_TEST(pyramid_sequence)
 IMAGE_TEST(sample)
 IMAGE_TEST(tuple)
