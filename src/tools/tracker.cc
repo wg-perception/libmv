@@ -31,7 +31,6 @@
 #include "libmv/correspondence/robust_tracker.h"
 #include "libmv/image/array_nd.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/image/image_drawing.h"
 #include "libmv/image/image_pyramid.h"
@@ -142,7 +141,9 @@ void SaveImage(const ByteImage &imageArrayBytes,
   s.erase(index_dot,s.size());
   s.append(file_suffix);
   s.append(ext);
-  WriteImage (imageArrayBytes, s.c_str());
+  cv::Mat imageArrayBytes_cv;
+  Image2Mat(imageArrayBytes, imageArrayBytes_cv);
+  cv::imwrite(s, imageArrayBytes_cv);
 }
 
 void BlendImages(const ByteImage &imageArrayBytesA,
@@ -198,19 +199,6 @@ void DisplayMatches(Matches &matches) {
     }
     std::cout << std::endl;
   }
-}
-
-ByteImage * ConvertToGrayscale(const ByteImage &imageArrayBytes) {
-  ByteImage *arrayGrayBytes = NULL;
-  // Grayscale image convertion
-  if (imageArrayBytes.Depth() == 3) {
-    arrayGrayBytes = new ByteImage ();
-    Rgb2Gray<ByteImage, ByteImage>(imageArrayBytes, arrayGrayBytes);
-  } else {
-    //TODO(julien) Useless: don't copy an already grayscale image
-    arrayGrayBytes = new ByteImage (imageArrayBytes);
-  }
-  return arrayGrayBytes;
 }
 
 bool IsArgImage(const std::string & arg) {
@@ -324,12 +312,10 @@ int main (int argc, char *argv[]) {
     std::string image_path = (*image_list_iterator);
 
     VLOG(1) << "Tracking image '"<< image_path << "'" << std::endl;
-    ByteImage imageArrayBytes;
-    ReadImage (image_path.c_str(), &imageArrayBytes);
-    ByteImage *arrayGrayBytes = ConvertToGrayscale(imageArrayBytes);
-    Image image(arrayGrayBytes);
+    cv::Mat image_cv = cv::imread(image_path, 0);
+    Image image = Mat2Image(image_cv);
     image_sizes.push_back(std::pair<size_t,size_t>(
-      arrayGrayBytes->Height(), arrayGrayBytes->Width()));
+        image_cv.rows, image_cv.cols));
 
     libmv::Matches::ImageID new_image_id = 0;
     if (FLAGS_track_all_known_features) {
@@ -363,11 +349,12 @@ int main (int argc, char *argv[]) {
         current_previous_fg[i_new].matches_.InImage<PointFeature>(new_image_id);
 
       if (FLAGS_save_features)
-        DrawFeatures(imageArrayBytes, features_set, false);
+        DrawFeatures(*(image.AsArray3Du()), features_set, false);
       if (FLAGS_save_matches)
-        DrawMatches(imageArrayBytes, new_image_id, all_features_graph);
+        DrawMatches(*(image.AsArray3Du()), new_image_id, all_features_graph);
 
-      SaveImage(imageArrayBytes, image_path, "-features");
+      Image2Mat(image, image_cv);
+      cv::imwrite(image_path + "-features", image_cv);
     }
 
     VLOG(1) << "#All Tracks "<< all_features_graph.matches_.NumTracks()

@@ -53,7 +53,7 @@
 #include "libmv/correspondence/tracker.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
+#include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
@@ -243,7 +243,9 @@ int main(int argc, char **argv) {
     s << ReplaceFolder(files[i].substr(0, files[i].rfind(".")), FLAGS_of);
     s << FLAGS_os;
     s << files[i].substr(files[i].rfind("."), files[i].size());
-    WriteImage(*image_out, s.str().c_str());
+    cv::Mat image_out_cv;
+    Image2Mat(image_out, image_out_cv);
+    cv::imwrite(s.str(), image_out_cv);
   }
   if (image_out)
     delete image_out;

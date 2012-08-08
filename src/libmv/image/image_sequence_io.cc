@@ -18,7 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/image/image_io.h"
+#include <iostream>
+#include <opencv2/highgui/highgui.hpp>
+
+#include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
 
@@ -39,16 +42,16 @@ class LazyImageSequenceFromFiles : public CachedImageSequence {
   }
 
   virtual Image *LoadImage(int i) {
-    Array3Df *image = new Array3Df;
-    if (!ReadImage(filenames_[i].c_str(), image)) {
-      delete image;
-      // TODO(keir): Better error reporting?
-      fprintf(stderr, "Failed loading image %d: %s\n",
-              i, filenames_[i].c_str());
-      return 0;
+      cv::Mat image_cv = cv::imread(filenames_[i], -1), image_cv_float;
+      if (image_cv.empty())
+      {
+        fprintf(stderr, "Failed loading image %d: %s\n", i, filenames_[i].c_str());
+        return 0;
+      }
+      image_cv.convertTo(image_cv_float, CV_32F);
+      Image *image = new Image(Mat2Image(image_cv_float));
+      return image;
     }
-    return new Image(image);
-  }
 
  private:
   std::vector<std::string> filenames_;

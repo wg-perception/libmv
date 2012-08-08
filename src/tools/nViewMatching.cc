@@ -25,6 +25,7 @@
 #include <map>
 #include <string>
 
+#include <opencv2/highgui/highgui.hpp>
 
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/export_matches_txt.h"
@@ -34,7 +35,6 @@
 #include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/image/image_drawing.h"
-#include "libmv/image/image_io.h"
 #include "libmv/tools/tool.h"
 
 using namespace libmv;
@@ -168,11 +168,8 @@ int main(int argc, char **argv) {
   //-- Export and visualize data (show matches between the images)
   if (FLAGS_save_matches_results) {
     for (size_t i=0; i< nViewMatcher.getMatches().NumImages(); ++i) {
-      Array3Du imageA;
-      ReadImage( image_vector[i].c_str() , &imageA);
-      Array3Du imageTemp;
-      Rgb2Gray( imageA, &imageTemp);
-      Image im( new Array3Du(imageTemp) );
+      cv::Mat im_cv = cv::imread(image_vector[i], 0);
+      Image im = Mat2Image(im_cv);
 
       for (size_t j=0; j< i/*nViewMatcher.m_tracks.NumImages()*/; ++j)  {
         Matches::Features<KeypointFeature> features =
@@ -180,26 +177,22 @@ int main(int argc, char **argv) {
         int cpt = 0;
         Array3Du bigIma;
         if (i!=j && features) {
-          Array3Du imageB;
-          ReadImage(image_vector[j].c_str() , &imageB);
-          Array3Du imageTemp2;
-          Rgb2Gray( imageB, &imageTemp2);
-          Image im2( new Array3Du(imageTemp2) );
+          cv::Mat im2_cv = cv::imread(image_vector[j], 0);
+          Image im2 = Mat2Image(im2_cv);
 
           //-- Concat the two images (TODO move this function in IMAGE module)
           // With horizontal, vertical option
-          int width = max(imageB.Width(),
-                      imageA.Width()) + min(imageB.Width(), imageA.Width());
-          int height = max(imageB.Height(), imageA.Height());
+          int width = max(im2_cv.cols, im_cv.cols) + min(im2_cv.cols, im_cv.cols);
+          int height = max(im2_cv.rows, im_cv.rows);
           //-- Paste data
           bigIma = Array3Du(height,width);
-          for (int jj=0;jj<imageA.Height();++jj)
-          for (int ii=0;ii<imageA.Width();++ii) {
+          for (int jj=0;jj<im_cv.rows;++jj)
+          for (int ii=0;ii<im_cv.cols;++ii) {
             bigIma(jj,ii)= (*im.AsArray3Du())(jj,ii);
           }
-          for (int jj=0;jj<imageB.Height();++jj)
-          for (int ii=0;ii<imageB.Width();++ii) {
-            bigIma(jj,ii+min(imageB.Width(), imageA.Width()))=
+          for (int jj=0;jj<im2_cv.rows;++jj)
+          for (int ii=0;ii<im2_cv.cols;++ii) {
+            bigIma(jj,ii+min(im2_cv.cols, im_cv.cols))=
               (*im2.AsArray3Du())(jj,ii);
           }
 
@@ -213,11 +206,11 @@ int main(int argc, char **argv) {
               KeypointFeature * pt1 = ((KeypointFeature*)f);
               DrawCircle(pt0->x(), pt0->y(),
                           pt0->scale, (unsigned char)255, &bigIma);
-              DrawCircle(pt1->x()+min(imageA.Width(), imageB.Width()),
+              DrawCircle(pt1->x()+min(im_cv.cols, im2_cv.cols),
                           pt1->y(), pt1->scale, (unsigned char)255, &bigIma);
               DrawLine( pt0->x(),
                         pt0->y(),
-                        pt1->x()+min(imageB.Width(), imageA.Width()),
+                        pt1->x()+min(im2_cv.cols, im_cv.cols),
                         pt1->y(),
                         255,
                         &bigIma);
@@ -232,7 +225,12 @@ int main(int argc, char **argv) {
           os<< "TOTO_" << ExtractFilename(image_vector[i].c_str()) << "_"
             << ExtractFilename(image_vector[j].c_str()) << "___"
             << cpt << "__matches" << ".jpeg";
-          WriteJpg(bigIma, os.str().c_str(), 100);
+          cv::Mat bigIma_cv;
+          Image2Mat(bigIma, bigIma_cv);
+          std::vector<int> compression_params;
+          compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+          compression_params.push_back(100);
+          cv::imwrite(os.str(), bigIma_cv, compression_params);
         }
       }
     }
@@ -248,13 +246,13 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < image_vector.size(); ++i) {
       //-- A. Export image info
-      ByteImage byteImage;
-      if ( 0 == ReadImage( image_vector[i].c_str(), &byteImage) )  {
+      cv::Mat byteImage_cv = cv::imread(image_vector[i]);
+      if ( byteImage_cv.empty() )  {
         LOG(ERROR) << "Invalid inputImage.";
         continue;
       }
-      int width = byteImage.Width();
-      int height = byteImage.Height();
+      int width = byteImage_cv.cols;
+      int height = byteImage_cv.rows;
       myFile << "#-imgfile " << width << " " << height
         << " " << ExtractFilename(image_vector[i]) << endl;
       // No specific camera parameter

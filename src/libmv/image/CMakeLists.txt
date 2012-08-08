@@ -12,7 +12,7 @@ IF(WIN32)
 ENDIF(WIN32)
 
 # define the source files
-SET(IMAGE_SRC image.cc image_io.cc convolve.cc image_pyramid.cc array_nd.cc
+SET(IMAGE_SRC image.cc convolve.cc image_pyramid.cc array_nd.cc
               image_sequence.cc image_sequence_io.cc image_sequence_filters.cc
               filtered_sequence.cc pyramid_sequence.cc
               image_transform_linear.cc)
@@ -22,9 +22,6 @@ FILE(GLOB IMAGE_HDRS *.h)
 
 ADD_LIBRARY(image ${IMAGE_SRC} ${IMAGE_HDRS})
 TARGET_LINK_LIBRARIES(image png jpeg glog gflags ${PTHREAD} ${OpenCV_LIBS} )
-
-ADD_LIBRARY(image_io image_io.cc image_io.h)
-TARGET_LINK_LIBRARIES(image_io image png jpeg glog)
 
 # make the name of debug libraries end in _d.
 SET_TARGET_PROPERTIES(image PROPERTIES DEBUG_POSTFIX "_d")
@@ -40,7 +37,6 @@ IMAGE_TEST(array_nd)
 IMAGE_TEST(convolve)
 IMAGE_TEST(filtered_sequence)
 IMAGE_TEST(image)
-IMAGE_TEST(image_io)
 IMAGE_TEST(image_pyramid)
 IMAGE_TEST(image_sequence_filters)
 IMAGE_TEST(image_sequence_io)

@@ -41,11 +41,21 @@ class Image {
  public:
 
   // Create an image from an array. The image takes ownership of the array.
-  Image(Array3Du *array) : array_type_(BYTE), array_(array) {}
-  Image(Array3Df *array) : array_type_(FLOAT), array_(array) {}
+  Image(Array3Du *array) : array_type_(BYTE) {array_ = new Array3Du(*array);}
+  Image(Array3Df *array) : array_type_(FLOAT) {array_ = new Array3Df(*array);}
 
-  Image(const Image &img): array_type_(NONE), array_(NULL) {
-    *this = img;
+  Image(const Image &img): array_type_(img.array_type_) {
+    switch (array_type_)
+    {
+      case BYTE:
+        array_ = new Array3Du(*(img.AsArray3Du()));
+      break;
+      case FLOAT:
+        array_ = new Array3Df(*(img.AsArray3Df()));
+      break;
+    default :
+      assert(0);
+    }
   }
 
   // Underlying data type.

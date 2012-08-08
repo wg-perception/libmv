@@ -12,7 +12,6 @@
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/robust_tracker.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/reconstruction/euclidean_reconstruction.h"
@@ -339,19 +338,6 @@ void MainWindow::UpdateGraph() {
   graph_view_->fitInView(graph->sceneRect());
 }
 
-ByteImage * ConvertToGrayscale(const ByteImage &imageArrayBytes) {
-  ByteImage *arrayGrayBytes = NULL;
-  // Grayscale image convertion
-  if (imageArrayBytes.Depth() == 3) {
-    arrayGrayBytes = new ByteImage ();
-    Rgb2Gray<ByteImage, ByteImage>(imageArrayBytes, arrayGrayBytes);
-  } else {
-    //TODO(julien) Useless: don't copy an already grayscale image
-    arrayGrayBytes = new ByteImage (imageArrayBytes);
-  }
-  return arrayGrayBytes;
-}
-
 void MainWindow::ComputeRelativeMatches() {
     QProgressDialog progress("Computing relative matches...","Abort", 0, 
                              images.count(), this);
@@ -376,11 +362,8 @@ void MainWindow::ComputeRelativeMatches() {
     for (; image_list_iterator != image_list.end(); ++image_list_iterator) {
       std::string image_path = (*image_list_iterator);
 
-      ByteImage imageArrayBytes;
-      ReadImage (image_path.c_str(), &imageArrayBytes);
-      ByteImage *arrayGrayBytes = ConvertToGrayscale(imageArrayBytes);
+      Image image = Mat2Image(cv::imread(image_path, 0));
 
-      Image image(arrayGrayBytes);
       libmv::tracker::FeaturesGraph new_features_graph;
       libmv::Matches::ImageID new_image_id = 0;
       points_tracker.Track(image,

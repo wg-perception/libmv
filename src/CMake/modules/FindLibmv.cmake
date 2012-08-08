@@ -42,7 +42,7 @@ SET(LIBMV_LIBRARIES_NAMES camera
                           reconstruction
                           tools
                           V3D
-                          zlib)
+)
 
 FIND_LIBRARY(LIBMV_LIBRARY NAMES ${LIBMV_LIBRARIES_NAMES}
     HINTS
@@ -84,7 +84,6 @@ mark_as_advanced(LIBMV_INCLUDE_DIR LIBMV_LIBRARY)
 
 IF(LIBMV_FOUND)
   SET(LIBMV_INCLUDE_DIRS ${LIBMV_INCLUDE_DIRS}
-                         ${LIBMV_INCLUDE_DIR}/third_party/daisy/include
                          ${LIBMV_INCLUDE_DIR}/third_party/gtest
                          ${LIBMV_INCLUDE_DIR}/third_party/gtest/include
                          ${LIBMV_INCLUDE_DIR}/third_party/eigen
@@ -97,22 +96,16 @@ IF(LIBMV_FOUND)
   IF (WIN32)
     INCLUDE_DIRECTORIES(LIBMV_INCLUDE_DIRS ${LIBMV_INCLUDE_DIRS}
                         ${LIBMV_INCLUDE_DIR}/third_party/msinttypes
-                        ${LIBMV_INCLUDE_DIR}/third_party/jpeg-7
-                        ${LIBMV_INCLUDE_DIR}/third_party/zlib
                         ${LIBMV_INCLUDE_DIR}/third_party/pthreads-w32/include
-                        ${LIBMV_INCLUDE_DIR}/third_party/png)
+    )
   ENDIF (WIN32)
 
   IF (APPLE)
-    INCLUDE_DIRECTORIES(LIBMV_INCLUDE_DIRS ${LIBMV_INCLUDE_DIRS}
-                        ${LIBMV_INCLUDE_DIR}/third_party/png
-                        ${LIBMV_INCLUDE_DIR}/third_party/jpeg-7)
+    INCLUDE_DIRECTORIES(LIBMV_INCLUDE_DIRS ${LIBMV_INCLUDE_DIRS})
   ENDIF (APPLE)
 
   IF (UNIX)
-    INCLUDE_DIRECTORIES(LIBMV_INCLUDE_DIRS ${LIBMV_INCLUDE_DIRS}
-                        ${LIBMV_INCLUDE_DIR}/third_party/png
-                        ${LIBMV_INCLUDE_DIR}/third_party/zlib)
+    INCLUDE_DIRECTORIES(LIBMV_INCLUDE_DIRS ${LIBMV_INCLUDE_DIRS})
   ENDIF (UNIX)
 ENDIF(LIBMV_FOUND)
 

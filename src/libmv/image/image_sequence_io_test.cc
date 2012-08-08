@@ -21,8 +21,10 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/highgui/highgui.hpp>
+
+#include "libmv/image/image_converter.h"
 #include "libmv/image/cached_image_sequence.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_sequence_io.h"
 #include "testing/testing.h"
 
@@ -45,8 +47,11 @@ TEST(ImageSequenceIO, FromFiles) {
 
   string image1_fn = string(THIS_SOURCE_DIR) + "/1.pgm";
   string image2_fn = string(THIS_SOURCE_DIR) + "/2.pgm";
-  WritePnm(image1, image1_fn.c_str());
-  WritePnm(image2, image2_fn.c_str());
+  cv::Mat image_cv_1, image_cv_2;
+  libmv::Image2Mat(image1, image_cv_1);
+  libmv::Image2Mat(image2, image_cv_2);
+  cv::imwrite(image1_fn, image_cv_1);
+  cv::imwrite(image2_fn, image_cv_2);
 
   std::vector<std::string> files;
   files.push_back(image1_fn);

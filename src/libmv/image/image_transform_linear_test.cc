@@ -22,7 +22,6 @@
 #include <math.h>
 
 #include "libmv/image/image_drawing.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_transform_linear.h"
 #include "libmv/logging/logging.h"
 #include "testing/testing.h"

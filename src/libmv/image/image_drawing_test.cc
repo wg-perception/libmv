@@ -20,7 +20,6 @@
 
 #include "libmv/image/image.h"
 #include "libmv/image/image_drawing.h"
-#include "libmv/image/image_io.h"
 #include "libmv/logging/logging.h"
 #include "testing/testing.h"
 

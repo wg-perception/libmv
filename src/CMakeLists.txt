@@ -88,19 +88,9 @@ INCLUDE_DIRECTORIES(SYSTEM
 IF (WIN32)
   INCLUDE_DIRECTORIES(
     third_party/msinttypes
-    third_party/jpeg-7
-    third_party/zlib
     third_party/pthreads-w32/include
-    third_party/png)
-ENDIF (WIN32)
-
-IF (APPLE)
-  INCLUDE_DIRECTORIES(
-    third_party/png
-    third_party/jpeg-7
-    ${PROJECT_BINARY_DIR}/third_party/jpeg-7
   )
-ENDIF (APPLE)
+ENDIF (WIN32)
 
 INCLUDE(Documentation)
 INCLUDE(Installation)

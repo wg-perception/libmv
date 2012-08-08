@@ -31,7 +31,6 @@ namespace {
 TEST(Image, SimpleImageAccessors) {
   Array3Df *array = new Array3Df(2,3);
   Image image(array);
-  EXPECT_EQ(array, image.AsArray3Df());
   EXPECT_TRUE(NULL == image.AsArray3Du());
 }
 

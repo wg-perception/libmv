@@ -59,7 +59,7 @@ ENDIF(WIN32)
 # SET(CPACK_PACKAGE_EXECUTABLES "the_tools;Tool description")
 
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.3.6), libgcc1 (>= 1:4.1)")
-# TODO(julien) add third_parties: libpthread-stubs0, libjpeg62, (zlib?, png?) 
+# TODO(julien) add third_parties: libpthread-stubs0
 
 SET(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR};${CMAKE_PROJECT_NAME};ALL;/")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "Libmv-${LIBMV_VERSION_MAJOR}.${LIBMV_VERSION_MINOR}")

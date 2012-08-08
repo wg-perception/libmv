@@ -24,7 +24,6 @@
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
 #include "libmv/image/image.h"
-#include "libmv/image/image_io.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/multiview/robust_fundamental.h"
 
@@ -52,25 +51,13 @@ nRobustViewMatching::nRobustViewMatching(
  */
 bool nRobustViewMatching::computeData(const string & filename)
 {
-  Array3Du imageA;
-  if (!ReadImage(filename.c_str(), &imageA)) {
+  cv::Mat im_cv = cv::imread(filename, 0);
+  if (im_cv.empty()) {
     LOG(FATAL) << "Failed loading image: " << filename;
     return false;
   }
   else
   {
-    Array3Du *img_array = NULL;
-    if (imageA.Depth() == 1) {
-      img_array = new Array3Du(imageA);
-    } else {
-      Array3Du imageTemp;
-      Rgb2Gray( imageA, &imageTemp);
-      img_array = new Array3Du(imageTemp);      
-    }
-    Image im(img_array);
-    cv::Mat im_cv;
-    Image2Mat(im, im_cv);
-
     libmv::vector<libmv::Feature *> features;
     std::vector<cv::KeyPoint> features_cv;
     m_pDetector->detect( im_cv, features_cv );
