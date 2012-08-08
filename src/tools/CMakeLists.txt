@@ -78,11 +78,6 @@ TARGET_LINK_LIBRARIES(stabilize
                       )
 LIBMV_INSTALL_EXE(stabilize)
 
-# TODO(keir): Update this with the new API.
-#ADD_EXECUTABLE(track track.cc)
-#TARGET_LINK_LIBRARIES(track image image gflags glog)
-#LIBMV_INSTALL_EXE(track)
-
 ADD_EXECUTABLE(tracker tracker.cc)
 TARGET_LINK_LIBRARIES(tracker
                       image
