@@ -12,7 +12,7 @@ IF(WIN32)
 ENDIF(WIN32)
 
 # define the source files
-SET(IMAGE_SRC image.cc convolve.cc image_pyramid.cc array_nd.cc
+SET(IMAGE_SRC image.cc convolve.cc array_nd.cc
               image_sequence.cc image_sequence_io.cc image_sequence_filters.cc
               filtered_sequence.cc
 )
@@ -37,7 +37,6 @@ IMAGE_TEST(array_nd)
 IMAGE_TEST(convolve)
 IMAGE_TEST(filtered_sequence)
 IMAGE_TEST(image)
-IMAGE_TEST(image_pyramid)
 IMAGE_TEST(image_sequence_filters)
 IMAGE_TEST(image_sequence_io)
 IMAGE_TEST(image_converter)
