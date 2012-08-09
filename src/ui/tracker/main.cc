@@ -29,8 +29,6 @@
 #include "ui/tracker/zoom.h"
 #include "ui/tracker/scene.h"
 
-#include "libmv/simple_pipeline/detect.h"
-
 // TODO(MatthiasF): simpler API
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/bundle.h"
