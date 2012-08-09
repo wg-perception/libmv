@@ -20,7 +20,7 @@
 
 #include "main.h"
 
-#include "opencv2/imgproc/imgproc_c.h" //cvFindCornerSubPix
+#include "opencv2/imgproc/imgproc.hpp" //cvFindCornerSubPix
 #include "opencv2/calib3d/calib3d.hpp" //cvFindChessboardCorners
 
 #include <QApplication>
@@ -277,19 +277,15 @@ void MainWindow::showImage(int index) {
   Image& image = images[index];
   if (correct.isChecked()) {
     if(image.corrected_pixmap.isNull()) {
-      CvSize size = { image.image.width(), image.image.height() };
-      IplImage cv_image;
-      cvInitImageHeader(&cv_image, size, 8, 1);
-      cv_image.imageData = (char*)image.image.constBits();
-      cv_image.widthStep = image.image.bytesPerLine();
-      IplImage* correct = cvCloneImage( &cv_image );
-      CvMat camera_matrix = cvMat( 3, 3, CV_64F, camera );
-      CvMat distortion_coefficients = cvMat( 1, 4, CV_64F, coefficients );
-      cvUndistort2( &cv_image, correct, &camera_matrix, &distortion_coefficients );
+      cv::Size size(image.image.width(), image.image.height());
+      cv::Mat cv_image(size, CV_8U,  (char*)image.image.constBits());
+      cv::Mat correct = cv_image.clone();
+      cv::Mat camera_matrix;
+      cv::Mat distortion_coefficients;
+      cv::undistort(cv_image, correct, camera_matrix, distortion_coefficients );
       image.corrected_pixmap = QPixmap::fromImage(
-            QImage((uchar*)correct->imageData, correct->width, correct->height,
-                   correct->widthStep, QImage::Format_Indexed8));
-      cvReleaseImage( &correct );
+            QImage((uchar*)correct.data, correct.cols, correct.rows,
+                   correct.step, QImage::Format_Indexed8));
     }
     view.setImage(image, true);
   } else {
@@ -306,7 +302,7 @@ void MainWindow::calibrate() {
 }
 
 void MainWindow::process() {
-  CvSize board = { width.value(), height.value() };
+  cv::Size board(width.value(), height.value());
   if (current >= images.count()) {
     int point_count = board.width*board.height;
     int image_count = 0;
@@ -316,54 +312,47 @@ void MainWindow::process() {
       }
     }
     if(image_count <= 4) return;
-    CvMat* point_counts = cvCreateMat( 1, image_count, CV_32SC1 );
-    cvSet( point_counts, cvScalar(point_count) );
+    cv::Mat point_counts( 1, image_count, CV_32SC1 );
+    point_counts.setTo( cv::Scalar(point_count) );
 
-    CvMat* image_points = cvCreateMat( 1, image_count*point_count, CV_32FC2 );
-    CvMat* object_points = cvCreateMat( 1, image_count*point_count, CV_32FC3 );
-    CvPoint2D32f* image_point = ((CvPoint2D32f*)image_points->data.fl);
-    CvPoint3D32f* object_point = ((CvPoint3D32f*)object_points->data.fl);
+    cv::Mat_<cv::Point2f> image_points( 1, image_count*point_count);
+    cv::Mat_<cv::Point3f> object_points( 1, image_count*point_count);
+    cv::Point2f* image_point = image_points[0];
+    cv::Point3f* object_point = object_points[0];
     for (int i = 0; i < image_count; i++) {
       if (images[i].distorted_corners.size() != point_count) continue;
       for (int j = 0; j < board.height; j++) {
         for (int k = 0; k < board.width; k++) {
-          *object_point++ = cvPoint3D32f(j*size.value(), k*size.value(), 0);
+          *object_point++ = cv::Point3f(j*size.value(), k*size.value(), 0);
           QPointF point = images[i].distorted_corners[j*board.width+k];
-          *image_point++ = cvPoint2D32f(point.x(),point.y());
+          *image_point++ = cv::Point2f(point.x(),point.y());
         }
       }
     }
 
-    CvMat camera_matrix = cvMat( 3, 3, CV_64F, camera );
-    CvMat distortion_coefficients = cvMat( 1, 5, CV_64F, coefficients );
-    cvSetZero( &camera_matrix );
-    cvSetZero( &distortion_coefficients );
+    cv::Mat camera_matrix = cv::Mat( 3, 3, CV_64F, camera );
+    cv::Mat distortion_coefficients = cv::Mat( 1, 5, CV_64F, coefficients );
+    camera_matrix.setTo(0);
+    distortion_coefficients.setTo(0);
 
-    CvMat* extrinsics = cvCreateMat( image_count, 6, CV_32FC1 );
-    CvMat rotation_vectors, translation_vectors;
-    cvGetCols( extrinsics, &rotation_vectors, 0, 3 );
-    cvGetCols( extrinsics, &translation_vectors, 3, 6 );
+    cv::Mat rotation_vectors, translation_vectors;
 
-    CvSize size = { images.first().image.width(), images.first().image.height() };
-    cvCalibrateCamera2( object_points, image_points, point_counts,
-                        size, &camera_matrix, &distortion_coefficients,
-                        &rotation_vectors, &translation_vectors );
+    cv::Size size(images.first().image.width(), images.first().image.height());
+    cv::calibrateCamera( object_points, image_points,
+                        size, camera_matrix, distortion_coefficients,
+                        rotation_vectors, translation_vectors );
 
-    CvMat* correct_points = cvCreateMat( 1, image_count*point_count, CV_32FC2 );
-    cvUndistortPoints(image_points, correct_points, &camera_matrix, &distortion_coefficients,0,&camera_matrix);
-    CvPoint2D32f* correct_point = ((CvPoint2D32f*)correct_points->data.fl);
+    cv::Mat_<cv::Point2f> correct_points( 1, image_count*point_count );
+    cv::undistortPoints(image_points, correct_points, camera_matrix, distortion_coefficients, cv::Mat(), camera_matrix);
+    cv::Point2f* correct_point = correct_points[0];
     for (int i = 0; i < image_count; i++) {
       if (images[i].distorted_corners.size() != point_count) continue;
       images[i].corrected_corners.clear();
       for (int j = 0 ; j < board.width*board.height ; j++) {
-        CvPoint2D32f point = *correct_point++;
+        cv::Point2f point = *correct_point++;
         images[i].corrected_corners << QPointF(point.x,point.y);
       }
     }
-
-    cvReleaseMat( &object_points );
-    cvReleaseMat( &image_points );
-    cvReleaseMat( &point_counts );
 
     focalLength.setText(QString("%1 x %2").arg(camera[0]).arg(camera[4]));
     principalPoint.setText(QString("%1 x %2").arg(camera[2]).arg(camera[5]));
@@ -389,23 +378,17 @@ void MainWindow::process() {
   }
   Image& image = images[current];
   image.distorted_corners.clear();
-  CvSize size = { image.image.width(), image.image.height() };
-  IplImage cv_image;
-  cvInitImageHeader(&cv_image, size, 8, 1);
-  cv_image.imageData = (char*)image.image.constBits();
-  cv_image.widthStep = image.image.bytesPerLine();
-  CvPoint2D32f corners[board.width*board.height];
+  cv::Size size( image.image.width(), image.image.height() );
+  cv::Mat cv_image(size, CV_8U, (char*)image.image.constBits());
+  cv::Mat_<cv::Vec2f> corners;
   bool found = false;
-  if (cvCheckChessboard(&cv_image, board) == 1) {
-    int count = 0;
-    found = cvFindChessboardCorners(&cv_image, board, corners, &count );
-    if (found) {
-      cvFindCornerSubPix(&cv_image, corners, count, cvSize(11,11), cvSize(-1,-1),
-                         cvTermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
-      for (int i = 0 ; i < board.width*board.height ; i++) {
-        image.distorted_corners << QPointF(corners[i].x, corners[i].y);
-      }
-    }
+  found = cv::findChessboardCorners(cv_image, board, corners);
+  if (found)
+  {
+    cv::cornerSubPix(cv_image, corners, cv::Size(11, 11), cv::Size(-1, -1),
+                       cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+    for (int i = 0; i < board.width * board.height; i++)
+      image.distorted_corners << QPointF(corners.at<cv::Point2f>(i).x, corners.at<cv::Point2f>(i).y);
   }
   list.item(current)->setForeground(QBrush(found ? Qt::green : Qt::red));
   list.setCurrentRow(current);
