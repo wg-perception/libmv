@@ -40,6 +40,7 @@
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/tracks.h"
+#include "third_party/ssba/Math/v3d_optimization.h"
 
 #include <fstream>
 #include <cstdlib>
@@ -48,8 +49,8 @@ using namespace cv;
 using namespace std;
 
 /**
- * 2D tracked points (dinosaur dataset)
- * ------------------------------------
+ * 2D tracked points
+ * -----------------
  *
  * The format is:
  *
@@ -63,14 +64,11 @@ using namespace std;
  *
  * Each row corresponds to a different point.
  *
- * Link: http://www.robots.ox.ac.uk/~vgg/data/data-mview.html
  */
-void vgg_2D_tracked_points_parser( libmv::Tracks &libmv_tracks )
+void parser_2D_tracks( libmv::Tracks &libmv_tracks, string _filename )
 {
-    string filename = string(TEST_DATA_DIR) + "viff.xy.good_tracks.txt";
+    string filename = string(TEST_DATA_DIR) + _filename;
     ifstream file( filename.c_str() );
-
-    const int height = 576;
 
     double x, y;
     string str;
@@ -78,23 +76,17 @@ void vgg_2D_tracked_points_parser( libmv::Tracks &libmv_tracks )
     for (int track = 0; getline(file, str); ++track)
     {
         istringstream line(str);
-        bool is_first_time;
+        bool is_first_time = true;
 
         for (int frame = 0; line >> x >> y; ++frame)
         {
-            // init track
-            if ( is_first_time && x > 0 && y > 0 )
+            // valid marker
+            if ( x > 0 && y > 0 )
             {
-                y = height - y;                               // for blender: x = x/720;  y = (576-y)/576;
                 libmv_tracks.Insert( frame, track, x, y );
-                is_first_time = false;
-            }
 
-            // while tracking
-            else if ( x > 0 && y > 0 )
-            {
-                y = height - y;
-                libmv_tracks.Insert( frame, track, x, y );
+                if ( is_first_time )
+                    is_first_time = false;
             }
 
             // lost track
@@ -173,22 +165,32 @@ void libmv_solveReconstruction(const libmv::Tracks &tracks, int keyframe1, int k
 
 
 
-TEST(Sfm_simple_pipeline, dinosaur)
+TEST(Sfm_simple_pipeline, backyard)
 {
+    V3D::optimizerVerbosenessLevel = 0; // less logging messages
+
+    // Get tracks from file: check backyard.blend file
     libmv::Tracks tracks;
-    vgg_2D_tracked_points_parser( tracks );
+    parser_2D_tracks( tracks, "backyard_tracks.txt" );
+
+    // Initial reconstruction
+    int keyframe1 = 1, keyframe2 = 30;
+
+    // Camera data
+    double focal_length = 860.986572265625;  // f = 24mm (checked debugging blender)
+    double principal_x = 400, principal_y = 225, k1 = -0.158, k2 = 0.131, k3 = 0;
 
 
-    int keyframe1 = 1, keyframe2 = 6;
-    double focal_length = 24, principal_x = 360, principal_y = 288, k1 = 0, k2 = 0, k3 = 0;
     libmv_Reconstruction libmv_reconstruction;
-
     libmv_solveReconstruction( tracks, keyframe1, keyframe2,
                                focal_length, principal_x, principal_y, k1, k2, k3,
                                libmv_reconstruction );
 
     cout << "libmv_reconstruction.error = " << libmv_reconstruction.error << endl;
 
-    // ToDo: complete the test
-//     FAIL();
+    EXPECT_LE( libmv_reconstruction.error, 1.6 );  // actually 1.50247
 }
+
+
+
+
