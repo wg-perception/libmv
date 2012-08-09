@@ -13,8 +13,7 @@ ENDIF(WIN32)
 
 # define the source files
 SET(IMAGE_SRC image.cc convolve.cc array_nd.cc
-              image_sequence.cc image_sequence_io.cc image_sequence_filters.cc
-              filtered_sequence.cc
+              image_sequence.cc image_sequence_io.cc
 )
 
 # define the header files (make the headers appear in IDEs.)
@@ -35,9 +34,7 @@ ENDMACRO (IMAGE_TEST)
 
 IMAGE_TEST(array_nd)
 IMAGE_TEST(convolve)
-IMAGE_TEST(filtered_sequence)
 IMAGE_TEST(image)
-IMAGE_TEST(image_sequence_filters)
 IMAGE_TEST(image_sequence_io)
 IMAGE_TEST(image_converter)
 IMAGE_TEST(lru_cache)
