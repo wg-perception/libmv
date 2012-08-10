@@ -43,19 +43,10 @@
 #include <opencv2/sfm/numeric.hpp>
 #include <opencv2/sfm/projection.hpp>
 #include <opencv2/sfm/simple_pipeline.hpp>
+#include <opencv2/sfm/triangulation.hpp>
 
 namespace cv
 {
-
-  /** Triangulates enum */
-  enum
-  {
-      CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
-      CV_TRIANG_ALGEBRAIC = 1,   /*!< ... */
-      CV_TRIANG_BY_PLANE = 2,    /*!< Minimises the reprojection error */
-  };
-
-
   /** Triangulates the 3d position of 2d correspondences between several images
    * @param points2d a vector of vectors of 2d points (the inner vector is per image)
    * @param projection_matrices The 3 x 4 projections matrices of each image
@@ -65,7 +56,7 @@ namespace cv
   CV_EXPORTS
   void
   triangulatePoints(InputArrayOfArrays points2d, InputArrayOfArrays projection_matrices,
-                    OutputArray points3d, int method = CV_TRIANG_DLT);
+                    OutputArray points3d);
 
   /** Triangulates the 3d position of 2d correspondences between several images
    * @param points2d a vector of vectors of 2d points (the inner vector is per image)
