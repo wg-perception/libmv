@@ -43,13 +43,13 @@
 namespace cv
 {
 
-/** Triangulates enum */
-enum
-{
-    CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
-    CV_TRIANG_ALGEBRAIC = 1,   /*!< ... */
-    CV_TRIANG_BY_PLANE = 2,    /*!< Minimises the reprojection error */
-};
+// /** Triangulates enum */
+// enum
+// {
+//     CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
+//     CV_TRIANG_ALGEBRAIC = 1,   /*!< ... */
+//     CV_TRIANG_BY_PLANE = 2,    /*!< Minimises the reprojection error */
+// };
 
 
 /** Triangulates the 3d position of 2d correspondences between two images, using the DLT
