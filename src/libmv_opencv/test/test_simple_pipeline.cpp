@@ -38,68 +38,9 @@
 #include <opencv2/sfm/simple_pipeline.hpp>
 #include "third_party/ssba/Math/v3d_optimization.h"
 
-#include <fstream>
-#include <cstdlib>
-
 using namespace cv;
+using namespace cvtest;
 using namespace std;
-
-/**
- * 2D tracked points
- * -----------------
- *
- * The format is:
- *
- * row1 : x1 y1 x2 y2 ... x36 y36 for track 1
- * row2 : x1 y1 x2 y2 ... x36 y36 for track 2
- * etc
- *
- * i.e. a row gives the 2D measured position of a point as it is tracked
- * through frames 1 to 36.  If there is no match found in a view then x
- * and y are -1.
- *
- * Each row corresponds to a different point.
- *
- */
-void parser_2D_tracks( libmv::Tracks &libmv_tracks, string _filename )
-{
-    string filename = string(TEST_DATA_DIR) + _filename;
-    ifstream file( filename.c_str() );
-
-    double x, y;
-    string str;
-
-    for (int track = 0; getline(file, str); ++track)
-    {
-        istringstream line(str);
-        bool is_first_time = true;
-
-        for (int frame = 0; line >> x >> y; ++frame)
-        {
-            // valid marker
-            if ( x > 0 && y > 0 )
-            {
-                libmv_tracks.Insert( frame, track, x, y );
-
-                if ( is_first_time )
-                    is_first_time = false;
-            }
-
-            // lost track
-            else if ( x < 0 && y < 0 )
-            {
-                is_first_time = true;
-            }
-
-            // some error
-            else
-            {
-                exit(1);
-            }
-        }
-    }
-}
-
 
 TEST(Sfm_simple_pipeline, backyard)
 {
@@ -107,7 +48,7 @@ TEST(Sfm_simple_pipeline, backyard)
 
     // Get tracks from file: check backyard.blend file
     libmv::Tracks tracks;
-    parser_2D_tracks( tracks, "backyard_tracks.txt" );
+    parser_2D_tracks( "backyard_tracks.txt", tracks );
 
     // Initial reconstruction
     int keyframe1 = 1, keyframe2 = 30;
