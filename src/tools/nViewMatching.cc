@@ -27,7 +27,6 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"

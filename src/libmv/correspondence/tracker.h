@@ -26,7 +26,6 @@
 
 #include <opencv2/features2d/features2d.hpp>
 
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/matches.h"

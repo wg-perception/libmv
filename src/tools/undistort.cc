@@ -47,7 +47,6 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
@@ -131,7 +130,7 @@ int main(int argc, char **argv) {
   cv::Mat image_out;
   ImageCache cache;
 
-  scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(files, &cache));
+  cv::Ptr<ImageSequence> source(ImageSequenceFromFiles(files, &cache));
   for (size_t i = 0; i < files.size(); ++i) {
     Image2Mat(source->GetFloatImage(i), image);
     if (!image.empty())

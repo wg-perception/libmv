@@ -38,7 +38,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/matches.h"
@@ -290,7 +289,7 @@ void Stabilize(const std::vector<std::string> &image_files,
   cv::Scalar lines_color(255,255,255);
   FloatImage *image = NULL;
   ImageCache cache;
-  scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
+  cv::Ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
   for (size_t i = 0; i < image_files.size(); ++i) {
     if (i > 0)
       H = Hs[i - 1].inv() * H;

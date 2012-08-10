@@ -20,7 +20,6 @@
 #include <QWheelEvent>
 
 #include "libmv/tools/tool.h"
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature_matching.h"

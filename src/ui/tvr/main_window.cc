@@ -24,7 +24,6 @@
 
 #include <opencv2/features2d/features2d.hpp>
 
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature_matching.h"
@@ -300,7 +299,6 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   }
 
   cv::Ptr<cv::FeatureDetector> detector = cv::FeatureDetector::create("FAST");
-  //scoped_ptr<detector::Detector> detector(detector::CreateStarDetector());
 
   vector<Feature *> features;
   Image im(new Array3Du(image));
@@ -314,7 +312,6 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
 
   cv::Mat descriptors;
   cv::Ptr<cv::DescriptorExtractor> describer = cv::DescriptorExtractor::create("ORB");
-  //scoped_ptr<descriptor::Describer> describer(descriptor::CreateDaisyDescriber());
   describer->compute(im_cv, features_cv, descriptors);
 
   // Copy data.

@@ -24,7 +24,6 @@
 
 #include <opencv2/features2d/features2d.hpp>
 
-#include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/export_matches_txt.h"
