@@ -124,4 +124,32 @@ skewMat( InputArray _x )
 }
 
 
+template<typename T>
+inline Mat
+skewMatMinimal( const Mat_<T> &x )
+{
+    Mat_<T> skew(2,3);
+    skew <<   0 , -1,  x(1),
+              1,   0, -x(0);
+    return skew;
+}
+
+Mat
+skewMatMinimal( InputArray _x )
+{
+    Mat x = _x.getMat();
+    CV_Assert( x.rows == 3 && x.cols == 1 );
+
+    int depth = x.depth();
+    if( depth == CV_32F )
+    {
+        return skewMatMinimal<float>(x);
+    }
+    else
+    {
+        return skewMatMinimal<double>(x);
+    }
+}
+
+
 } /* namespace cv */
