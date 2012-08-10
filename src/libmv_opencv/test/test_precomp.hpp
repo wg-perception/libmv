@@ -43,21 +43,6 @@ namespace cvtest
   void
   parser_2D_tracks( const string &filename, libmv::Tracks &tracks );
 
-
-  /* Read 2d point data from YAML file */
-  void
-  readtestdata(string filename, int nviews, int npts, std::vector<cv::Mat> &points2d);
-
-  /* Read projection matrix data from YAML file */
-  void
-  readtestdata(std::string filename, int nviews, std::vector<cv::Mat> &projection_matrices);
-
-  /* Read 3D point data from YAML file */
-  void
-  readtestdata(string filename, cv::Mat &points3d);
-
-}
-
-/* namespace cvtest */
+} // namespace cvtest
 
 #endif
