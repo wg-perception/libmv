@@ -45,17 +45,12 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "libmv/base/scoped_ptr.h"
-#include "libmv/camera/lens_distortion.h"
-#include "libmv/camera/pinhole_camera.h"
-#include "libmv/correspondence/feature.h"
-#include "libmv/correspondence/matches.h"
-#include "libmv/correspondence/tracker.h"
 #include "libmv/image/cached_image_sequence.h"
-#include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
-#include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
 
 DEFINE_double(k1, 0,  "Radial distortion coefficient k1 (Brown's model)");
@@ -123,118 +118,34 @@ int main(int argc, char **argv) {
     files.push_back(argv[i]);
   }
   
-  LensDistortion lens_distortion;
-  if (FLAGS_k5 == 0) {
-    if (FLAGS_k4 == 0) {
-      if (FLAGS_k3 == 0) {
-        if (FLAGS_k2 == 0) {
-          if (FLAGS_k1 != 0) {
-            Vec radial_k(1);
-            radial_k << FLAGS_k1;
-            lens_distortion.set_radial_distortion(radial_k);
-          }
-        } else {
-          Vec radial_k(2);
-          radial_k << FLAGS_k1, FLAGS_k2;
-          lens_distortion.set_radial_distortion(radial_k);
-        }
-      } else {
-        Vec radial_k(3);
-        radial_k << FLAGS_k1, FLAGS_k2, FLAGS_k3;
-        lens_distortion.set_radial_distortion(radial_k);
-      }
-    } else {
-      Vec radial_k(4);
-      radial_k << FLAGS_k1, FLAGS_k2, FLAGS_k3, FLAGS_k4;
-      lens_distortion.set_radial_distortion(radial_k);
-    }
-  } else {
-    Vec radial_k(5);
-    radial_k << FLAGS_k1, FLAGS_k2, FLAGS_k3, FLAGS_k4, FLAGS_k5;
-    lens_distortion.set_radial_distortion(radial_k);
-  }
-  VLOG(0) << "Radial coefficients: " 
-          << lens_distortion.radial_distortion().transpose() << std::endl;
-  
-  if (FLAGS_p1 != 0 && FLAGS_p2 != 0) {
-    Vec tangential_p(2);
-    tangential_p(0) = FLAGS_p1;
-    tangential_p(1) = FLAGS_p2;
-    lens_distortion.set_tangential_distortion(tangential_p);
-  }
-  VLOG(0) << "Tangential coefficients: " 
-          << lens_distortion.tangential_distortion().transpose() << std::endl;
-  
-  PinholeCameraDistortion camera(&lens_distortion);
-  FloatImage *image = NULL;
-  FloatImage *image_out = NULL;
+  std::vector<float> distortion_parameters(8);
+  distortion_parameters[0] = FLAGS_k1;
+  distortion_parameters[1] = FLAGS_k2;
+  distortion_parameters[2] = FLAGS_p1;
+  distortion_parameters[3] = FLAGS_p2;
+  distortion_parameters[4] = FLAGS_k3;
+  distortion_parameters[5] = FLAGS_k4;
+  distortion_parameters[6] = FLAGS_k5;
+
+  cv::Mat image;
+  cv::Mat image_out;
   ImageCache cache;
-  Vec2u size_image;
-  Vec2 q;
-  Mat qs_x(0, 0);
-  Mat qs_y(0, 0);
-  
+
   scoped_ptr<ImageSequence> source(ImageSequenceFromFiles(files, &cache));
   for (size_t i = 0; i < files.size(); ++i) {
-    image = source->GetFloatImage(i);
-    if (image) {
-      if (qs_x.cols() == 0) {
-        VLOG(0) << "Estimating undistortion map..." << std::endl;
-        size_image << image->Width(), image->Height();
-        image_out = new FloatImage(image->Height(),
-                                   image->Width(),
-                                   image->Depth());
-        image_out->fill(0);
-        if (!image_out)
-          return 1;
-        camera.set_image_size(size_image);
-        Mat3 K;
-        if (FLAGS_u0 == 0)
-          FLAGS_u0 = size_image(0) / 2 - 0.5;
-        if (FLAGS_v0 == 0)
-          FLAGS_v0 = size_image(1) / 2 - 0.5;
-        if (FLAGS_fy == 0)
-          FLAGS_fy = FLAGS_fx;
-        K << FLAGS_fx, FLAGS_sk, FLAGS_u0,
-                    0, FLAGS_fy, FLAGS_v0,
-                    0,        0,        1;
-        camera.set_intrinsic_matrix(K);
-        qs_x.resize(image->Height(), image->Width());
-        qs_y.resize(image->Height(), image->Width());
-        qs_x.fill(-1);
-        qs_y.fill(-1);
-        // TODO(julien) Put this map building in lens_distortion
-        for (size_t x = 0; x < image->Width(); ++x) 
-          for (size_t y = 0; y < image->Height(); ++y) {
-            q << x, y;
-            camera.ComputeUndistortedCoordinates(q, &q);
-            if (image->Contains(q(1), q(0))) {
-              qs_x(y, x) = q(0);
-              qs_y(y, x) = q(1);
-              for (int d = 0; d < image_out->Depth(); ++d) 
-              (*image_out)(y, x, d) = SampleLinear(*image, q(1), q(0), d);
-            }
-          }
-        VLOG(0) << "Estimating undistortion map...[DONE]." << std::endl;
-        VLOG(1) << "qs_x : \n" << qs_x << std::endl;
-        VLOG(1) << "qs_y : \n" << qs_y << std::endl;
-      } else {
-        // Tests if the size of the image is the same as the previous one
-        if (size_image(0) != image->Width() || size_image(1) != image->Height())
-          return 2;
-        // TODO(julien) Put this image undistorting in camera?
-        VLOG(0) << "Undistorting image " << i << "..." << std::endl;
-        for (size_t x = 0; x < image->Width(); ++x) 
-        for (size_t y = 0; y < image->Height(); ++y) {
-          if (image->Contains(qs_y(y, x), qs_x(y, x))) {
-          for (int d = 0; d < image_out->Depth(); ++d) 
-            (*image_out)(y, x, d) = SampleLinear(*image,
-                                                 qs_y(y, x), 
-                                                 qs_x(y, x), d);
-          }
-        }
-        VLOG(0) << "Undistorting image " << i << "...[DONE]." << std::endl;
-      }
+    Image2Mat(source->GetFloatImage(i), image);
+    if (!image.empty())
+    {
+      cv::Mat_<float> K;
+      if (FLAGS_u0 == 0)
+        FLAGS_u0 = image.cols / 2 - 0.5;
+      if (FLAGS_v0 == 0)
+        FLAGS_v0 = image.rows / 2 - 0.5;
+      if (FLAGS_fy == 0)
+        FLAGS_fy = FLAGS_fx;
+      K = (cv::Mat_<float>(3, 3) << FLAGS_fx, FLAGS_sk, FLAGS_u0, 0, FLAGS_fy, FLAGS_v0, 0, 0, 1);
+      cv::undistort(image, image_out, K, distortion_parameters);
+      VLOG(0) << "Undistorting image " << i << "...[DONE]." << std::endl;
     }
     source->Unpin(i);
     // Write the output image
@@ -243,11 +154,7 @@ int main(int argc, char **argv) {
     s << ReplaceFolder(files[i].substr(0, files[i].rfind(".")), FLAGS_of);
     s << FLAGS_os;
     s << files[i].substr(files[i].rfind("."), files[i].size());
-    cv::Mat image_out_cv;
-    Image2Mat(image_out, image_out_cv);
-    cv::imwrite(s.str(), image_out_cv);
+    cv::imwrite(s.str(), image_out);
   }
-  if (image_out)
-    delete image_out;
   return 0;
 }
