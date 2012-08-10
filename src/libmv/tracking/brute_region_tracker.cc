@@ -42,7 +42,6 @@
 #include <cstdlib>
 #endif
 
-#include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 #include "libmv/image/correlation.h"
 #include "libmv/image/sample.h"
@@ -82,7 +81,7 @@ void aligned_free(void *ptr) {
 #endif
 }
 
-bool RegionIsInBounds(const FloatImage &image1,
+bool RegionIsInBounds(const cv::Mat_<float> &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.
@@ -96,8 +95,8 @@ bool RegionIsInBounds(const FloatImage &image1,
   // Check the maximum coordinates.
   int max_x = ceil(x) + half_window_size + 1;
   int max_y = ceil(y) + half_window_size + 1;
-  if (max_x > image1.cols() ||
-      max_y > image1.rows()) {
+  if (max_x > image1.cols ||
+      max_y > image1.rows) {
     return false;
   }
 
@@ -207,7 +206,7 @@ int SumOfAbsoluteDifferencesContiguousImage(
 // Sample a region of size width, height centered at x,y in image, converting
 // from float to byte in the process. Samples from the first channel. Puts
 // result into *pattern.
-void SampleRectangularPattern(const FloatImage &image,
+void SampleRectangularPattern(const cv::Mat_<cv::Vec3f> &image,
                               double x, double y,
                               int width,
                               int height,
@@ -241,7 +240,7 @@ inline int PadToAlignment(int x, int alignment) {
 // is returned in *pattern_stride.
 //
 // NOTE: Caller must free *pattern with aligned_malloc() from above.
-void SampleSquarePattern(const FloatImage &image,
+void SampleSquarePattern(const cv::Mat_<cv::Vec3f> &image,
                          double x, double y,
                          int half_width,
                          unsigned char **pattern,
@@ -259,17 +258,17 @@ void SampleSquarePattern(const FloatImage &image,
 }
 
 // NOTE: Caller must free *image with aligned_malloc() from above.
-void FloatArrayToByteArrayWithPadding(const FloatImage &float_image,
+void FloatArrayToByteArrayWithPadding(const cv::Mat_<cv::Vec3f> &float_image,
                                       unsigned char **image,
                                       int *image_stride) {
   // Allocate enough so that accessing 16 elements past the end is fine.
-  *image_stride = float_image.Width() + 16;
+  *image_stride = float_image.cols + 16;
   *image = static_cast<unsigned char *>(
-      aligned_malloc(*image_stride * float_image.Height(), 16));
-  for (int i = 0; i < float_image.Height(); ++i) {
-    for (int j = 0; j < float_image.Width(); ++j) {
+      aligned_malloc(*image_stride * float_image.rows, 16));
+  for (int i = 0; i < float_image.rows; ++i) {
+    for (int j = 0; j < float_image.cols; ++j) {
       (*image)[*image_stride * i + j] =
-          static_cast<unsigned char>(255.0 * float_image(i, j, 0));
+          static_cast<unsigned char>(255.0 * float_image(i, j)[0]);
     }
   }
 }
@@ -281,8 +280,8 @@ void FloatArrayToByteArrayWithPadding(const FloatImage &float_image,
 // values for every hypothesis looks like.
 //
 // TODO(keir): Priority queue for multiple hypothesis.
-bool BruteRegionTracker::Track(const FloatImage &image1,
-                               const FloatImage &image2,
+bool BruteRegionTracker::Track(const cv::Mat_<float> &image1,
+                               const cv::Mat_<float> &image2,
                                double  x1, double  y1,
                                double *x2, double *y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
@@ -292,10 +291,10 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   }
   int pattern_width = 2 * half_window_size + 1;
 
-  Array3Df image_and_gradient1;
-  Array3Df image_and_gradient2;
-  BlurredImageAndDerivativesChannels(image1, 0.9, &image_and_gradient1);
-  BlurredImageAndDerivativesChannels(image2, 0.9, &image_and_gradient2);
+  cv::Mat_<cv::Vec3f> image_and_gradient1;
+  cv::Mat_<cv::Vec3f> image_and_gradient2;
+  BlurredImageAndDerivativesChannels(image1, image_and_gradient1);
+  BlurredImageAndDerivativesChannels(image2, image_and_gradient2);
 
   // Sample the pattern to get it aligned to an image grid.
   unsigned char *pattern;
@@ -311,8 +310,8 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
 
   // Try all possible locations inside the search area. Yes, everywhere.
   int best_i = -1, best_j = -1, best_sad = INT_MAX;
-  for (int i = 0; i < image2.Height() - pattern_width; ++i) {
-    for (int j = 0; j < image2.Width() - pattern_width; ++j) {
+  for (int i = 0; i < image2.rows - pattern_width; ++i) {
+    for (int j = 0; j < image2.cols - pattern_width; ++j) {
       int sad = SumOfAbsoluteDifferencesContiguousImage(pattern,
                                                         pattern_width,
                                                         pattern_width,

@@ -24,14 +24,15 @@
 
 #include "klt.h"
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "libmv/numeric/numeric.h"
-#include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
 
 namespace libmv {
 
-Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_size, int search_width, int search_height, int num_levels) :
+Tracker::Tracker(const cv::Mat_<float> &image1, float x, float y, int half_pattern_size, int search_width, int search_height, int num_levels) :
   half_pattern_size(half_pattern_size),
   search_width(search_width),
   search_height(search_height),
@@ -47,28 +48,23 @@ Tracker::Tracker(const FloatImage &image1, float x, float y, int half_pattern_si
   MakePyramid(image1, pyramid1);
 }
 
-void Tracker::MakePyramid(const FloatImage &image, float **pyramid) const {
-  FloatImage pyramids[8];
-  BlurredImageAndDerivativesChannels(image, sigma, &pyramids[0]);
-  FloatImage mipmap1,mipmap2;
+void Tracker::MakePyramid(const cv::Mat_<float> &image, std::vector<cv::Mat_<cv::Vec3f> > & pyramid) const {
+  pyramid.resize(num_levels);
+  BlurredImageAndDerivativesChannels(image, pyramid[0]);
+  cv::Mat_<float> mipmap1,mipmap2;
   mipmap1 = image;
   for (int i = 1; i < num_levels; ++i) {
-    DownsampleChannelsBy2(mipmap1, &mipmap2);
+    cv::pyrDown(mipmap1, mipmap2);
     mipmap1 = mipmap2;
-    BlurredImageAndDerivativesChannels(mipmap1, sigma, &pyramids[i]);
-  }
-  int width = search_width, height = search_height;
-  for (int i = 0; i < num_levels; i++, width /= 2, height /= 2) {
-    pyramid[i] = (float*)malloc(sizeof(float)*width*height*3);
-    memcpy(pyramid[i],pyramids[i].Data(),sizeof(float)*width*height*3);
+    BlurredImageAndDerivativesChannels(mipmap1, pyramid[i]);
   }
 }
 
-bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
+bool Tracker::Track(const cv::Mat_<float> &image2, float *x2, float *y2) {
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
   // pyramid at once.
-  float* pyramid2[8];
+  std::vector<cv::Mat_<cv::Vec3f> > pyramid2;
   MakePyramid(image2, pyramid2);
 
   // Shrink the guessed x and y location to match the coarsest level + 1 (which
@@ -86,17 +82,14 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
     *y2 *= 2;
 
     // Track the point on this level with the base tracker.
-    bool succeeded = TrackImage(pyramid1[i], pyramid2[i], search_width >> i, half_pattern_size >> i, xx, yy, x2, y2);
+    bool succeeded = TrackImage((float*)pyramid1[i].data, (float*)pyramid2[i].data, search_width >> i, half_pattern_size >> i, xx, yy, x2, y2);
 
     if (i == 0 && !succeeded) {
       // Only fail on the highest-resolution level, because a failure on a
       // coarse level does not mean failure at a lower level (consider
       // out-of-bounds conditions).
       // Adapt marker to new image
-      for(int i = 0; i < num_levels; i++) {
-        free(pyramid1[i]); // Free old image
-        pyramid1[i] = pyramid2[i]; //Use new image
-      }
+      pyramid1 = pyramid2;
       x1 = *x2;
       y1 = *y2;
       return false;
@@ -104,10 +97,7 @@ bool Tracker::Track(const FloatImage &image2, float *x2, float *y2) {
   }
 
   // Adapt marker to new image
-  for(int i = 0; i < num_levels; i++) {
-    free(pyramid1[i]); // Free old image
-    pyramid1[i] = pyramid2[i]; //Use new image
-  }
+  pyramid1 = pyramid2;
   x1 = *x2;
   y1 = *y2;
 

@@ -25,8 +25,8 @@
 
 namespace libmv {
 
-bool RetrackRegionTracker::Track(const FloatImage &image1,
-                                 const FloatImage &image2,
+bool RetrackRegionTracker::Track(const cv::Mat_<float> &image1,
+                                 const cv::Mat_<float> &image2,
                                  double  x1, double  y1,
                                  double *x2, double *y2) const {
   // Track forward, getting x2 and y2.

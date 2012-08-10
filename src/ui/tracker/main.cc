@@ -32,6 +32,7 @@
 // TODO(MatthiasF): simpler API
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/bundle.h"
+#include "libmv/simple_pipeline/detect.h"
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/uncalibrated_reconstructor.h"
 

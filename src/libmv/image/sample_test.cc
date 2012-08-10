@@ -38,7 +38,7 @@ TEST(Image, Nearest) {
 }
 
 TEST(Image, Linear) {
-  Array3Df image(2,2);
+  cv::Mat_<cv::Vec3f> image(2,2);
   image(0,0) = 0;
   image(0,1) = 1;
   image(1,0) = 2;

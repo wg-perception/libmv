@@ -20,39 +20,29 @@
 
 #include <vector>
 
-#include "libmv/image/convolve.h"
-#include "libmv/image/image.h"
-#include "libmv/image/sample.h"
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "libmv/logging/logging.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
 
 namespace libmv {
 
-static void MakePyramid(const FloatImage &image, int num_levels,
-                        std::vector<FloatImage> *pyramid) {
-  pyramid->resize(num_levels);
-  (*pyramid)[0] = image;
-  for (int i = 1; i < num_levels; ++i) {
-    DownsampleChannelsBy2((*pyramid)[i - 1], &(*pyramid)[i]);
-  }
-}
-
-bool PyramidRegionTracker::Track(const FloatImage &image1,
-                                 const FloatImage &image2,
+bool PyramidRegionTracker::Track(const cv::Mat_<float> &image1,
+                                 const cv::Mat_<float> &image2,
                                  double  x1, double  y1,
                                  double *x2, double *y2) const {
   // Shrink the guessed x and y location to match the coarsest level + 1 (which
-  // when gets corrected in the loop).
+  // then gets corrected in the loop).
   *x2 /= pow(2., num_levels_);
   *y2 /= pow(2., num_levels_);
 
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
-  // pyraid at once.
-  std::vector<FloatImage> pyramid1(num_levels_);
-  std::vector<FloatImage> pyramid2(num_levels_);
-  MakePyramid(image1, num_levels_, &pyramid1);
-  MakePyramid(image2, num_levels_, &pyramid2);
+  // pyramid at once.
+  std::vector<cv::Mat_<float> > pyramid1(num_levels_);
+  std::vector<cv::Mat_<float> > pyramid2(num_levels_);
+  cv::buildPyramid(image1, pyramid1, num_levels_ - 1);
+  cv::buildPyramid(image2, pyramid2, num_levels_ - 1);
 
   for (int i = num_levels_ - 1; i >= 0; --i) {
     // Position in the first image at pyramid level i.

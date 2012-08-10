@@ -21,7 +21,6 @@
 #include "libmv/tracking/lmicklt_region_tracker.h"
 
 #include "libmv/logging/logging.h"
-#include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
 #include "libmv/numeric/numeric.h"
@@ -29,7 +28,7 @@
 namespace libmv {
 
 // TODO(keir): Reduce duplication between here and the other region trackers.
-static bool RegionIsInBounds(const FloatImage &image1,
+static bool RegionIsInBounds(const cv::Mat_<float> &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.
@@ -43,8 +42,8 @@ static bool RegionIsInBounds(const FloatImage &image1,
   // Check the maximum coordinates.
   int max_x = ceil(x) + half_window_size + 1;
   int max_y = ceil(y) + half_window_size + 1;
-  if (max_x > image1.cols() ||
-      max_y > image1.rows()) {
+  if (max_x > image1.cols ||
+      max_y > image1.rows) {
     return false;
   }
 
@@ -53,15 +52,15 @@ static bool RegionIsInBounds(const FloatImage &image1,
 }
 
 // Estimate "reasonable" error by computing autocorrelation for a small shift.
-static double EstimateReasonableError(const FloatImage &image,
+static double EstimateReasonableError(const cv::Mat_<float> &image,
                                double x, double y,
                                int half_width) {
   double error = 0.0;
   for (int r = -half_width; r <= half_width; ++r) {
     for (int c = -half_width; c <= half_width; ++c) {
-      double s = SampleLinear(image, y + r, x + c, 0);
-      double e1 = SampleLinear(image, y + r + 0.5, x + c, 0) - s;
-      double e2 = SampleLinear(image, y + r, x + c + 0.5, 0) - s;
+      double s = SampleLinear(image, y + r, x + c);
+      double e1 = SampleLinear(image, y + r + 0.5, x + c) - s;
+      double e2 = SampleLinear(image, y + r, x + c + 0.5) - s;
       error += e1*e1 + e2*e2;
     }
   }
@@ -70,8 +69,8 @@ static double EstimateReasonableError(const FloatImage &image,
 
 // This is implemented from "Lukas and Kanade 20 years on: Part 1. Page 42,
 // figure 14: the Levenberg-Marquardt-Inverse Compositional Algorithm".
-bool LmickltRegionTracker::Track(const FloatImage &image1,
-                             const FloatImage &image2,
+bool LmickltRegionTracker::Track(const cv::Mat_<float> &image1,
+                             const cv::Mat_<float> &image2,
                              double  x1, double  y1,
                              double *x2, double *y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
@@ -83,12 +82,12 @@ bool LmickltRegionTracker::Track(const FloatImage &image1,
   int width = 2 * half_window_size + 1;
 
   // TODO(keir): Avoid recomputing gradients for e.g. the pyramid tracker.
-  Array3Df image_and_gradient1;
-  Array3Df image_and_gradient2;
-  BlurredImageAndDerivativesChannels(image1, sigma, &image_and_gradient1);
+  cv::Mat_<cv::Vec3f> image_and_gradient1;
+  cv::Mat_<cv::Vec3f> image_and_gradient2;
+  BlurredImageAndDerivativesChannels(image1, image_and_gradient1);
 
   // TODO(keir): Avoid computing the derivative of image2.
-  BlurredImageAndDerivativesChannels(image2, sigma, &image_and_gradient2);
+  BlurredImageAndDerivativesChannels(image2, image_and_gradient2);
 
   // Step -1: Resample the template (image1) since it is not pixel aligned.
   //

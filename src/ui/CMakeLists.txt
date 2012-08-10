@@ -1,3 +1,6 @@
+find_package(OpenCV REQUIRED)
+include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+
 #########################
 # Qt
 FIND_PACKAGE(Qt4 REQUIRED)

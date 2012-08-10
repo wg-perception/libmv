@@ -20,17 +20,14 @@
 
 #include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
-#include "libmv/image/image.h"
 #include "testing/testing.h"
 
 namespace libmv {
 namespace {
 
 TEST(PyramidKltRegionTracker, Track) {
-  Array3Df image1(100, 100);
-  image1.Fill(0);
-
-  Array3Df image2(image1);
+  cv::Mat_<float> image1 = cv::Mat_<float>::zeros(100, 100);
+  cv::Mat_<float> image2 = cv::Mat_<float>::zeros(100, 100);
 
   int x1 = 25, y1 = 25;
   image1(y1 + 0, x1 + 0) = 1.0f;
@@ -65,11 +62,13 @@ TEST(PyramidKltRegionTracker, Track) {
     klt_tracker->half_window_size = half_window_size;
 
     PyramidRegionTracker tracker(klt_tracker, 3);
+    x2_actual = x1;
+    y2_actual = y1;
     EXPECT_TRUE(tracker.Track(image1, image2, x1, y1,
                               &x2_actual, &y2_actual));
 
-    EXPECT_NEAR(x2_actual, x2, 0.001);
-    EXPECT_NEAR(y2_actual, y2, 0.001);
+    EXPECT_NEAR(x2_actual, x2, 0.01);
+    EXPECT_NEAR(y2_actual, y2, 0.01);
   }
 }
 

@@ -73,38 +73,41 @@ TEST(Convolve, BoxFilter) {
 }
 
 TEST(Convolve, BlurredImageAndDerivativesChannelsFlat) {
-  FloatImage im(10,10), blurred_and_derivatives;
-  im.Fill(1);
-  BlurredImageAndDerivativesChannels(im, 1.0, &blurred_and_derivatives);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 0), 1.0, 1e-7);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 1), 0.0, 1e-7);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 2), 0.0, 1e-7);
+  cv::Mat im(10,10, CV_32F);
+  im.setTo(1);
+  cv::Mat_<cv::Vec3f> blurred_and_derivatives;
+  BlurredImageAndDerivativesChannels(im, blurred_and_derivatives);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[0], 1.0, 1e-7);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[1], 0.0, 1e-7);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[2], 0.0, 1e-7);
 }
 
 TEST(Convolve, BlurredImageAndDerivativesChannelsHorizontalSlope) {
-  FloatImage image(10,10), blurred_and_derivatives;
+  cv::Mat_<float> image(10,10);
   for (int j = 0; j < 10; ++j) {
     for (int i = 0; i < 10; ++i) {
       image(j, i) = 2*i;
     }
   }
-  BlurredImageAndDerivativesChannels(image, 0.9, &blurred_and_derivatives);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 0), 10.0, 1e-7);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 1),  2.0, 1e-7);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 2),  0.0, 1e-7);
+  cv::Mat_<cv::Vec3f> blurred_and_derivatives;
+  BlurredImageAndDerivativesChannels(image, blurred_and_derivatives);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[0], 10.0, 1e-7);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[1],  2.0, 1e-7);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[2],  0.0, 1e-7);
 }
 
 TEST(Convolve, BlurredImageAndDerivativesChannelsVerticalSlope) {
-  FloatImage image(10,10), blurred_and_derivatives;
+  cv::Mat_<float> image(10,10);
   for (int j = 0; j < 10; ++j) {
     for (int i = 0; i < 10; ++i) {
       image(j, i) = 2*j;
     }
   }
-  BlurredImageAndDerivativesChannels(image, 0.9, &blurred_and_derivatives);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 0), 10.0, 1e-7);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 1),  0.0, 1e-7);
-  EXPECT_NEAR(blurred_and_derivatives(5, 5, 2),  2.0, 1e-7);
+  cv::Mat_<cv::Vec3f> blurred_and_derivatives;
+  BlurredImageAndDerivativesChannels(image, blurred_and_derivatives);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[0], 10.0, 1e-7);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[1],  0.0, 1e-7);
+  EXPECT_NEAR(blurred_and_derivatives(5, 5)[2],  2.0, 1e-7);
 }
 
 }  // namespace

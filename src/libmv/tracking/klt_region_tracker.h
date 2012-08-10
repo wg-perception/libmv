@@ -21,7 +21,6 @@
 #ifndef LIBMV_REGION_TRACKING_KLT_REGION_TRACKER_H_
 #define LIBMV_REGION_TRACKING_KLT_REGION_TRACKER_H_
 
-#include "libmv/image/image.h"
 #include "libmv/tracking/region_tracker.h"
 
 namespace libmv {
@@ -37,8 +36,8 @@ struct KltRegionTracker : public RegionTracker {
   virtual ~KltRegionTracker() {}
 
   // Tracker interface.
-  virtual bool Track(const FloatImage &image1,
-                     const FloatImage &image2,
+  virtual bool Track(const cv::Mat_<float> &image1,
+                     const cv::Mat_<float> &image2,
                      double  x1, double  y1,
                      double *x2, double *y2) const;
 

@@ -52,7 +52,7 @@ QDebug operator <<(QDebug d, vec2& v) {
 bool CopyRegionFromQImage(QImage image,
                           int w, int h,
                           int x0, int y0,
-                          libmv::FloatImage *region) {
+                          cv::Mat_<float> *region) {
   Q_ASSERT(image.depth() == 8);
   const unsigned char *data = image.constBits();
   int width = image.width();
@@ -62,8 +62,8 @@ bool CopyRegionFromQImage(QImage image,
   if (x0 < 0 || y0 < 0 || x0+w >= width || y0+h >= height) return false;
 
   // Copy the region.
-  region->resize(h, w);
-  float* dst = region->Data();
+  region->create(h, w);
+  float* dst = (float*)region->data;
   for (int y = y0; y < y0 + h; ++y) {
     for (int x = x0; x < x0 + w; ++x) {
       *dst++ = (float)data[y * width + x] / 255.0;
@@ -175,7 +175,7 @@ void Tracker::Track(int previous, int next, QImage old, QImage search) {
 
     if(track.count()<=next) track.resize(next+1);
 
-    libmv::FloatImage old_patch, new_patch;
+    cv::Mat_<float> old_patch, new_patch;
 
     if (!CopyRegionFromQImage(old, kSearchSize, kSearchSize, x0, y0, &old_patch) ||
         !CopyRegionFromQImage(search, kSearchSize, kSearchSize, x0, y0, &new_patch)) {

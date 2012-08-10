@@ -20,15 +20,12 @@
 
 #include "libmv/tracking/hybrid_region_tracker.h"
 
-#include "libmv/image/image.h"
-#include "libmv/image/convolve.h"
-#include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
 
 namespace libmv {
 
-bool HybridRegionTracker::Track(const FloatImage &image1,
-                                const FloatImage &image2,
+bool HybridRegionTracker::Track(const cv::Mat_<float> &image1,
+                                const cv::Mat_<float> &image2,
                                 double  x1, double  y1,
                                 double *x2, double *y2) const {
   double x2_coarse = *x2;

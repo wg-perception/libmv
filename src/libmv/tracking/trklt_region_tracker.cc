@@ -22,7 +22,6 @@
 
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
-#include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
 
@@ -31,8 +30,8 @@ namespace libmv {
 // TODO(keir): Switch this to use the smarter LM loop like in ESM.
 
 // Computes U and e from the Ud = e equation (number 14) from the paper.
-static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
-                                    const Array3Df &image_and_gradient2,
+static void ComputeTrackingEquation(const cv::Mat_<cv::Vec3f> &image_and_gradient1,
+                                    const cv::Mat_<cv::Vec3f> &image_and_gradient2,
                                     double x1, double y1,
                                     double x2, double y2,
                                     int half_width,
@@ -81,7 +80,7 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   *e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
 }
 
-static bool RegionIsInBounds(const FloatImage &image1,
+static bool RegionIsInBounds(const cv::Mat_<float> &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.
@@ -95,8 +94,8 @@ static bool RegionIsInBounds(const FloatImage &image1,
   // Check the maximum coordinates.
   int max_x = ceil(x) + half_window_size + 1;
   int max_y = ceil(y) + half_window_size + 1;
-  if (max_x > image1.cols() ||
-      max_y > image1.rows()) {
+  if (max_x > image1.cols ||
+      max_y > image1.rows) {
     return false;
   }
 
@@ -104,8 +103,8 @@ static bool RegionIsInBounds(const FloatImage &image1,
   return true;
 }
 
-bool TrkltRegionTracker::Track(const FloatImage &image1,
-                               const FloatImage &image2,
+bool TrkltRegionTracker::Track(const cv::Mat_<float> &image1,
+                               const cv::Mat_<float> &image2,
                                double  x1, double  y1,
                                double *x2, double *y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
@@ -114,10 +113,10 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
     return false;
   }
 
-  Array3Df image_and_gradient1;
-  Array3Df image_and_gradient2;
-  BlurredImageAndDerivativesChannels(image1, sigma, &image_and_gradient1);
-  BlurredImageAndDerivativesChannels(image2, sigma, &image_and_gradient2);
+  cv::Mat_<cv::Vec3f> image_and_gradient1;
+  cv::Mat_<cv::Vec3f> image_and_gradient2;
+  BlurredImageAndDerivativesChannels(image1, image_and_gradient1);
+  BlurredImageAndDerivativesChannels(image2, image_and_gradient2);
 
   int i;
   Vec2f d = Vec2f::Zero();

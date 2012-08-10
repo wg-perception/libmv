@@ -21,6 +21,8 @@
 #ifndef LIBMV_IMAGE_CONVOLVE_H_
 #define LIBMV_IMAGE_CONVOLVE_H_
 
+#include <opencv2/core/core.hpp>
+
 #include "libmv/image/image.h"
 #include "libmv/numeric/numeric.h"
 
@@ -71,9 +73,8 @@ void BlurredImageAndDerivatives(const FloatImage &in,
 
 // Blur and take the gradients of an image, storing the results inside the
 // three channels of blurred_and_gradxy.
-void BlurredImageAndDerivativesChannels(const FloatImage &in,
-                                        double sigma,
-                                        FloatImage *blurred_and_gradxy);
+void BlurredImageAndDerivativesChannels(const cv::Mat &in,
+                                        cv::Mat_<cv::Vec3f> &blurred_and_gradxy);
 
 void BoxFilterHorizontal(const FloatImage &in,
                          int window_size,

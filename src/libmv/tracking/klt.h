@@ -27,7 +27,7 @@
 
 #ifdef __cplusplus
 
-#include "libmv/image/image.h"
+#include <opencv2/core/core.hpp>
 
 namespace libmv {
 
@@ -41,7 +41,7 @@ public:
       \a image1 should be a square patch of size \a search_size
       This tracker will use pyramid tracking using \a num_levels levels.
   */
-  Tracker(const FloatImage &image1, float x, float y, int half_pattern_size,
+  Tracker(const cv::Mat_<float> &image1, float x, float y, int half_pattern_size,
           int search_width, int search_height, int num_levels);
   /*!
       Track a point from last image to \a image2.
@@ -52,10 +52,10 @@ public:
 
       \a image2 become the "last image" of this tracker.
   */
-  bool Track(const FloatImage &image2, float *x2, float *y2);
+  bool Track(const cv::Mat_<float> &image2, float *x2, float *y2);
 
 private:
-  void MakePyramid(const FloatImage &image, float** pyramid) const;
+  void MakePyramid(const cv::Mat_<float> &image, std::vector<cv::Mat_<cv::Vec3f> > & pyramid) const;
   bool TrackImage(const float* image1, const float* image2, int size, int half_pattern_size,
                   float x1, float y1, float *x2, float *y2) const;
 
@@ -69,7 +69,7 @@ private:
   float min_update_squared_distance;
   float sigma;
   float lambda;
-  float* pyramid1[8];
+  std::vector<cv::Mat_<cv::Vec3f> > pyramid1;
   float x1,y1;
 };
 

@@ -21,7 +21,7 @@
 #ifndef LIBMV_TRACKING_TRACKER_H_
 #define LIBMV_TRACKING_TRACKER_H_
 
-#include "libmv/image/image.h"
+#include <opencv2/core/core.hpp>
 
 namespace libmv {
 
@@ -37,8 +37,8 @@ class RegionTracker {
       image2. If no guess is available, (\a x1, \a y1) is a good start. Returns
       true on success, false otherwise
   */
-  virtual bool Track(const FloatImage &image1,
-                     const FloatImage &image2,
+  virtual bool Track(const cv::Mat_<float> &image1,
+                     const cv::Mat_<float> &image2,
                      double  x1, double  y1,
                      double *x2, double *y2) const = 0;
 };

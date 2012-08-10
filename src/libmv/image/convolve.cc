@@ -20,6 +20,8 @@
 
 #include <cmath>
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 
@@ -204,26 +206,16 @@ void BlurredImageAndDerivatives(const Array3Df &in,
 // image, and store the results in three channels. Since the blurred value and
 // gradients are closer in memory, this leads to better performance if all
 // three values are needed at the same time.
-void BlurredImageAndDerivativesChannels(const Array3Df &in,
-                                        double sigma,
-                                        Array3Df *blurred_and_gradxy) {
-  assert(in.Depth() == 1);
+void BlurredImageAndDerivativesChannels(const cv::Mat &in,
+                                        cv::Mat_<cv::Vec3f> &blurred_and_gradxy) {
+  CV_Assert(in.channels() == 1);
 
-  Vec kernel, derivative;
-  ComputeGaussianKernel(sigma, &kernel, &derivative);
+  std::vector<cv::Mat> channels(3);
+  cv::GaussianBlur(in, channels[0], cv::Size(5,5), 0, 0);
+  cv::Sobel(channels[0], channels[1], CV_32F, 1, 0, 3, 1.0/(1 << (3*2-1-0-2)));
+  cv::Sobel(channels[0], channels[2], CV_32F, 0, 1, 3, 1.0/(1 << (3*2-0-1-2)));
 
-  // Compute convolved image.
-  Array3Df tmp;
-  ConvolveVertical(in, kernel, &tmp);
-  blurred_and_gradxy->Resize(in.Height(), in.Width(), 3);
-  ConvolveHorizontal(tmp, kernel, blurred_and_gradxy, 0);
-
-  // Compute first derivative in x.
-  ConvolveHorizontal(tmp, derivative, blurred_and_gradxy, 1);
-
-  // Compute first derivative in y.
-  ConvolveHorizontal(in, kernel, &tmp);
-  ConvolveVertical(tmp, derivative, blurred_and_gradxy, 2);
+  cv::merge(channels, blurred_and_gradxy);
 }
 
 void BoxFilterHorizontal(const Array3Df &in,

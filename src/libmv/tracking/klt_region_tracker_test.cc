@@ -19,17 +19,14 @@
 // IN THE SOFTWARE.
 
 #include "libmv/tracking/klt_region_tracker.h"
-#include "libmv/image/image.h"
 #include "testing/testing.h"
 
 namespace libmv {
 namespace {
 
 TEST(KltRegionTracker, Track) {
-  Array3Df image1(51, 51);
-  image1.Fill(0);
-
-  Array3Df image2(image1);
+  cv::Mat_<float> image1 = cv::Mat_<float>::zeros(51, 51);
+  cv::Mat_<float> image2 = cv::Mat_<float>::zeros(51, 51);
 
   int x0 = 25, y0 = 25;
   int dx = 3, dy = 2;

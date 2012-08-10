@@ -21,6 +21,8 @@
 #ifndef LIBMV_IMAGE_SAMPLE_H_
 #define LIBMV_IMAGE_SAMPLE_H_
 
+#include <opencv2/core/core.hpp>
+
 #include "libmv/image/image.h"
 
 namespace libmv {
@@ -58,17 +60,34 @@ static inline void LinearInitAxis(float fx, int width,
 
 /// Linear interpolation.
 template<typename T>
-inline T SampleLinear(const Array3D<T> &image, float y, float x, int v = 0) {
+inline T SampleLinear(const cv::Mat_<cv::Vec<T, 3> > &image, float y, float x, int v = 0) {
   int x1, y1, x2, y2;
   float dx1, dy1, dx2, dy2;
 
-  LinearInitAxis(y, image.Height(), &y1, &y2, &dy1, &dy2);
-  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx1, &dx2);
+  LinearInitAxis(y, image.rows, &y1, &y2, &dy1, &dy2);
+  LinearInitAxis(x, image.cols,  &x1, &x2, &dx1, &dx2);
 
-  const T im11 = image(y1, x1, v);
-  const T im12 = image(y1, x2, v);
-  const T im21 = image(y2, x1, v);
-  const T im22 = image(y2, x2, v);
+  const T im11 = image(y1, x1)[v];
+  const T im12 = image(y1, x2)[v];
+  const T im21 = image(y2, x1)[v];
+  const T im22 = image(y2, x2)[v];
+
+  return T(dy1 * ( dx1 * im11 + dx2 * im12 ) +
+           dy2 * ( dx1 * im21 + dx2 * im22 ));
+}
+
+template<typename T>
+inline T SampleLinear(const cv::Mat_<T> &image, float y, float x) {
+  int x1, y1, x2, y2;
+  float dx1, dy1, dx2, dy2;
+
+  LinearInitAxis(y, image.rows, &y1, &y2, &dy1, &dy2);
+  LinearInitAxis(x, image.cols,  &x1, &x2, &dx1, &dx2);
+
+  const T im11 = image(y1, x1);
+  const T im12 = image(y1, x2);
+  const T im21 = image(y2, x1);
+  const T im22 = image(y2, x2);
 
   return T(dy1 * ( dx1 * im11 + dx2 * im12 ) +
            dy2 * ( dx1 * im21 + dx2 * im22 ));
@@ -99,7 +118,7 @@ inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
 
 // Sample a region centered at x,y in image with size extending by half_width
 // from x,y. Channels specifies the number of channels to sample from.
-inline void SamplePattern(const FloatImage &image,
+inline void SamplePattern(const cv::Mat_<cv::Vec3f> &image,
                    double x, double y,
                    int half_width,
                    int channels,
