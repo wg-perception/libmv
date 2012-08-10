@@ -230,9 +230,7 @@ triangulatePoints(InputArrayOfArrays _points2d, InputArrayOfArrays _projection_m
 //         P.resize(nviews);
 //         for (unsigned i = 0; i < nviews; ++i)
 //         {
-//             P[i].create(3, 4, points2d.at(0).depth() );
-//             cv::Mat(K[i] * R[i]).copyTo(P[i].colRange(0, 3));
-//             cv::Mat(K[i] * t[i]).copyTo(P[i].col(3));
+//             P_From_KRt(K[i], R[i], t[i], P[i]);
 //         }
 // 
 //         triangulatePoints_<T>(nviews, points2d, P, points3d);

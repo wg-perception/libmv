@@ -132,9 +132,7 @@ generateScene(size_t n_views, size_t n_points, bool is_projective, int depth, cv
   P.resize(n_views);
   for (size_t i = 0; i < n_views; ++i)
   {
-    P[i].create(3, 4, depth);
-    cv::Mat(K * R[i]).copyTo(P[i].colRange(0, 3));
-    cv::Mat(K * t[i]).copyTo(P[i].col(3));
+    P_From_KRt(K, R[i], t[i], P[i]);
   }
 
   // Compute homogeneous 3d points

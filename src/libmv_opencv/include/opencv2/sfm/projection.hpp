@@ -59,6 +59,13 @@ CV_EXPORTS
 void
 euclideanToHomogeneous(InputArray src, OutputArray dst);
 
+/** Get projection matrix P from K, R and t.
+ *  P = K * [R|t]
+ */
+CV_EXPORTS
+void
+P_From_KRt(const Mat &K, const Mat &R, const Mat &t, Mat &P);
+
 } /* namespace cv */
 
 #endif /* __cplusplus */

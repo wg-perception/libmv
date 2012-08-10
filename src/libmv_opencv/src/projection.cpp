@@ -88,4 +88,15 @@ euclideanToHomogeneous(const InputArray _x, OutputArray _X)
     vconcat(x, last_row, _X);
 }
 
+void
+P_From_KRt(const Mat &K, const Mat &R, const Mat &t, Mat &P)
+{
+    int depth = K.depth();
+    CV_Assert( depth == R.depth() && depth == t.depth() );
+
+    P.create(3, 4, depth );
+    cv::Mat(K * R).copyTo(P.colRange(0, 3));
+    cv::Mat(K * t).copyTo(P.col(3));
+}
+
 } /* namespace cv */
