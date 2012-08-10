@@ -34,12 +34,12 @@
  */
 
 #include "test_precomp.hpp"
-#include "opencv2/sfm/sfm.hpp"
+#include <opencv2/sfm/projection.hpp>
 
 using namespace cv;
 using namespace std;
 
-TEST(Sfm_homogeneousToEuclidean, correctness)
+TEST(Sfm_projection, homogeneousToEuclidean)
 {
     Matx33f X(1, 2, 3,
               4, 5, 6,
@@ -56,7 +56,7 @@ TEST(Sfm_homogeneousToEuclidean, correctness)
                 EXPECT_LE( std::abs(X(y,x)/X(X.rows-1, x) - XEuclidean(y,x)), 1e-4 );
 }
 
-TEST(Sfm_euclideanToHomogeneous, correctness)
+TEST(Sfm_projection, euclideanToHomogeneous)
 {
     // Testing with floats
     Matx33f x(1, 2, 3,
@@ -81,4 +81,39 @@ TEST(Sfm_euclideanToHomogeneous, correctness)
     EXPECT_EQ( 4, X2(0) );
     EXPECT_EQ( 3, X2(1) );
     EXPECT_EQ( 1, X2(2) );
+}
+
+template<typename T>
+static void
+test_P_From_KRt()
+{
+  Mat_<T> K(3,3), Kp(3,3);
+  K << 10,  1, 30,
+        0, 20, 40,
+        0,  0,  1;
+
+  Mat_<T> R(3,3), Rp(3,3);
+  R << 1, 0, 0,
+       0, 1, 0,
+       0, 0, 1;
+
+  Mat_<T> t(3,1), tp(3,1);
+  t << 1, 2, 3;
+
+  Mat_<T> P(3,4);
+  P_From_KRt(K, R, t, P);
+  KRt_From_P(P, Kp, Rp, tp);
+
+  EXPECT_MATRIX_NEAR(K, Kp, 1e-8);
+  EXPECT_MATRIX_NEAR(R, Rp, 1e-8);
+  EXPECT_MATRIX_NEAR(t, tp, 1e-8);
+}
+
+TEST(Sfm_projection, P_From_KRt)
+{
+//     test_P_From_KRt<float>();
+    test_P_From_KRt<double>();
+
+  // TODO: Change the code to ensure det(R) == 1, which is not currently
+  // the case. Also add a test for that here.
 }
