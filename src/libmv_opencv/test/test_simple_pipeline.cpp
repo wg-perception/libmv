@@ -35,160 +35,35 @@
 
 #include "test_precomp.hpp"
 
-#include "libmv/simple_pipeline/bundle.h"
-#include "libmv/simple_pipeline/camera_intrinsics.h"
-#include "libmv/simple_pipeline/initialize_reconstruction.h"
-#include "libmv/simple_pipeline/pipeline.h"
-#include "libmv/simple_pipeline/tracks.h"
-
-#include <fstream>
-#include <cstdlib>
+#include <opencv2/sfm/simple_pipeline.hpp>
+#include "third_party/ssba/Math/v3d_optimization.h"
 
 using namespace cv;
+using namespace cvtest;
 using namespace std;
 
-/**
- * 2D tracked points (dinosaur dataset)
- * ------------------------------------
- *
- * The format is:
- *
- * row1 : x1 y1 x2 y2 ... x36 y36 for track 1
- * row2 : x1 y1 x2 y2 ... x36 y36 for track 2
- * etc
- *
- * i.e. a row gives the 2D measured position of a point as it is tracked
- * through frames 1 to 36.  If there is no match found in a view then x
- * and y are -1.
- *
- * Each row corresponds to a different point.
- *
- * Link: http://www.robots.ox.ac.uk/~vgg/data/data-mview.html
- */
-void vgg_2D_tracked_points_parser( libmv::Tracks &libmv_tracks )
+TEST(Sfm_simple_pipeline, backyard)
 {
-    string filename = string(TEST_DATA_DIR) + "viff.xy.good_tracks.txt";
-    ifstream file( filename.c_str() );
+    V3D::optimizerVerbosenessLevel = 0; // less logging messages
 
-    const int height = 576;
-
-    double x, y;
-    string str;
-
-    for (int track = 0; getline(file, str); ++track)
-    {
-        istringstream line(str);
-        bool is_first_time;
-
-        for (int frame = 0; line >> x >> y; ++frame)
-        {
-            // init track
-            if ( is_first_time && x > 0 && y > 0 )
-            {
-                y = height - y;                               // for blender: x = x/720;  y = (576-y)/576;
-                libmv_tracks.Insert( frame, track, x, y );
-                is_first_time = false;
-            }
-
-            // while tracking
-            else if ( x > 0 && y > 0 )
-            {
-                y = height - y;
-                libmv_tracks.Insert( frame, track, x, y );
-            }
-
-            // lost track
-            else if ( x < 0 && y < 0 )
-            {
-                is_first_time = true;
-            }
-
-            // some error
-            else
-            {
-                exit(1);
-            }
-        }
-    }
-}
-
-
-
-typedef struct libmv_Reconstruction
-{
-    libmv::EuclideanReconstruction reconstruction;
-
-    /* used for per-track average error calculation after reconstruction */
+    // Get tracks from file: check backyard.blend file
     libmv::Tracks tracks;
-    libmv::CameraIntrinsics intrinsics;
+    parser_2D_tracks( "backyard_tracks.txt", tracks );
 
-    double error;
-} libmv_Reconstruction;
+    // Initial reconstruction
+    int keyframe1 = 1, keyframe2 = 30;
 
-
-// ToDo (pablo): rewrite this, and move to "src/" folder
-// Based on the 'libmv_capi' function (blender API)
-void libmv_solveReconstruction(const libmv::Tracks &tracks, int keyframe1, int keyframe2,
-                               double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-                               libmv_Reconstruction &libmv_reconstruction, bool refine_intrinsics = false)
-{
-    /* Invert the camera intrinsics. */
-    libmv::vector<libmv::Marker> markers = tracks.AllMarkers();
-    libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction.reconstruction;
-    libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction.intrinsics;
-
-    intrinsics->SetFocalLength(focal_length, focal_length);
-    intrinsics->SetPrincipalPoint(principal_x, principal_y);
-    intrinsics->SetRadialDistortion(k1, k2, k3);
-
-    cout << "\tNumber of markers: " << markers.size() << endl;
-    for (int i = 0; i < markers.size(); ++i)
-    {
-        intrinsics->InvertIntrinsics(markers[i].x,
-                                     markers[i].y,
-                                     &(markers[i].x),
-                                     &(markers[i].y));
-    }
-
-    libmv::Tracks normalized_tracks(markers);
-
-    cout << "\tframes to init from: " << keyframe1 << " " << keyframe2 << endl;
-    libmv::vector<libmv::Marker> keyframe_markers =
-        normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
-    cout << "\tNumber of markers for init: " << keyframe_markers.size() << endl;
-
-    libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
-    libmv::EuclideanBundle(normalized_tracks, reconstruction);
-    libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
-
-    // ToDo (pablo): autocalibration?
-//     if (refine_intrinsics) {
-//         libmv_solveRefineIntrinsics(tracks, intrinsics, reconstruction,
-//             refine_intrinsics, progress_update_callback, callback_customdata);
-//     }
-
-    libmv_reconstruction.tracks = tracks;
-    libmv_reconstruction.error = libmv::EuclideanReprojectionError(tracks, *reconstruction, *intrinsics);
-}
+    // Camera data
+    double focal_length = 860.986572265625;  // f = 24mm (checked debugging blender)
+    double principal_x = 400, principal_y = 225, k1 = -0.158, k2 = 0.131, k3 = 0;
 
 
-
-TEST(Sfm_simple_pipeline, dinosaur)
-{
-    libmv::Tracks tracks;
-    vgg_2D_tracked_points_parser( tracks );
-
-
-    int keyframe1 = 1, keyframe2 = 6;
-    double focal_length = 24, principal_x = 360, principal_y = 288, k1 = 0, k2 = 0, k3 = 0;
     libmv_Reconstruction libmv_reconstruction;
-
     libmv_solveReconstruction( tracks, keyframe1, keyframe2,
                                focal_length, principal_x, principal_y, k1, k2, k3,
                                libmv_reconstruction );
 
     cout << "libmv_reconstruction.error = " << libmv_reconstruction.error << endl;
 
-    // ToDo: complete the test
-//     FAIL();
+    EXPECT_LE( libmv_reconstruction.error, 1.6 );  // actually 1.50247
 }

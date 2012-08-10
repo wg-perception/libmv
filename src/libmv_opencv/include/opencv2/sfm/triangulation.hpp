@@ -33,24 +33,57 @@
  *
  */
 
-#include "reconstructvideo.hpp"
+#ifndef __OPENCV_SFM_TRIANGULATION_HPP__
+#define __OPENCV_SFM_TRIANGULATION_HPP__
+
+#ifdef __cplusplus
+
+#include <opencv2/core/core.hpp>
 
 namespace cv
 {
-  void
-    reconstructVideo(InputArrayOfArrays tracks, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
-                     OutputArrayOfArrays t)
-  {
 
-    // Select key frames by looking at how key points change accross frames
-
-    // Reconstruct key frames by taking 2 or 3? at a time -i.e 3D points and cameras
-    // Do BA
-
-    // Resection to find cameras for intermediate frames
-    // Do BA
+// /** Triangulates enum */
+// enum
+// {
+//     CV_TRIANG_DLT = 0,         /*!< HZ 12.2 pag.312 */
+//     CV_TRIANG_ALGEBRAIC = 1,   /*!< ... */
+//     CV_TRIANG_BY_PLANE = 2,    /*!< Minimises the reprojection error */
+// };
 
 
+/** Triangulates the 3d position of 2d correspondences between two images, using the DLT
+ * Reference: HZ 12.2 pag.312
+ * @param xl vectors of 2d points (left camera)
+ * @param xr vectors of 2d points (right camera)
+ * @param Pl The 3 x 4 projection matrix of left camera
+ * @param Pr The 3 x 4 projection matrix of right camera
+ * @param points3d (output) 3d points
+ */
+CV_EXPORTS
+void
+triangulateDLT( const Mat &xl, const Mat &xr,
+                const Mat &Pl, const Mat &Pr,
+                Mat &points3d );
 
-  }
+
+/** Triangulates the 3d position of 2d correspondences between n images, using the DLT
+ * Reference: it is the standard DLT; for derivation see appendix of Keir's thesis
+ * @param x  vectors of 2d points (n camera)
+ * @param Ps The 3 x 4 projections matrices of each image
+ * @param points3d (output) 3d points
+ */
+CV_EXPORTS
+void
+nViewTriangulate( const Mat &x,
+                  const vector<Mat> &Ps,
+                  Mat &points3d );
+
+
 } /* namespace cv */
+
+#endif /* __cplusplus */
+
+#endif
+
+/* End of file. */

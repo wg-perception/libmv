@@ -50,9 +50,16 @@ meanAndVarianceAlongRows( const Mat &A,
                           Mat &variance );
 
 
+/** Returns the skew anti-symmetric matrix of a vector */
 CV_EXPORTS
 Mat
 skewMat( InputArray x );
+
+/** Returns the skew anti-symmetric matrix of a vector with only
+ *  the first two (independent) lines */
+CV_EXPORTS
+Mat
+skewMatMinimal( InputArray x );
 
 
 } /* namespace cv */

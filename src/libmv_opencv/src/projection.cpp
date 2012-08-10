@@ -33,7 +33,11 @@
  *
  */
 
-#include <opencv2/sfm/sfm.hpp>
+#include <opencv2/sfm/projection.hpp>
+
+#include "libmv/multiview/projection.h"
+#include <opencv2/core/eigen.hpp>
+#include <iostream>
 
 namespace cv
 {
@@ -87,5 +91,50 @@ euclideanToHomogeneous(const InputArray _x, OutputArray _X)
     const Mat last_row = Mat::ones(1, x.cols, x.type());
     vconcat(x, last_row, _X);
 }
+
+void
+P_From_KRt(const Mat &K, const Mat &R, const Mat &t, Mat &P)
+{
+    int depth = K.depth();
+    CV_Assert( depth == R.depth() && depth == t.depth() );
+
+    P.create(3, 4, depth );
+    cv::Mat(K * R).copyTo(P.colRange(0, 3));
+    cv::Mat(K * t).copyTo(P.col(3));
+}
+
+// RQ decomposition HZ A4.1.1 pag.579
+template<typename T>
+void
+KRt_From_P( const Mat &_P, Mat &_K, Mat &_R, Mat &_t )
+{
+    libmv::Mat34 P;
+    libmv::Mat3 K, R;
+    libmv::Vec3 t;
+
+    cv2eigen( _P, P );
+
+    libmv::KRt_From_P( P, &K, &R, &t );
+
+    eigen2cv( K, _K );
+    eigen2cv( R, _R );
+    eigen2cv( t, _t );
+}
+
+void
+KRt_From_P( const Mat &P, Mat &K, Mat &R, Mat &t )
+{
+    int depth = P.depth();
+    if( depth == CV_32F )
+    {
+        // KRt_From_P<float>( P, K, R, t );
+        std::cerr << "Function kRt_From_P not handled for float" << std::endl;
+    }
+    else
+    {
+        KRt_From_P<double>( P, K, R, t );
+    }
+}
+
 
 } /* namespace cv */

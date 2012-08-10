@@ -33,28 +33,42 @@
  *
  */
 
-#ifndef __OPENCV_SIMPLE_PIPELINE_HPP__
-#define __OPENCV_SIMPLE_PIPELINE_HPP__
+#ifndef __OPENCV_SFM_SIMPLE_PIPELINE_HPP__
+#define __OPENCV_SFM_SIMPLE_PIPELINE_HPP__
 
 #ifdef __cplusplus
 
-#include <opencv2/sfm/sfm.hpp>
-#include <iostream.hpp>
+#include <opencv2/core/core.hpp>
+
+#include "libmv/simple_pipeline/pipeline.h"
+#include "libmv/simple_pipeline/camera_intrinsics.h"
 
 namespace cv
 {
 
-  /** Reconstructs scene from a given video sequence
-   * @param videofilename  The path and filename of the video file
-   * @param points3d Reconstructed 3D points
-   * @param K Recovered camera calibration matrices
-   * @param R Recovered camera rotation matrices
-   * @param t Recovered camera translations
-   */
-  CV_EXPORTS
-  void
-  reconstructVideo(InputArrayOfArrays track, OutputArray points3d, OutputArray K, OutputArrayOfArrays R,
-                   OutputArrayOfArrays t);
+typedef struct libmv_Reconstruction
+{
+    libmv::EuclideanReconstruction reconstruction;
+
+    /* used for per-track average error calculation after reconstruction */
+    libmv::Tracks tracks;
+    libmv::CameraIntrinsics intrinsics;
+
+    double error;
+} libmv_Reconstruction;
+
+
+// Based on the 'libmv_solveReconstruction()' function from 'libmv_capi' (blender API)
+CV_EXPORTS
+void
+libmv_solveReconstruction( const libmv::Tracks &tracks,
+                           int keyframe1, int keyframe2,
+                           double focal_length,
+                           double principal_x, double principal_y,
+                           double k1, double k2, double k3,
+                           libmv_Reconstruction &libmv_reconstruction,
+                           bool refine_intrinsics = false );
+
 
 } /* namespace cv */
 

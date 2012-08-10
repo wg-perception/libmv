@@ -11,7 +11,8 @@ add_library(opencv_sfm src/conditioning.cpp
                        src/numeric.cpp
                        src/projection.cpp
                        src/reconstruct.cpp
-                       src/triangulate.cpp
+                       src/simple_pipeline.cpp
+                       src/triangulation.cpp
 )
 
 target_link_libraries(opencv_sfm  ${OpenCV_LIBRARIES}
@@ -45,7 +46,7 @@ add_executable(sfm_tests test/scene.cpp
                          test/test_projection.cpp
                          test/test_reconstruct.cpp
                          test/test_simple_pipeline.cpp
-                         test/test_triangulate.cpp
+                         test/test_triangulation.cpp
 )
 
 find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})

@@ -59,6 +59,19 @@ CV_EXPORTS
 void
 euclideanToHomogeneous(InputArray src, OutputArray dst);
 
+/** Get projection matrix P from K, R and t.
+ *  P = K * [R|t]
+ */
+CV_EXPORTS
+void
+P_From_KRt(const Mat &K, const Mat &R, const Mat &t, Mat &P);
+
+/** Decompose using the RQ decomposition HZ A4.1.1 pag.579 */
+CV_EXPORTS
+void
+KRt_From_P( const Mat &P, Mat &K, Mat &R, Mat &t );
+
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
