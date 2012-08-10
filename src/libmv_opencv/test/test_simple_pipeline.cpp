@@ -35,11 +35,7 @@
 
 #include "test_precomp.hpp"
 
-#include "libmv/simple_pipeline/bundle.h"
-#include "libmv/simple_pipeline/camera_intrinsics.h"
-#include "libmv/simple_pipeline/initialize_reconstruction.h"
-#include "libmv/simple_pipeline/pipeline.h"
-#include "libmv/simple_pipeline/tracks.h"
+#include <opencv2/sfm/simple_pipeline.hpp>
 #include "third_party/ssba/Math/v3d_optimization.h"
 
 #include <fstream>
@@ -105,66 +101,6 @@ void parser_2D_tracks( libmv::Tracks &libmv_tracks, string _filename )
 }
 
 
-
-typedef struct libmv_Reconstruction
-{
-    libmv::EuclideanReconstruction reconstruction;
-
-    /* used for per-track average error calculation after reconstruction */
-    libmv::Tracks tracks;
-    libmv::CameraIntrinsics intrinsics;
-
-    double error;
-} libmv_Reconstruction;
-
-
-// ToDo (pablo): rewrite this, and move to "src/" folder
-// Based on the 'libmv_capi' function (blender API)
-void libmv_solveReconstruction(const libmv::Tracks &tracks, int keyframe1, int keyframe2,
-                               double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-                               libmv_Reconstruction &libmv_reconstruction, bool refine_intrinsics = false)
-{
-    /* Invert the camera intrinsics. */
-    libmv::vector<libmv::Marker> markers = tracks.AllMarkers();
-    libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction.reconstruction;
-    libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction.intrinsics;
-
-    intrinsics->SetFocalLength(focal_length, focal_length);
-    intrinsics->SetPrincipalPoint(principal_x, principal_y);
-    intrinsics->SetRadialDistortion(k1, k2, k3);
-
-    cout << "\tNumber of markers: " << markers.size() << endl;
-    for (int i = 0; i < markers.size(); ++i)
-    {
-        intrinsics->InvertIntrinsics(markers[i].x,
-                                     markers[i].y,
-                                     &(markers[i].x),
-                                     &(markers[i].y));
-    }
-
-    libmv::Tracks normalized_tracks(markers);
-
-    cout << "\tframes to init from: " << keyframe1 << " " << keyframe2 << endl;
-    libmv::vector<libmv::Marker> keyframe_markers =
-        normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
-    cout << "\tNumber of markers for init: " << keyframe_markers.size() << endl;
-
-    libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
-    libmv::EuclideanBundle(normalized_tracks, reconstruction);
-    libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
-
-    // ToDo (pablo): autocalibration?
-//     if (refine_intrinsics) {
-//         libmv_solveRefineIntrinsics(tracks, intrinsics, reconstruction,
-//             refine_intrinsics, progress_update_callback, callback_customdata);
-//     }
-
-    libmv_reconstruction.tracks = tracks;
-    libmv_reconstruction.error = libmv::EuclideanReprojectionError(tracks, *reconstruction, *intrinsics);
-}
-
-
-
 TEST(Sfm_simple_pipeline, backyard)
 {
     V3D::optimizerVerbosenessLevel = 0; // less logging messages
@@ -190,7 +126,3 @@ TEST(Sfm_simple_pipeline, backyard)
 
     EXPECT_LE( libmv_reconstruction.error, 1.6 );  // actually 1.50247
 }
-
-
-
-

@@ -11,6 +11,7 @@ add_library(opencv_sfm src/conditioning.cpp
                        src/numeric.cpp
                        src/projection.cpp
                        src/reconstruct.cpp
+                       src/simple_pipeline.cpp
                        src/triangulate.cpp
 )
 

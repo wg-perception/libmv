@@ -42,6 +42,7 @@
 #include <opencv2/sfm/fundamental.hpp>
 #include <opencv2/sfm/numeric.hpp>
 #include <opencv2/sfm/projection.hpp>
+#include <opencv2/sfm/simple_pipeline.hpp>
 
 namespace cv
 {
