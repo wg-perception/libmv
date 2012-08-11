@@ -105,3 +105,8 @@ Add to the end of your ~/.subversion/servers file:
 
   git checkout master
   git merge libmv-upstream
+
+Datasets to use
+===============
+
+http://www.cvpapers.com/datasets.html
