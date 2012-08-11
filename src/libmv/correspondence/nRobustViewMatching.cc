@@ -22,7 +22,6 @@
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
-#include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/multiview/robust_fundamental.h"
 

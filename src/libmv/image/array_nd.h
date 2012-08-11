@@ -392,26 +392,6 @@ typedef Array3D<int> Array3Di;
 typedef Array3D<float> Array3Df;
 typedef Array3D<short> Array3Ds;
 
-void SplitChannels(const Array3Df &input,
-                   Array3Df *channel0,
-                   Array3Df *channel1,
-                   Array3Df *channel2);
-
-void PrintArray(const Array3Df &array);
-
-/** Convert a float array into a byte array by scaling values by 255* (max-min).
- *  where max and min are automatically detected 
- *  (if automatic_range_detection = true)
- * \note and TODO this automatic detection only works when the image contains
- *  at least one pixel of both bounds.
- **/
-void FloatArrayToScaledByteArray(const Array3Df &float_array,
-                                 Array3Du *byte_array,
-                                 bool automatic_range_detection = false);
-
-//! Convert a byte array into a float array by dividing values by 255.
-void ByteArrayToScaledFloatArray(const Array3Du &byte_array,
-                                 Array3Df *float_array);
 
 template <typename AArrayType, typename BArrayType, typename CArrayType>
 void MultiplyElements( const AArrayType &a,

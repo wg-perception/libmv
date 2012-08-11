@@ -23,7 +23,7 @@
 
 #include <opencv2/core/core.hpp>
 
-#include "libmv/image/image.h"
+#include "array_nd.h"
 
 namespace libmv {
 
@@ -122,12 +122,12 @@ inline void SamplePattern(const cv::Mat_<cv::Vec3f> &image,
                    double x, double y,
                    int half_width,
                    int channels,
-                   FloatImage *sampled) {
-  sampled->Resize(2 * half_width + 1, 2 * half_width + 1, channels);
+                   cv::Mat_<cv::Vec3f> *sampled) {
+  sampled->create(2 * half_width + 1, 2 * half_width + 1);
   for (int r = -half_width; r <= half_width; ++r) {
     for (int c = -half_width; c <= half_width; ++c) {
       for (int i = 0; i < channels; ++i) {
-        (*sampled)(r + half_width, c + half_width, i) =
+        (*sampled)(r + half_width, c + half_width)[i] =
             SampleLinear(image, y + r, x + c, i);
       }
     }

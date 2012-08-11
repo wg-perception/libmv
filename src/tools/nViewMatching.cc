@@ -31,7 +31,6 @@
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
-#include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/tools/tool.h"
 
@@ -166,8 +165,7 @@ int main(int argc, char **argv) {
   //-- Export and visualize data (show matches between the images)
   if (FLAGS_save_matches_results) {
     for (size_t i=0; i< nViewMatcher.getMatches().NumImages(); ++i) {
-      cv::Mat im_cv = cv::imread(image_vector[i], 0);
-      Image im = Mat2Image(im_cv);
+      cv::Mat im = cv::imread(image_vector[i], 0);
 
       for (size_t j=0; j< i/*nViewMatcher.m_tracks.NumImages()*/; ++j)  {
         Matches::Features<KeypointFeature> features =
@@ -204,7 +202,7 @@ int main(int argc, char **argv) {
             }
             features.operator++();
           }
-          cv::drawMatches(im_cv, keypoints1, im2, keypoints2, matches, bigIma);
+          cv::drawMatches(im, keypoints1, im2, keypoints2, matches, bigIma);
         }
         //-- If many point have been added
         if (cpt> 4*2) {

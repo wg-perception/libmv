@@ -24,8 +24,8 @@
 using namespace libmv;
 using namespace tracker;
  
-bool RobustTracker::Track(const Image &image1,
-                          const Image &image2, 
+bool RobustTracker::Track(const cv::Mat &image1,
+                          const cv::Mat &image2,
                           FeaturesGraph *new_features_graph,
                           bool keep_single_feature) {
   bool is_track_ok = Tracker::Track(image1,
@@ -82,7 +82,7 @@ bool RobustTracker::Track(const Image &image1,
   return is_track_ok;
 }
 
-bool RobustTracker::Track(const Image &image, 
+bool RobustTracker::Track(const cv::Mat &image,
                           const FeaturesGraph &known_features_graph, 
                           FeaturesGraph *new_features_graph,
                           Matches::ImageID *image_id,

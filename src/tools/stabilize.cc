@@ -280,10 +280,6 @@ void Stabilize(const std::vector<std::string> &image_files,
   images_size << imageArrayBytes.cols, imageArrayBytes.rows;
   
   cv::Matx33d H = cv::Matx33d::eye();
-  FloatImage image_stab(imageArrayBytes.rows,
-                        imageArrayBytes.cols,
-                        imageArrayBytes.depth());
-  image_stab.Fill(0);
   cv::Scalar lines_color(255,255,255);
   cv::Mat image;
   ImageCache cache;

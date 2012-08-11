@@ -351,7 +351,7 @@ bool BruteRegionTracker::Track(const cv::Mat_<float> &image1,
     return true;
   }
 
-  Array3Df image_and_gradient1_sampled, image_and_gradient2_sampled;
+  cv::Mat_<cv::Vec3f> image_and_gradient1_sampled, image_and_gradient2_sampled;
   SamplePattern(image_and_gradient1, x1, y1, half_window_size, 3,
                 &image_and_gradient1_sampled);
   SamplePattern(image_and_gradient2, *x2, *y2, half_window_size, 3,

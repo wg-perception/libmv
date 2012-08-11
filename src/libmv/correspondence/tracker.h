@@ -29,7 +29,6 @@
 #include "libmv/base/vector.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/matches.h"
-#include "libmv/image/image.h"
 
 namespace libmv {
 namespace tracker {
@@ -89,13 +88,13 @@ class Tracker {
   virtual ~Tracker() {}
    
   // Tracks new features between two images.
-  virtual bool Track(const Image &image1, 
-                     const Image &image2, 
+  virtual bool Track(const cv::Mat &image1,
+                     const cv::Mat &image2,
                      FeaturesGraph *new_features_graph,
                      bool keep_single_feature = true);
                      
   // Tracks all features in an image.
-  virtual bool Track(const Image &image, 
+  virtual bool Track(const cv::Mat &image,
                      const FeaturesGraph &known_features_graph, 
                      FeaturesGraph *new_features_graph,
                      Matches::ImageID *image_id,

@@ -83,7 +83,7 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
   // Take a sample of the gradient of the pattern area of image1 at the
   // subpixel position x1, x2. This is reused for each iteration, so
   // precomputing it saves time.
-  Array3Df image_and_gradient1_sampled;
+  cv::Mat_<cv::Vec3f> image_and_gradient1_sampled;
   SamplePattern(image_and_gradient1, x1, y1, half_window_size, 3,
                 &image_and_gradient1_sampled);
 
@@ -96,7 +96,7 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
   // Use two images for accepting / rejecting updates.
   // XXX is this necessary?
   int current_image = 0, new_image = 1;
-  Array3Df image_and_gradient2_sampled[2];
+  cv::Mat_<cv::Vec3f> image_and_gradient2_sampled[2];
   SamplePattern(image_and_gradient2, *x2, *y2, half_window_size, 3,
                 &image_and_gradient2_sampled[current_image]);
 
@@ -104,8 +104,8 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
   double error = 0;
   for (int r = 0; r < width; ++r) {
     for (int c = 0; c < width; ++c) {
-      double e = image_and_gradient1_sampled(r, c, 0) -
-                 image_and_gradient2_sampled[current_image](r, c, 0);
+      double e = image_and_gradient1_sampled(r, c)[0] -
+                 image_and_gradient2_sampled[current_image](r, c)[0];
       error += e*e;
     }
   }
@@ -132,8 +132,8 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
   Mat2 H_image1 = Mat2::Zero();
   for (int r = 0; r < width; ++r) {
     for (int c = 0; c < width; ++c) {
-      Vec2 g(image_and_gradient1_sampled(r, c, 1),
-             image_and_gradient1_sampled(r, c, 2));
+      Vec2 g(image_and_gradient1_sampled(r, c)[1],
+             image_and_gradient1_sampled(r, c)[2]);
       H_image1 += g * g.transpose();
     }
   }
@@ -156,10 +156,10 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
     Mat2 H = Mat2::Zero();
     for (int r = 0; r < width; ++r) {
       for (int c = 0; c < width; ++c) {
-        Vec2 g1(image_and_gradient1_sampled(r, c, 1),
-                image_and_gradient1_sampled(r, c, 2));
-        Vec2 g2(image_and_gradient2_sampled[current_image](r, c, 1),
-                image_and_gradient2_sampled[current_image](r, c, 2));
+        Vec2 g1(image_and_gradient1_sampled(r, c)[1],
+                image_and_gradient1_sampled(r, c)[2]);
+        Vec2 g2(image_and_gradient2_sampled[current_image](r, c)[1],
+                image_and_gradient2_sampled[current_image](r, c)[2]);
         Vec2 g = g1 + g2; // Should be / 2.0, but do that outside the loop.
         H += g * g.transpose();
       }
@@ -170,12 +170,12 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
     Vec2 z = Vec2::Zero();
     for (int r = 0; r < width; ++r) {
       for (int c = 0; c < width; ++c) {
-        double e = image_and_gradient2_sampled[current_image](r, c, 0) -
-                   image_and_gradient1_sampled(r, c, 0);
-        z(0) += image_and_gradient1_sampled(r, c, 1) * e;
-        z(1) += image_and_gradient1_sampled(r, c, 2) * e;
-        z(0) += image_and_gradient2_sampled[current_image](r, c, 1) * e;
-        z(1) += image_and_gradient2_sampled[current_image](r, c, 2) * e;
+        double e = image_and_gradient2_sampled[current_image](r, c)[0] -
+                   image_and_gradient1_sampled(r, c)[0];
+        z(0) += image_and_gradient1_sampled(r, c)[1] * e;
+        z(1) += image_and_gradient1_sampled(r, c)[2] * e;
+        z(0) += image_and_gradient2_sampled[current_image](r, c)[1] * e;
+        z(1) += image_and_gradient2_sampled[current_image](r, c)[2] * e;
       }
     }
     z /= 2.0;
@@ -204,8 +204,8 @@ bool EsmRegionTracker::Track(const cv::Mat_<float> &image1,
     double new_error = 0;
     for (int r = 0; r < width; ++r) {
       for (int c = 0; c < width; ++c) {
-        double e = image_and_gradient1_sampled(r, c, 0) -
-                   image_and_gradient2_sampled[new_image](r, c, 0);
+        double e = image_and_gradient1_sampled(r, c)[0] -
+                   image_and_gradient2_sampled[new_image](r, c)[0];
         new_error += e*e;
       }
     }

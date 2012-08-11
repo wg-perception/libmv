@@ -28,7 +28,6 @@
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/image/array_nd.h"
-#include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
@@ -301,9 +300,8 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   cv::Ptr<cv::FeatureDetector> detector = cv::FeatureDetector::create("FAST");
 
   vector<Feature *> features;
-  Image im(new Array3Du(image));
   cv::Mat im_cv;
-  Image2Mat(im, im_cv);
+  Image2Mat(image, im_cv);
   std::vector<cv::KeyPoint> features_cv;
   detector->detect(im_cv, features_cv);
   features.resize(features_cv.size());

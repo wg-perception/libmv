@@ -26,20 +26,17 @@
 using namespace libmv;
 using namespace tracker;
  
-bool Tracker::Track(const Image &image1,
-                    const Image &image2, 
+bool Tracker::Track(const cv::Mat &image1,
+                    const cv::Mat &image2,
                     FeaturesGraph *new_features_graph,
                     bool keep_single_feature) {
   // we detect good features to track
   vector<Feature *> features1;
   std::vector<cv::KeyPoint> features1_cv, features2_cv;
-  cv::Mat image1_cv, image2_cv;
-  Image2Mat(image1, image1_cv);
-  Image2Mat(image2, image2_cv);
-  detector_->detect(image1_cv, features1_cv);
+  detector_->detect(image1, features1_cv);
         
   vector<Feature *> features2;
-  detector_->detect(image2_cv, features2_cv);
+  detector_->detect(image2, features2_cv);
 
   features1.resize(features1_cv.size());
   features2.resize(features2_cv.size());
@@ -50,8 +47,8 @@ bool Tracker::Track(const Image &image1,
 
   // we compute the feature descriptors on every feature
   cv::Mat descriptors1_cv, descriptors2_cv;
-  describer_->compute(image1_cv, features1_cv, descriptors1_cv);
-  describer_->compute(image2_cv, features2_cv, descriptors2_cv);
+  describer_->compute(image1, features1_cv, descriptors1_cv);
+  describer_->compute(image2, features2_cv, descriptors2_cv);
   
   // Copy data form generic feature to Keypoints since the matcher is
   // a point matcher
@@ -123,7 +120,7 @@ bool Tracker::Track(const Image &image1,
   return true;
 }
 
-bool Tracker::Track(const Image &image, 
+bool Tracker::Track(const cv::Mat &image,
                     const FeaturesGraph &known_features_graph, 
                     FeaturesGraph *new_features_graph,
                     Matches::ImageID *image_id,
@@ -131,9 +128,7 @@ bool Tracker::Track(const Image &image,
   // we detect good features to track
   vector<Feature *> features;
   std::vector<cv::KeyPoint> features_cv;
-  cv::Mat image_cv;
-  Image2Mat(image, image_cv);
-  detector_->detect(image_cv, features_cv);
+  detector_->detect(image, features_cv);
   features.resize(features_cv.size());
   for(size_t i=0; i<features.size(); ++i)
     features[i] = new PointFeature(features_cv[i]);
@@ -141,7 +136,7 @@ bool Tracker::Track(const Image &image,
   
   // we compute the feature descriptors on every feature
   cv::Mat descriptors;
-  describer_->compute(image_cv, features_cv, descriptors);
+  describer_->compute(image, features_cv, descriptors);
   
   // Copy data form generic feature to Keypoints since the matcher is
   // a point matcher

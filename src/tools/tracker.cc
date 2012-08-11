@@ -31,7 +31,6 @@
 #include "libmv/correspondence/tracker.h"
 #include "libmv/correspondence/robust_tracker.h"
 #include "libmv/image/array_nd.h"
-#include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/bundle.h"
@@ -238,10 +237,9 @@ int main (int argc, char *argv[]) {
     std::string image_path = (*image_list_iterator);
 
     VLOG(1) << "Tracking image '"<< image_path << "'" << std::endl;
-    cv::Mat image_cv = cv::imread(image_path, 0);
-    Image image = Mat2Image(image_cv);
+    cv::Mat image = cv::imread(image_path, 0);
     image_sizes.push_back(std::pair<size_t,size_t>(
-        image_cv.rows, image_cv.cols));
+        image.rows, image.cols));
 
     libmv::Matches::ImageID new_image_id = 0;
     if (FLAGS_track_all_known_features) {
@@ -287,12 +285,12 @@ int main (int argc, char *argv[]) {
           features_set.operator++();
         }
 
-        cv::drawKeypoints(image_cv, features_vec, image_cv);
+        cv::drawKeypoints(image, features_vec, image);
       }
       if (FLAGS_save_matches)
-        DrawMatches(image_cv, new_image_id, all_features_graph);
+        DrawMatches(image, new_image_id, all_features_graph);
 
-      cv::imwrite(image_path + "-features", image_cv);
+      cv::imwrite(image_path + "-features", image);
     }
 
     VLOG(1) << "#All Tracks "<< all_features_graph.matches_.NumTracks()

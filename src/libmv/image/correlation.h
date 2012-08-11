@@ -22,19 +22,19 @@
 #define LIBMV_IMAGE_CORRELATION_H
 
 #include "libmv/logging/logging.h"
-#include "libmv/image/image.h"
+#include <opencv2/core/core.hpp>
 
 namespace libmv {
 
-inline double PearsonProductMomentCorrelation(Array3Df image_and_gradient1_sampled,
-                                              Array3Df image_and_gradient2_sampled,
+inline double PearsonProductMomentCorrelation(const cv::Mat_<cv::Vec3f> & image_and_gradient1_sampled,
+                                              const cv::Mat_<cv::Vec3f> & image_and_gradient2_sampled,
                                               int width) {
   double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
 
   for (int r = 0; r < width; ++r) {
     for (int c = 0; c < width; ++c) {
-      double x = image_and_gradient1_sampled(r, c, 0);
-      double y = image_and_gradient2_sampled(r, c, 0);
+      double x = image_and_gradient1_sampled(r, c)[0];
+      double y = image_and_gradient2_sampled(r, c)[0];
       sX += x;
       sY += y;
       sXX += x*x;

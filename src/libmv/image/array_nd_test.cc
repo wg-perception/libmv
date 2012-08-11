@@ -275,25 +275,6 @@ TEST(Array3D, Parenthesis) {
   EXPECT_EQ(array(0,1), 3);
 }
 
-TEST(Array3Df, SplitChannels) {
-  Array3Df array(1,2,3);
-  array(0,0,0) = 1;
-  array(0,1,0) = 1;
-  array(0,0,1) = 2;
-  array(0,1,1) = 2;
-  array(0,0,2) = 3;
-  array(0,1,2) = 3;
-  Array3Df c0, c1, c2;
-  SplitChannels(array, &c0, &c1, &c2);
-  for (int row = 0; row < 1; ++row) {
-    for (int column = 0; column < 2; ++column) {
-      EXPECT_EQ(array(row, column, 0), c0(row, column));
-      EXPECT_EQ(array(row, column, 1), c1(row, column));
-      EXPECT_EQ(array(row, column, 2), c2(row, column));
-    }
-  }
-}
-
 TEST( ArrayND, MultiplyElementsGeneric) {
   ArrayND<double, 5> A;
   ArrayND<int, 5> B;

@@ -11,7 +11,6 @@
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/robust_tracker.h"
-#include "libmv/image/image.h"
 #include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/reconstruction/euclidean_reconstruction.h"
@@ -362,7 +361,7 @@ void MainWindow::ComputeRelativeMatches() {
     for (; image_list_iterator != image_list.end(); ++image_list_iterator) {
       std::string image_path = (*image_list_iterator);
 
-      Image image = Mat2Image(cv::imread(image_path, 0));
+      cv::Mat image = cv::imread(image_path, 0);
 
       libmv::tracker::FeaturesGraph new_features_graph;
       libmv::Matches::ImageID new_image_id = 0;

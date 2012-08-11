@@ -22,7 +22,6 @@
 #define LIBMV_IMAGE_IMAGE_CONVERTER_H
 
 #include "libmv/image/array_nd.h"
-#include "libmv/image/image.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/core/types_c.h"
@@ -79,15 +78,6 @@ void Image2Mat( const Array3D<T> &imaIn, cv::OutputArray imaOut ) {
   imgTmp.reshape(k,n).copyTo(imaOut);
 }
 
-static inline void Image2Mat( const Image &imaIn, cv::OutputArray imaOut ) {
-  Array3Du * ima = imaIn.AsArray3Du();
-  if (ima == NULL) {
-    Array3Df * imaf = imaIn.AsArray3Df();
-    Image2Mat<float>(*imaf, imaOut);
-  } else
-    Image2Mat<unsigned char>(*ima, imaOut);
-}
-
 template<class T>
 void Mat2Image( const cv::Mat &imaIn, Array3D<T> &imaOut ) {
   int k, n, m;
@@ -108,18 +98,6 @@ void Mat2Image( const cv::Mat &imaIn, Array3D<T> &imaOut ) {
 
   // And deep copy just for sure
   imaOut.CopyFrom(array);
-}
-
-static inline Image Mat2Image( const cv::Mat &imaIn) {
-  if (imaIn.depth() == CV_8U) {
-    Array3Du ima;
-    Mat2Image( imaIn, ima );
-    return Image(&ima);
-  } else {
-    Array3Df ima;
-    Mat2Image( imaIn, ima );
-    return Image(&ima);
-  }
 }
 
 } // namespace libmv
