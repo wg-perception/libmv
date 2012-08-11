@@ -296,6 +296,7 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   }
 
   cv::Ptr<cv::FeatureDetector> detector = cv::FeatureDetector::create("FAST");
+  detector->set("threshold", 30);
 
   vector<Feature *> features;
   std::vector<cv::KeyPoint> features_cv;
