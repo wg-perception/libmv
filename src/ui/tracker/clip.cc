@@ -23,6 +23,7 @@
 ****************************************************************************/
 
 #include "ui/tracker/clip.h"
+#include <opencv2/imgproc/imgproc.hpp>
 #include <libmv/image/convolve.h> //LaplaceFilter
 
 #ifdef USE_FFMPEG
@@ -198,6 +199,8 @@ QImage Clip::Image(int i) {
   QImage src=images_[i];
   QImage dst(src.width(), src.height(), QImage::Format_Indexed8);
   //TODO: UI settings for Laplace filter.
-  libmv::LaplaceFilter((unsigned char*)src.constBits(), dst.bits(), src.width(), src.height(), 0);
+  cv::Mat src_cv(src.width(), src.height(), CV_8U, (unsigned char*) src.constBits());
+  cv::Mat dst_cv(src.width(), src.height(), CV_8U, dst.bits());
+  cv::Laplacian(src_cv, dst_cv, CV_8U, 3);
   return dst;
 }
