@@ -22,17 +22,12 @@
 #include <vector>
 #include <cstdio>
 
-#include "libmv/image/image.h"
 #include "libmv/image/image_sequence.h"
 
 namespace libmv {
 
 ImageSequence::~ImageSequence() {}
-Array3Df *ImageSequence::GetFloatImage(int i) {
-  Image *image = GetImage(i);
-  assert(image);
-  return image->AsArray3Df();
-}
+
 ImageCache *ImageSequence::Cache() {
   return NULL;
 }

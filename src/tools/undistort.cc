@@ -45,10 +45,10 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "libmv/image/cached_image_sequence.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/logging/logging.h"
 
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 
   cv::Ptr<ImageSequence> source(ImageSequenceFromFiles(files, &cache));
   for (size_t i = 0; i < files.size(); ++i) {
-    Image2Mat(source->GetFloatImage(i), image);
+    image = source->GetImage(i);
     if (!image.empty())
     {
       cv::Mat_<float> K;

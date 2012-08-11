@@ -21,7 +21,6 @@
 #ifndef LIBMV_IMAGE_CACHED_IMAGE_SEQUENCE_H_
 #define LIBMV_IMAGE_CACHED_IMAGE_SEQUENCE_H_
 
-#include "libmv/image/image.h"
 #include "libmv/image/lru_cache.h"
 #include "libmv/image/image_sequence.h"
 
@@ -33,9 +32,9 @@ typedef std::pair<void *, int> TaggedImageKey;
 
 // A image cache that is shared among many image sequences (or anything that
 // produces images).
-class ImageCache : public LRUCache<TaggedImageKey, Image> {
+class ImageCache : public LRUCache<TaggedImageKey, cv::Mat> {
  public:
-  typedef LRUCache<TaggedImageKey, Image> Base;
+  typedef LRUCache<TaggedImageKey, cv::Mat> Base;
   ImageCache() : Base(10*1024*1024) {}
   ImageCache(int max_cache_size_in_bytes) : Base(max_cache_size_in_bytes) {}
 };
@@ -46,17 +45,17 @@ class CachedImageSequence : public ImageSequence {
   CachedImageSequence(ImageCache *cache)
       : cache_(cache) {}
 
-  virtual Image *GetImage(int i) {
-    Image *image;
+  virtual cv::Mat GetImage(int i) {
+    cv::Mat *image;
     TaggedImageKey cache_key(this, i);
     if (!cache_->FetchAndPin(cache_key, &image)) {
-      image = LoadImage(i);
-      if (!image) {
-        return 0;
+      image = new cv::Mat(LoadImage(i));
+      if (image->empty()) {
+        return cv::Mat();
       }
-      cache_->StoreAndPinSized(cache_key, image, image->MemorySizeInBytes());
+      cache_->StoreAndPinSized(cache_key, image, (image->dataend - image->data)*sizeof(unsigned char));
     }
-    return image;
+    return *image;
   }
 
   virtual void Unpin(int i) {
@@ -70,7 +69,7 @@ class CachedImageSequence : public ImageSequence {
 
   // Subclasses must override these. The cached image sequence will take care
   // of storing the generated
-  virtual Image *LoadImage(int i) = 0;
+  virtual cv::Mat LoadImage(int i) = 0;
 
  private:
   ImageCache *cache_;

@@ -41,8 +41,6 @@
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/matches.h"
 #include "libmv/correspondence/tracker.h"
-#include "libmv/image/image.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/sample.h"
@@ -330,27 +328,26 @@ void BuildMosaic(const std::vector<std::string> &image_files,
   //for (size_t i = 0; i < image_files.size() / 2; ++i)
   //  Hreg = Hreg * Hs[i];
   cv::Scalar lines_color(255,255,255);
-  FloatImage *image = NULL;
+  cv::Mat image;
   ImageCache cache;
   cv::Ptr<ImageSequence> source(ImageSequenceFromFiles(image_files, &cache));
   for (size_t i = 0; i < image_files.size(); ++i) {
     if (i > 0)
       H = Hs[i - 1].inv() * H;
-    image = source->GetFloatImage(i);
-    if (image) {
-      cv::Mat image_cv, image_cv_warp;
-      Image2Mat(image, image_cv);
+    image = source->GetImage(i);
+    if (!image.empty()) {
+      cv::Mat image_warp;
       if (draw_lines)
       {
-        cv::line(image_cv, cv::Point2f(0, 0), cv::Point2f(image_cv.cols - 1, 0), lines_color);
-        cv::line(image_cv, cv::Point2f(0, image_cv.cols - 1), cv::Point2f(image_cv.rows - 1, image_cv.cols - 1),
+        cv::line(image, cv::Point2f(0, 0), cv::Point2f(image.cols - 1, 0), lines_color);
+        cv::line(image, cv::Point2f(0, image.cols - 1), cv::Point2f(image.rows - 1, image.cols - 1),
                  lines_color);
-        cv::line(image_cv, cv::Point2f(image_cv.rows - 1, image_cv.cols - 1), cv::Point2f(image_cv.rows - 1, 0),
+        cv::line(image, cv::Point2f(image.rows - 1, image.cols - 1), cv::Point2f(image.rows - 1, 0),
                  lines_color);
-        cv::line(image_cv, cv::Point2f(image_cv.rows - 1, 0), cv::Point2f(0, 0), lines_color);
+        cv::line(image, cv::Point2f(image.rows - 1, 0), cv::Point2f(0, 0), lines_color);
       }
-      cv::warpPerspective(image_cv, H, image_cv_warp, image_cv.size());
-      mosaic = (1 - blending_ratio) * image_cv + blending_ratio * image_cv_warp;
+      cv::warpPerspective(image, H, image_warp, image.size());
+      mosaic = (1 - blending_ratio) * image + blending_ratio * image_warp;
     }
     source->Unpin(i);
   }

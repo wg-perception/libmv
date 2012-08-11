@@ -21,9 +21,10 @@
 #ifndef LIBMV_IMAGE_IMAGE_SEQUENCE_H_
 #define LIBMV_IMAGE_IMAGE_SEQUENCE_H_
 
+#include <opencv2/core/core.hpp>
+
 namespace libmv {
 
-class Image;
 class ImageCache;
 
 // An image sequence. The image sequence always owns the images.  Callers must
@@ -34,8 +35,7 @@ class ImageSequence {
 
   // Retreive an image from the sequence. The image sequence retains ownership
   // of the image. Callers must Unpin() the image after they are done with it.
-  virtual Image *GetImage(int i) = 0;
-  virtual FloatImage *GetFloatImage(int i);
+  virtual cv::Mat GetImage(int i) = 0;
 
   // Call this after an image is no longer in use, with an index matching that
   // which was retrieved with GetImage() or GetFloatImage().

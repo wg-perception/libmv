@@ -23,35 +23,29 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
-#include "libmv/image/image_converter.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/image_sequence_io.h"
 #include "testing/testing.h"
 
-using libmv::Image;
 using libmv::ImageCache;
 using libmv::ImageSequence;
 using libmv::ImageSequenceFromFiles;
-using libmv::Array3Df;
 using std::string;
 
 namespace {
 
 TEST(ImageSequenceIO, FromFiles) {
-  Array3Df image1(1, 2);
-  Array3Df image2(1, 2);
-  image1(0,0) = 1.f;
-  image1(0,1) = 0.f;
-  image2(0,0) = 0.f;
-  image2(0,1) = 1.f;
+  cv::Mat_<unsigned char> image1(1, 2);
+  cv::Mat_<unsigned char> image2(1, 2);
+  image1(0,0) = 1;
+  image1(0,1) = 0;
+  image2(0,0) = 0;
+  image2(0,1) = 1;
 
   string image1_fn = string(THIS_SOURCE_DIR) + "/1.pgm";
   string image2_fn = string(THIS_SOURCE_DIR) + "/2.pgm";
-  cv::Mat image_cv_1, image_cv_2;
-  libmv::Image2Mat(image1, image_cv_1);
-  libmv::Image2Mat(image2, image_cv_2);
-  cv::imwrite(image1_fn, image_cv_1);
-  cv::imwrite(image2_fn, image_cv_2);
+  cv::imwrite(image1_fn, image1);
+  cv::imwrite(image2_fn, image2);
 
   std::vector<std::string> files;
   files.push_back(image1_fn);
@@ -60,21 +54,21 @@ TEST(ImageSequenceIO, FromFiles) {
   ImageSequence *sequence = ImageSequenceFromFiles(files, &cache);
   EXPECT_EQ(2, sequence->Length());
 
-  Array3Df *image = sequence->GetFloatImage(0);
-  ASSERT_TRUE(image);
-  EXPECT_EQ(2, image->Width());
-  EXPECT_EQ(1, image->Height());
-  EXPECT_EQ(1, image->Depth());
-  EXPECT_EQ((*image)(0,0), 1.f);
-  EXPECT_EQ((*image)(0,1), 0.f);
+  cv::Mat image = sequence->GetImage(0);
+  ASSERT_TRUE(!image.empty());
+  EXPECT_EQ(2, image.cols);
+  EXPECT_EQ(1, image.rows);
+  EXPECT_EQ(1, image.channels());
+  EXPECT_EQ(image.at<uchar>(0,0), 1.f);
+  EXPECT_EQ(image.at<uchar>(0,1), 0.f);
 
-  image = sequence->GetFloatImage(1);
-  ASSERT_TRUE(image);
-  EXPECT_EQ(2, image->Width());
-  EXPECT_EQ(1, image->Height());
-  EXPECT_EQ(1, image->Depth());
-  EXPECT_EQ((*image)(0,0), 0.f);
-  EXPECT_EQ((*image)(0,1), 1.f);
+  image = sequence->GetImage(1);
+  ASSERT_TRUE(!image.empty());
+  EXPECT_EQ(2, image.cols);
+  EXPECT_EQ(1, image.rows);
+  EXPECT_EQ(1, image.channels());
+  EXPECT_EQ(image.at<uchar>(0,0), 0.f);
+  EXPECT_EQ(image.at<uchar>(0,1), 1.f);
 
   sequence->Unpin(0);
   sequence->Unpin(1);
