@@ -23,6 +23,7 @@
 #include <string>
 
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
@@ -30,8 +31,6 @@
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/tracker.h"
 #include "libmv/correspondence/robust_tracker.h"
-#include "libmv/image/array_nd.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/bundle.h"
 #include "libmv/multiview/fundamental.h"

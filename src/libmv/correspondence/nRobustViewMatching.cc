@@ -18,11 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include <opencv2/highgui/highgui.hpp>
+
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/multiview/robust_fundamental.h"
 
 using namespace libmv;

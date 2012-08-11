@@ -27,8 +27,6 @@
 #include "libmv/base/vector.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature_matching.h"
-#include "libmv/image/array_nd.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/fundamental.h"
@@ -282,7 +280,7 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   // Convert to gray-scale.
   // TODO(keir): Make a libmv image <-> QImage interop library inside libmv for
   // easy bidirectional exchange of images between Qt and libmv.
-  Array3Du image(height, width);
+  cv::Mat_<uchar> image(height, width);
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
       // TODO(pau): there are better ways to compute intensity.
@@ -300,17 +298,15 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
   cv::Ptr<cv::FeatureDetector> detector = cv::FeatureDetector::create("FAST");
 
   vector<Feature *> features;
-  cv::Mat im_cv;
-  Image2Mat(image, im_cv);
   std::vector<cv::KeyPoint> features_cv;
-  detector->detect(im_cv, features_cv);
+  detector->detect(image, features_cv);
   features.resize(features_cv.size());
   for(size_t i=0; i < features_cv.size(); ++i)
     features[i] = new libmv::PointFeature(features_cv[i]);
 
   cv::Mat descriptors;
   cv::Ptr<cv::DescriptorExtractor> describer = cv::DescriptorExtractor::create("ORB");
-  describer->compute(im_cv, features_cv, descriptors);
+  describer->compute(image, features_cv, descriptors);
 
   // Copy data.
   fs.features.resize(descriptors.rows);

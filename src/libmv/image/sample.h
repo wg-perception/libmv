@@ -23,18 +23,7 @@
 
 #include <opencv2/core/core.hpp>
 
-#include "array_nd.h"
-
 namespace libmv {
-
-/// Nearest neighbor interpolation.
-template<typename T>
-inline T SampleNearest(const Array3D<T> &image,
-                       float y, float x, int v = 0) {
-  const int i = int(round(y));
-  const int j = int(round(x));
-  return image(i, j, v);
-}
 
 static inline void LinearInitAxis(float fx, int width,
                                   int *x1, int *x2,
@@ -91,29 +80,6 @@ inline T SampleLinear(const cv::Mat_<T> &image, float y, float x) {
 
   return T(dy1 * ( dx1 * im11 + dx2 * im12 ) +
            dy2 * ( dx1 * im21 + dx2 * im22 ));
-}
-
-// Downsample all channels by 2. If the image has odd width or height, the last
-// row or column is ignored.
-// FIXME(MatthiasF): this implementation shouldn't be in an interface file
-inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
-  int height = in.Height() / 2;
-  int width = in.Width() / 2;
-  int depth = in.Depth();
-
-  out->Resize(height, width, depth);
-
-  // 2x2 box filter downsampling.
-  for (int r = 0; r < height; ++r) {
-    for (int c = 0; c < width; ++c) {
-      for (int k = 0; k < depth; ++k) {
-        (*out)(r, c, k) = (in(2 * r,     2 * c,     k) +
-                           in(2 * r + 1, 2 * c,     k) +
-                           in(2 * r,     2 * c + 1, k) +
-                           in(2 * r + 1, 2 * c + 1, k)) / 4.0f;
-      }
-    }
-  }
 }
 
 // Sample a region centered at x,y in image with size extending by half_width

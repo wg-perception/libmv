@@ -31,7 +31,6 @@
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
 #include "libmv/correspondence/nRobustViewMatching.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/tools/tool.h"
 
 using namespace libmv;

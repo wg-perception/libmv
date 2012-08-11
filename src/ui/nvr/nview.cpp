@@ -6,12 +6,12 @@
 #include <QMessageBox>
 #include <QLabel>
 
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/import_matches_txt.h"
 #include "libmv/correspondence/robust_tracker.h"
-#include "libmv/image/image_converter.h"
 #include "libmv/logging/logging.h"
 #include "libmv/reconstruction/euclidean_reconstruction.h"
 #include "libmv/reconstruction/export_blender.h"

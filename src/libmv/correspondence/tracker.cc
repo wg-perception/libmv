@@ -21,7 +21,6 @@
 #include "tracker.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature.h"
-#include "libmv/image/image_converter.h"
 
 using namespace libmv;
 using namespace tracker;
