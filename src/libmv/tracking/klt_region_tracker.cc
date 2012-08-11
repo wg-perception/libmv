@@ -20,7 +20,6 @@
 
 #include "libmv/logging/logging.h"
 #include "libmv/tracking/klt_region_tracker.h"
-#include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
 
 namespace libmv {

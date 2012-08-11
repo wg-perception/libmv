@@ -42,7 +42,6 @@
 #include <cstdlib>
 #endif
 
-#include "libmv/image/convolve.h"
 #include "libmv/image/correlation.h"
 #include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"

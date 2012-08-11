@@ -24,7 +24,6 @@
 #include "libmv/tracking/esm_region_tracker.h"
 
 #include "libmv/logging/logging.h"
-#include "libmv/image/convolve.h"
 #include "libmv/image/correlation.h"
 #include "libmv/image/sample.h"
 #include "libmv/numeric/numeric.h"

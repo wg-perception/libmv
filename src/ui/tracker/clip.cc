@@ -24,7 +24,6 @@
 
 #include "ui/tracker/clip.h"
 #include <opencv2/imgproc/imgproc.hpp>
-#include <libmv/image/convolve.h> //LaplaceFilter
 
 #ifdef USE_FFMPEG
 extern "C" {

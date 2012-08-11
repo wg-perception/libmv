@@ -27,8 +27,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "libmv/numeric/numeric.h"
-#include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
+#include "libmv/tracking/region_tracker.h"
 
 namespace libmv {
 

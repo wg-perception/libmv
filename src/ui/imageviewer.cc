@@ -53,24 +53,7 @@ void ImageViewer::open()
           tr("Cannot load %1.").arg(fileName));
       return;
     }
-    mv_image.convertTo(mv_image_float, CV_32F);
-    libmv::FloatImage float_mv_image;
-    Mat2Image(mv_image_float, float_mv_image);
-    libmv::FloatImage blurred_mv_image;
-    libmv::Vec gauss, dgauss;
-    libmv::ComputeGaussianKernel(5, &gauss, &dgauss);
-    libmv::ConvolveHorizontal(float_mv_image,
-                              gauss,
-                              &blurred_mv_image);
-//    libmv::ConvolveVertical(blurred_mv_image,
-//                              gauss,
-//                              &float_mv_image);
-//    libmv::ConvolveVertical(float_mv_image,
-//                              gauss,
-//                              &blurred_mv_image);
-//    mv_image.CopyFrom(blurred_mv_image);
-    libmv::FloatArrayToScaledByteArray(blurred_mv_image, &mv_image);
-//    mv_image.CopyFrom(float_mv_image);
+    cv::GaussianBlur(mv_image, mv_image, 5, 0, 0);
 
     printf("w=%d,h=%d,d=%d\n", mv_image.cols, mv_image.rows,
                  mv_image.depth());

@@ -22,7 +22,6 @@
 
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
-#include "libmv/image/convolve.h"
 #include "libmv/image/sample.h"
 
 namespace libmv {

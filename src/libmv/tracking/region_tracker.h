@@ -22,6 +22,7 @@
 #define LIBMV_TRACKING_TRACKER_H_
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 namespace libmv {
 
@@ -42,6 +43,22 @@ class RegionTracker {
                      double  x1, double  y1,
                      double *x2, double *y2) const = 0;
 };
+
+// Compute the gaussian blur of an image and the derivatives of the blurred
+// image, and store the results in three channels. Since the blurred value and
+// gradients are closer in memory, this leads to better performance if all
+// three values are needed at the same time.
+inline void BlurredImageAndDerivativesChannels(const cv::Mat &in,
+                                        cv::Mat_<cv::Vec3f> &blurred_and_gradxy) {
+  CV_Assert(in.channels() == 1);
+
+  std::vector<cv::Mat> channels(3);
+  cv::GaussianBlur(in, channels[0], cv::Size(5,5), 0, 0);
+  cv::Sobel(channels[0], channels[1], CV_32F, 1, 0, 3, 1.0/(1 << (3*2-1-0-2)));
+  cv::Sobel(channels[0], channels[2], CV_32F, 0, 1, 3, 1.0/(1 << (3*2-0-1-2)));
+
+  cv::merge(channels, blurred_and_gradxy);
+}
 
 }  // namespace libmv
 
