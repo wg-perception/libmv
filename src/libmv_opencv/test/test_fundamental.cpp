@@ -61,7 +61,8 @@ TEST(Sfm_fundamental, fundamentalFromProjections)
     EXPECT_LE( norm(F_gt, F), 1e-6 );
 }
 
-TEST(Sfm_fundamental, normalizedEightPointSolver) {
+TEST(Sfm_fundamental, normalizedEightPointSolver)
+{
     int nviews = 2;
     int npoints = 8;
     bool is_projective = true;
@@ -97,37 +98,40 @@ TEST(Sfm_fundamental8Point, correctness)
 
 }
 
-TEST(Sfm_fundamental, motionFromEssential) {
+TEST(Sfm_fundamental, motionFromEssential)
+{
 
-	cvtest::TwoViewDataSet data;
-	double tol=1e-9;
+    cvtest::TwoViewDataSet data;
+    double tol = 1e-9;
 
 //	   generateTwoViewRandomScene( data, CV_32F );
-	generateTwoViewRandomScene( data, CV_64F );
+    generateTwoViewRandomScene( data, CV_64F );
 
-	vector<Mat> Rs, ts;
-	Mat E;
-	essentialFromFundamental(data.F,data.K1,data.K2, E);
+    vector<Mat> Rs, ts;
+    Mat E;
+    essentialFromFundamental( data.F, data.K1, data.K2, E );
 
-	motionFromEssential(E,Rs,ts);
+    motionFromEssential( E, Rs, ts );
 
-	EXPECT_MATRIX_NEAR(data.R1, Rs[0], tol);
-EXPECT_MATRIX_NEAR(data.R2, Rs[1], tol);
-EXPECT_MATRIX_NEAR( data.t1, ts[0], tol);
-EXPECT_MATRIX_NEAR(data.t2, ts[1], tol);
+//     EXPECT_MATRIX_NEAR(data.R1, Rs[0], tol);
+//     EXPECT_MATRIX_NEAR(data.R2, Rs[1], tol);
+//     EXPECT_MATRIX_NEAR(data.t1, ts[0], tol);
+//     EXPECT_MATRIX_NEAR(data.t2, ts[1], tol);
+    FAIL();
 }
 
 // Combined test for fundamentalFromEssential and essentialFromFundamental
-TEST(Sfm_fundamental, fundamentalFromEssential) {
-	cvtest::TwoViewDataSet data;
-double tol=1e-9;
+TEST(Sfm_fundamental, fundamentalFromEssential)
+{
+    cvtest::TwoViewDataSet data;
+    double tol = 1e-9;
 
-//	   generateTwoViewRandomScene( data, CV_32F );
-	generateTwoViewRandomScene( data, CV_64F );
+    //	   generateTwoViewRandomScene( data, CV_32F );
+    generateTwoViewRandomScene( data, CV_64F );
 
-	Mat F,E;
-essentialFromFundamental(data.F,data.K1,data.K2,E);
-	fundamentalFromEssential(E,ata.K1,data.K2,F);
-	EXPECT_MATRIX_NEAR(data.F, F, tol);
+    Mat F, E;
+    essentialFromFundamental( data.F, data.K1, data.K2, E );
+    fundamentalFromEssential( E, data.K1, data.K2, F );
+//     EXPECT_MATRIX_NEAR(data.F, F, tol);
+    FAIL();
 }
-
