@@ -96,3 +96,38 @@ TEST(Sfm_fundamental8Point, correctness)
 {
 
 }
+
+TEST(Sfm_fundamental, motionFromEssential) {
+
+	cvtest::TwoViewDataSet data;
+	double tol=1e-9;
+
+//	   generateTwoViewRandomScene( data, CV_32F );
+	generateTwoViewRandomScene( data, CV_64F );
+
+	vector<Mat> Rs, ts;
+	Mat E;
+	essentialFromFundamental(data.F,data.K1,data.K2, E);
+
+	motionFromEssential(E,Rs,ts);
+
+	EXPECT_MATRIX_NEAR(data.R1, Rs[0], tol);
+EXPECT_MATRIX_NEAR(data.R2, Rs[1], tol);
+EXPECT_MATRIX_NEAR( data.t1, ts[0], tol);
+EXPECT_MATRIX_NEAR(data.t2, ts[1], tol);
+}
+
+// Combined test for fundamentalFromEssential and essentialFromFundamental
+TEST(Sfm_fundamental, fundamentalFromEssential) {
+	cvtest::TwoViewDataSet data;
+double tol=1e-9;
+
+//	   generateTwoViewRandomScene( data, CV_32F );
+	generateTwoViewRandomScene( data, CV_64F );
+
+	Mat F,E;
+essentialFromFundamental(data.F,data.K1,data.K2,E);
+	fundamentalFromEssential(E,ata.K1,data.K2,F);
+	EXPECT_MATRIX_NEAR(data.F, F, tol);
+}
+
