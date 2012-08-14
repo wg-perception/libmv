@@ -39,6 +39,19 @@ do { \
 namespace cvtest
 {
 
+struct TwoViewDataSet {
+    Mat K1, K2;      // Internal parameters
+    Mat R1, R2;      // Rotation
+    Mat t1, t2;      // Translation
+    Mat P1, P2;      // Projection matrix, P = K(R|t)
+    Mat F;           // Fundamental matrix
+    Mat X;           // 3D points
+    Mat x1, x2;      // Projected points
+};
+
+void generateTwoViewRandomScene( TwoViewDataSet &data, int depth =CV_64F );
+
+
 /**
 * 2D tracked points
 * -----------------
