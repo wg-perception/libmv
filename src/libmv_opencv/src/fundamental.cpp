@@ -41,151 +41,165 @@
 
 #include <iostream>
 
-namespace cv
-{
+namespace cv {
 
 template<typename T>
-void
-projectionsFromFundamental( const Mat &_F, Mat &_P1, Mat &_P2 )
-{
-    libmv::Mat3 F;
-    libmv::Mat34 P1, P2;
+void projectionsFromFundamental(const Mat &_F, Mat &_P1, Mat &_P2) {
+	libmv::Mat3 F;
+	libmv::Mat34 P1, P2;
 
-    cv2eigen( _F, F );
+	cv2eigen(_F, F);
 
-    libmv::ProjectionsFromFundamental( F, &P1, &P2 );
+	libmv::ProjectionsFromFundamental(F, &P1, &P2);
 
-    eigen2cv( P1, _P1 );
-    eigen2cv( P2, _P2 );
+	eigen2cv(P1, _P1);
+	eigen2cv(P2, _P2);
 }
 
-void
-projectionsFromFundamental( const Mat &F, Mat &P1, Mat &P2 )
-{
-    int depth = F.depth();
+void projectionsFromFundamental(const Mat &F, Mat &P1, Mat &P2) {
+	int depth = F.depth();
 
-    if( depth == CV_32F )
-    {
+	if (depth == CV_32F) {
 //         projectionsFromFundamental<float>( F, P1, P2 );
-        std::cerr << "Function projectionsFromFundamental not handled for float" <<std::endl;
-    }
-    else
-    {
-        projectionsFromFundamental<double>( F, P1, P2 );
-    }
+		std::cerr << "Function projectionsFromFundamental not handled for float"
+				<< std::endl;
+	} else {
+		projectionsFromFundamental<double>(F, P1, P2);
+	}
 }
 
 template<typename T>
-void
-fundamentalFromProjections( const Mat &_P1,
-                            const Mat &_P2,
-                            Mat &_F )
-{
-    libmv::Mat34 P1, P2;
-    libmv::Mat3 F;
+void fundamentalFromProjections(const Mat &_P1, const Mat &_P2, Mat &_F) {
+	libmv::Mat34 P1, P2;
+	libmv::Mat3 F;
 
-    cv2eigen( _P1, P1 );
-    cv2eigen( _P2, P2 );
+	cv2eigen(_P1, P1);
+	cv2eigen(_P2, P2);
 
-    libmv::FundamentalFromProjections( P1, P2, &F );
+	libmv::FundamentalFromProjections(P1, P2, &F);
 
-    eigen2cv( F, _F );
+	eigen2cv(F, _F);
 }
 
-void
-fundamentalFromProjections( const Mat &P1,
-                            const Mat &P2,
-                            Mat &F )
-{
-    int depth = P1.depth();
-    CV_Assert( depth == P2.depth() );
+void fundamentalFromProjections(const Mat &P1, const Mat &P2, Mat &F) {
+	int depth = P1.depth();
+	CV_Assert(depth == P2.depth());
 
-    if( depth == CV_32F )
-    {
-        // fundamentalFromProjections<float>( P1, P2, F );
-        std::cerr << "Function fundamentalFromProjections not handled for float" << std::endl;
-    }
-    else
-    {
-        fundamentalFromProjections<double>( P1, P2, F );
-    }
+	if (depth == CV_32F) {
+		// fundamentalFromProjections<float>( P1, P2, F );
+		std::cerr << "Function fundamentalFromProjections not handled for float"
+				<< std::endl;
+	} else {
+		fundamentalFromProjections<double>(P1, P2, F);
+	}
 }
 
 template<typename T>
-void
-normalizedEightPointSolver( const Mat &_x1,
-                            const Mat &_x2,
-                            Mat &_F )
-{
-    libmv::Mat x1, x2;
-    libmv::Mat3 F;
+void normalizedEightPointSolver(const Mat &_x1, const Mat &_x2, Mat &_F) {
+	libmv::Mat x1, x2;
+	libmv::Mat3 F;
 
-    cv2eigen( _x1, x1 );
-    cv2eigen( _x2, x2 );
+	cv2eigen(_x1, x1);
+	cv2eigen(_x2, x2);
 
-    libmv::NormalizedEightPointSolver( x1, x2, &F );
+	libmv::NormalizedEightPointSolver(x1, x2, &F);
 
-    eigen2cv( F, _F );
+	eigen2cv(F, _F);
 }
 
-void
-normalizedEightPointSolver(const Mat &x1,
-                           const Mat &x2,
-                           Mat &F)
-{
-    int depth = x1.depth();
-    CV_Assert( depth == x2.depth() );
+void normalizedEightPointSolver(const Mat &x1, const Mat &x2, Mat &F) {
+	int depth = x1.depth();
+	CV_Assert(depth == x2.depth());
 
-    if( depth == CV_32F )
-    {
+	if (depth == CV_32F) {
 //         normalizedEightPointSolver<float>( x1, x2, F );
-        std::cerr << "Function normalizedEightPointSolver not handled for float" <<std::endl;
-    }
-    else
-    {
-        normalizedEightPointSolver<double>( x1, x2, F );
-    }
+		std::cerr << "Function normalizedEightPointSolver not handled for float"
+				<< std::endl;
+	} else {
+		normalizedEightPointSolver<double>(x1, x2, F);
+	}
 }
 
+void fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F,
+		bool has_outliers) {
+	double max_error = 0.1;
 
+	cv::Mat F(3, 3, CV_64F), T1(3, 3, CV_64F), T2(3, 3, CV_64F);
+	cv::Mat x1, x2;
+	x1 = _x1.getMat();
+	x2 = _x2.getMat();
 
-void
-fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outliers)
-{
-    double max_error = 0.1;
+	// Need at least 8 pts
+	CV_Assert(x1.cols >= 8 && x1.cols == x2.cols);
+	CV_Assert(x1.depth() == x2.depth());
+	int depth = x1.depth();
 
-    cv::Mat F(3, 3, CV_64F), T1(3, 3, CV_64F), T2(3, 3, CV_64F);
-    cv::Mat x1, x2;
-    x1 = _x1.getMat();
-    x2 = _x2.getMat();
-
-    // Need at least 8 pts
-    CV_Assert(x1.cols >= 8 && x1.cols == x2.cols);
-    CV_Assert(x1.depth() == x2.depth());
-    int depth = x1.depth();
-
-    // Normalize points
+	// Normalize points
 //     normalizeIsotropicPoints(x1, x1, T1);
 //     normalizeIsotropicPoints(x2, x2, T2);
 
-    // Compute fundamental matrix
-    libmv::vector<int> inliers;
-    libmv::Mat x1_, x2_;
-    libmv::Mat3 F_;
-    cv2eigen(x1, x1_);
-    cv2eigen(x2, x2_);
+// Compute fundamental matrix
+	libmv::vector<int> inliers;
+	libmv::Mat x1_, x2_;
+	libmv::Mat3 F_;
+	cv2eigen(x1, x1_);
+	cv2eigen(x2, x2_);
 
-    if (has_outliers)
-      FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_, &inliers);
-    else
-      libmv::NormalizedEightPointSolver(x1_, x2_, &F_);
-    eigen2cv(F_, F);
+	if (has_outliers)
+		FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_,
+				&inliers);
+	else
+		libmv::NormalizedEightPointSolver(x1_, x2_, &F_);
+	eigen2cv(F_, F);
 
-    // Denormalized
+	// Denormalized
 //     F = T2.t() * F * T1;
 
-    // Pack output
-    F.convertTo(_F.getMatRef(), depth);
+// Pack output
+	F.convertTo(_F.getMatRef(), depth);
 }
 
-} /* namespace cv */
+// MotionFromEssential
+
+template<typename T>
+void motionFromEssential(const Mat &_E, std::vector<Mat> &_Rs,
+		std::vector<Mat> &_ts) {
+
+	libmv::Mat3 E;
+	std::vector<libmv::Mat3> Rs;
+	std::vector<libmv::Vec3> ts;
+
+	cv2eigen(_E, E);
+
+	libmv::MotionFromEssential(E, &Rs, &ts);
+
+	_Rs.clear();
+	_ts.clear();
+
+	int n = Rs.size();
+	CV_Assert(ts.size() == n);
+	Mat R_temp, t_temp;
+
+	for (int i = 0; i < n; ++i) {
+		eigen2cv(Rs[i], R_temp);
+		_Rs.push_back(R_temp);
+
+		eigen2cv(ts[i], t_temp);
+		_ts.push_back(t_temp);
+	}
+
+}
+void motionFromEssential(const Mat &E, std::vector<Mat> &Rs,
+		std::vector<Mat> &ts) {
+	int depth = E.depth();
+	if (depth == CV_32F) {
+		// motionFromEssential<float>( E, Rs, ts );
+		std::cerr << "Function motionFromEssential not handled for float"
+				<< std::endl;
+	} else {
+		motionFromEssential<double>(E, Rs, ts);
+	}
+}
+
+}
+/* namespace cv */
