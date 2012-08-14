@@ -72,6 +72,23 @@ CV_EXPORTS
 void
 motionFromEssential(const Mat &E, std::vector<Mat> &Rs, std::vector<Mat> &ts);
 
+/** Get Essential matrix from Fundamental and Camera matrices
+ *  HZ 9.6 pag 257 (formula 9.12)
+ *  Or http://ai.stanford.edu/~birch/projective/node20.html
+ */
+CV_EXPORTS
+void
+fundamentalFromEssential(const Mat &E, const Mat &K1, const Mat &K2, Mat &F);
+
+/** Get Essential matrix from Fundamental and Camera matrices
+ *  HZ 9.6 pag 257 (formula 9.12)
+ */
+CV_EXPORTS
+void
+essentialFromFundamental(const Mat &F, const Mat &K1, const Mat &K2, Mat &E);
+
+} /* namespace cv */
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
