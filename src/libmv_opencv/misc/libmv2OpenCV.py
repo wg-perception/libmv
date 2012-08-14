@@ -26,7 +26,7 @@ func2 = func[0].lower() + func[1:]
 arguments = "( "
 n = len(input)
 spaces = ' ' * len(func)
-for i in xrange(n):
+for i in range(n):
     arguments += "const Mat &" + input[i]
     if i < n-1:
         arguments += ",\n  " + spaces
@@ -34,7 +34,7 @@ for i in xrange(n):
 n = len(output)
 if n > 0:
     arguments += ",\n  " + spaces
-    for i in xrange(n):
+    for i in range(n):
         arguments += "Mat &" + output[i]
         if i < n-1:
             arguments += ",\n  " + spaces
@@ -46,7 +46,7 @@ arguments01 = arguments
 
 arguments = "( "
 n = len(input)
-for i in xrange(n):
+for i in range(n):
     arguments += "const Mat &_" + input[i]
     if i < n-1:
         arguments += ",\n  " + spaces
@@ -54,7 +54,7 @@ for i in xrange(n):
 n = len(output)
 if n > 0:
     arguments += ",\n  " + spaces
-    for i in xrange(n):
+    for i in range(n):
         arguments += "Mat &_" + output[i]
         if i < n-1:
             arguments += ",\n  " + spaces
@@ -90,14 +90,14 @@ for key in d.keys():
 # cv2eigen
 cv2eigen = ""
 n = len(input)
-for i in xrange(n):
+for i in range(n):
     cv2eigen += "    cv2eigen( _" + input[i] + ", " + input[i]+ " );\n"
 #print cv2eigen
 
 # eigen2cv
 eigen2cv = ""
 n = len(output)
-for i in xrange(n):
+for i in range(n):
     eigen2cv += "    eigen2cv( " + output[i] + ", _" + output[i]+ " );\n"
 #print eigen2cv
 
@@ -107,7 +107,7 @@ for i in xrange(n):
 # call function
 call_func ="    libmv::" + func + "( "
 n = len(input)
-for i in xrange(n):
+for i in range(n):
     call_func += input[i]
     if i < n-1:
         call_func += ", "
@@ -116,7 +116,7 @@ for i in xrange(n):
 n = len(output)
 if n > 0:
     call_func += ", "
-for i in xrange(n):
+for i in range(n):
     call_func += "&" + output[i]
     if i < n-1:
         call_func += ", "
@@ -131,7 +131,7 @@ depth = "    int depth = " + input[0] +".depth();"
 n = len(input)
 if n > 1:
     depth += "\n    CV_Assert("
-    for i in xrange(1,n):
+    for i in range(1,n):
         depth += " depth == " + input[i] + ".depth()"
         if i < n-1:
             depth += " &&"
@@ -143,7 +143,7 @@ if n > 1:
 # list of arguments (caller function)
 arguments = "( "
 n = len(input)
-for i in xrange(n):
+for i in range(n):
     arguments += input[i]
     if i < n-1:
         arguments += ", "
@@ -151,7 +151,7 @@ for i in xrange(n):
 n = len(output)
 if n > 0:
     arguments += ", "    
-    for i in xrange(n):
+    for i in range(n):
         arguments += output[i]
         if i < n-1:
             arguments += ", "
@@ -177,12 +177,12 @@ RESET    = CSI+"0m"
 # ===========================
 
 
-print "\n" + GREEN + "Wrapper (in .cpp)\n===============\n" + RESET
+print( "\n" + GREEN + "Wrapper (in .cpp)\n===============\n" + RESET )
 
 wrapper_func  = "template<typename T>\nvoid\n" + GREEN + func2 + RESET + arguments02
 wrapper_func += "\n{\n" + types + "\n" + cv2eigen + "\n"
 wrapper_func += YELLOW + call_func + RESET + "\n" + eigen2cv + "}\n"
-print wrapper_func
+print( wrapper_func )
 
 api_func = "void\n" + GREEN + func2 + RESET + arguments01 + "\n{\n" + depth
 api_func += "\n    if( depth == CV_32F )\n    {\n"
@@ -193,13 +193,13 @@ api_func += "    else\n    {\n"
 api_func += "    " + "    " + func2 + "<" + RED + "double" + RESET + ">" + arguments + ";"
 api_func += "\n    }\n"
 api_func += "}\n"
-print api_func
+print( api_func )
 
 
 
 
-print "\n\n" + CYAN + "Prototype (in .hpp)\n===================\n" + RESET
+print( "\n\n" + CYAN + "Prototype (in .hpp)\n===================\n" + RESET )
 
 prototype = RED + "CV_EXPORTS\n" + RESET
 prototype += "void\n" +  CYAN + func2 + RESET + arguments01 + ";\n"
-print prototype
+print( prototype )
