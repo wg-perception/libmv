@@ -191,6 +191,52 @@ fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outli
 }
 
 
+template<typename T>
+void
+relativeCameraMotion( const Mat &_R1,
+                      const Mat &_t1,
+                      const Mat &_R2,
+                      const Mat &_t2,
+                      Mat &_R,
+                      Mat &_t )
+{
+    libmv::Mat3 R1, R2, R;
+    libmv::Vec3 t1, t2, t;
+
+    cv2eigen( _R1, R1 );
+    cv2eigen( _t1, t1 );
+    cv2eigen( _R2, R2 );
+    cv2eigen( _t2, t2 );
+
+    libmv::RelativeCameraMotion( R1, t1, R2, t2, &R, &t );
+
+    eigen2cv( R, _R );
+    eigen2cv( t, _t );
+}
+
+void
+relativeCameraMotion( const Mat &R1,
+                      const Mat &t1,
+                      const Mat &R2,
+                      const Mat &t2,
+                      Mat &R,
+                      Mat &t )
+{
+    int depth = R1.depth();
+    CV_Assert( depth == t1.depth() && depth == R2.depth() && depth == t2.depth() );
+
+    if( depth == CV_32F )
+    {
+        // relativeCameraMotion<float>( R1, t1, R2, t2, R, t );
+        std::cerr << "Function relativeCameraMotion not handled for float" << std::endl;
+    }
+    else
+    {
+        relativeCameraMotion<double>( R1, t1, R2, t2, R, t );
+    }
+}
+
+
 // MotionFromEssential
 template<typename T>
 void motionFromEssential( const Mat &_E, vector<Mat> &_Rs, vector<Mat> &_ts )
