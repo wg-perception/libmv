@@ -65,6 +65,23 @@ normalizedEightPointSolver( const cv::Mat &x1,
                             const cv::Mat &x2,
                             cv::Mat &F );
 
+/**
+ * Compute the relative camera motion between two cameras.
+ *
+ * Given the motion parameters of two cameras, computes the motion parameters
+ * of the second one assuming the first one to be at the origin.
+ * If T1 and T2 are the camera motions, the computed relative motion is
+ *    T = T2 T1^{-1}
+ */
+CV_EXPORTS
+void
+relativeCameraMotion( const Mat &R1,
+                      const Mat &t1,
+                      const Mat &R2,
+                      const Mat &t2,
+                      Mat &R,
+                      Mat &t );
+
 /** Get Motion (R's and t's ) from Essential matrix.
  *  HZ 9.6 pag 259 (Result 9.19)
  */
