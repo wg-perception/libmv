@@ -87,7 +87,7 @@ relativeCameraMotion( const Mat &R1,
  */
 CV_EXPORTS
 void
-motionFromEssential(const Mat &E, std::vector<Mat> &Rs, std::vector<Mat> &ts);
+motionFromEssential(const Mat &E, vector<Mat> &Rs, vector<Mat> &ts);
 
 /** Get Essential matrix from Fundamental and Camera matrices
  *  HZ 9.6 pag 257 (formula 9.12)
@@ -103,8 +103,6 @@ fundamentalFromEssential(const Mat &E, const Mat &K1, const Mat &K2, Mat &F);
 CV_EXPORTS
 void
 essentialFromFundamental(const Mat &F, const Mat &K1, const Mat &K2, Mat &E);
-
-} /* namespace cv */
 
 } /* namespace cv */
 
