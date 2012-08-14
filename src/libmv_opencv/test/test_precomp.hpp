@@ -58,38 +58,39 @@ do { \
 namespace cvtest
 {
 
-struct TwoViewDataSet {
-    Mat K1, K2;      // Internal parameters
-    Mat R1, R2;      // Rotation
-    Mat t1, t2;      // Translation
-    Mat P1, P2;      // Projection matrix, P = K(R|t)
-    Mat F;           // Fundamental matrix
-    Mat X;           // 3D points
-    Mat x1, x2;      // Projected points
-};
+  struct TwoViewDataSet
+  {
+    Mat K1, K2; // Internal parameters
+    Mat R1, R2; // Rotation
+    Mat t1, t2; // Translation
+    Mat P1, P2; // Projection matrix, P = K(R|t)
+    Mat F; // Fundamental matrix
+    Mat X; // 3D points
+    Mat x1, x2; // Projected points
+  };
 
-void generateTwoViewRandomScene( TwoViewDataSet &data, int depth =CV_64F );
+  void
+  generateTwoViewRandomScene(TwoViewDataSet &data, int depth = CV_64F);
 
-
-/**
-* 2D tracked points
-* -----------------
-*
-* The format is:
-*
-* row1 : x1 y1 x2 y2 ... x36 y36 for track 1
-* row2 : x1 y1 x2 y2 ... x36 y36 for track 2
-* etc
-*
-* i.e. a row gives the 2D measured position of a point as it is tracked
-* through frames 1 to 36.  If there is no match found in a view then x
-* and y are -1.
-*
-* Each row corresponds to a different point.
-*
-*/
-void
-parser_2D_tracks( const string &filename, libmv::Tracks &tracks );
+  /**
+   * 2D tracked points
+   * -----------------
+   *
+   * The format is:
+   *
+   * row1 : x1 y1 x2 y2 ... x36 y36 for track 1
+   * row2 : x1 y1 x2 y2 ... x36 y36 for track 2
+   * etc
+   *
+   * i.e. a row gives the 2D measured position of a point as it is tracked
+   * through frames 1 to 36.  If there is no match found in a view then x
+   * and y are -1.
+   *
+   * Each row corresponds to a different point.
+   *
+   */
+  void
+  parser_2D_tracks(const string &filename, libmv::Tracks &tracks);
 
 } // namespace cvtest
 

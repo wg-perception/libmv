@@ -46,114 +46,104 @@ using namespace std;
 namespace cv
 {
 
-template<typename T>
-void
-projectionsFromFundamental( const Mat &_F, Mat &_P1, Mat &_P2 )
-{
+  template<typename T>
+  void
+  projectionsFromFundamental(const Mat &_F, Mat &_P1, Mat &_P2)
+  {
     libmv::Mat3 F;
     libmv::Mat34 P1, P2;
 
-    cv2eigen( _F, F );
+    cv2eigen(_F, F);
 
-    libmv::ProjectionsFromFundamental( F, &P1, &P2 );
+    libmv::ProjectionsFromFundamental(F, &P1, &P2);
 
-    eigen2cv( P1, _P1 );
-    eigen2cv( P2, _P2 );
-}
+    eigen2cv(P1, _P1);
+    eigen2cv(P2, _P2);
+  }
 
-void
-projectionsFromFundamental( const Mat &F, Mat &P1, Mat &P2 )
-{
+  void
+  projectionsFromFundamental(const Mat &F, Mat &P1, Mat &P2)
+  {
     int depth = F.depth();
 
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
 //         projectionsFromFundamental<float>( F, P1, P2 );
-        cerr << "Function projectionsFromFundamental not handled for float" <<endl;
+      cerr << "Function projectionsFromFundamental not handled for float" << endl;
     }
     else
     {
-        projectionsFromFundamental<double>( F, P1, P2 );
+      projectionsFromFundamental<double>(F, P1, P2);
     }
-}
+  }
 
-template<typename T>
-void
-fundamentalFromProjections( const Mat &_P1,
-                            const Mat &_P2,
-                            Mat &_F )
-{
+  template<typename T>
+  void
+  fundamentalFromProjections(const Mat &_P1, const Mat &_P2, Mat &_F)
+  {
     libmv::Mat34 P1, P2;
     libmv::Mat3 F;
 
-    cv2eigen( _P1, P1 );
-    cv2eigen( _P2, P2 );
+    cv2eigen(_P1, P1);
+    cv2eigen(_P2, P2);
 
-    libmv::FundamentalFromProjections( P1, P2, &F );
+    libmv::FundamentalFromProjections(P1, P2, &F);
 
-    eigen2cv( F, _F );
-}
+    eigen2cv(F, _F);
+  }
 
-void
-fundamentalFromProjections( const Mat &P1,
-                            const Mat &P2,
-                            Mat &F )
-{
+  void
+  fundamentalFromProjections(const Mat &P1, const Mat &P2, Mat &F)
+  {
     int depth = P1.depth();
-    CV_Assert( depth == P2.depth() );
+    CV_Assert( depth == P2.depth());
 
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
-        // fundamentalFromProjections<float>( P1, P2, F );
-        cerr << "Function fundamentalFromProjections not handled for float" << endl;
+      // fundamentalFromProjections<float>( P1, P2, F );
+      cerr << "Function fundamentalFromProjections not handled for float" << endl;
     }
     else
     {
-        fundamentalFromProjections<double>( P1, P2, F );
+      fundamentalFromProjections<double>(P1, P2, F);
     }
-}
+  }
 
-template<typename T>
-void
-normalizedEightPointSolver( const Mat &_x1,
-                            const Mat &_x2,
-                            Mat &_F )
-{
+  template<typename T>
+  void
+  normalizedEightPointSolver(const Mat &_x1, const Mat &_x2, Mat &_F)
+  {
     libmv::Mat x1, x2;
     libmv::Mat3 F;
 
-    cv2eigen( _x1, x1 );
-    cv2eigen( _x2, x2 );
+    cv2eigen(_x1, x1);
+    cv2eigen(_x2, x2);
 
-    libmv::NormalizedEightPointSolver( x1, x2, &F );
+    libmv::NormalizedEightPointSolver(x1, x2, &F);
 
-    eigen2cv( F, _F );
-}
+    eigen2cv(F, _F);
+  }
 
-void
-normalizedEightPointSolver(const Mat &x1,
-                           const Mat &x2,
-                           Mat &F)
-{
+  void
+  normalizedEightPointSolver(const Mat &x1, const Mat &x2, Mat &F)
+  {
     int depth = x1.depth();
-    CV_Assert( depth == x2.depth() );
+    CV_Assert( depth == x2.depth());
 
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
 //         normalizedEightPointSolver<float>( x1, x2, F );
-        cerr << "Function normalizedEightPointSolver not handled for float" <<endl;
+      cerr << "Function normalizedEightPointSolver not handled for float" << endl;
     }
     else
     {
-        normalizedEightPointSolver<double>( x1, x2, F );
+      normalizedEightPointSolver<double>(x1, x2, F);
     }
-}
+  }
 
-
-
-void
-fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outliers)
-{
+  void
+  fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outliers)
+  {
     double max_error = 0.1;
 
     cv::Mat F(3, 3, CV_64F), T1(3, 3, CV_64F), T2(3, 3, CV_64F);
@@ -170,7 +160,7 @@ fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outli
 //     normalizeIsotropicPoints(x1, x1, T1);
 //     normalizeIsotropicPoints(x2, x2, T2);
 
-    // Compute fundamental matrix
+// Compute fundamental matrix
     libmv::vector<int> inliers;
     libmv::Mat x1_, x2_;
     libmv::Mat3 F_;
@@ -186,165 +176,153 @@ fundamental8Point(InputArray _x1, InputArray _x2, OutputArray _F, bool has_outli
     // Denormalized
 //     F = T2.t() * F * T1;
 
-    // Pack output
+// Pack output
     F.convertTo(_F.getMatRef(), depth);
-}
+  }
 
-
-template<typename T>
-void
-relativeCameraMotion( const Mat &_R1,
-                      const Mat &_t1,
-                      const Mat &_R2,
-                      const Mat &_t2,
-                      Mat &R,
-                      Mat &t )
-{
-    Mat_<T> R1(3,3), R2(3,3);
-    Mat_<T> t1(3,1), t2(3,1);
+  template<typename T>
+  void
+  relativeCameraMotion(const Mat &_R1, const Mat &_t1, const Mat &_R2, const Mat &_t2, Mat &R, Mat &t)
+  {
+    Mat_<T> R1(3, 3), R2(3, 3);
+    Mat_<T> t1(3, 1), t2(3, 1);
 
     R1 = _R1;
     R2 = _R2;
     t1 = _t1;
     t2 = _t2;
 
-    Mat(R2 * R1.t()).copyTo( R );
-    Mat(t2 - R * t1).copyTo( t );
-}
+    Mat(R2 * R1.t()).copyTo(R);
+    Mat(t2 - R * t1).copyTo(t);
+  }
 
-void
-relativeCameraMotion( const Mat &R1,
-                      const Mat &t1,
-                      const Mat &R2,
-                      const Mat &t2,
-                      Mat &R,
-                      Mat &t )
-{
+  void
+  relativeCameraMotion(const Mat &R1, const Mat &t1, const Mat &R2, const Mat &t2, Mat &R, Mat &t)
+  {
     int depth = R1.depth();
-    CV_Assert( depth == t1.depth() && depth == R2.depth() && depth == t2.depth() );
+    CV_Assert( depth == t1.depth() && depth == R2.depth() && depth == t2.depth());
 
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
-        relativeCameraMotion<float>( R1, t1, R2, t2, R, t );
+      relativeCameraMotion<float>(R1, t1, R2, t2, R, t);
     }
     else
     {
-        relativeCameraMotion<double>( R1, t1, R2, t2, R, t );
+      relativeCameraMotion<double>(R1, t1, R2, t2, R, t);
     }
-}
-
+  }
 
 // MotionFromEssential
-template<typename T>
-void
-motionFromEssential( const Mat &_E, vector<Mat> &_Rs, vector<Mat> &_ts )
-{
+  template<typename T>
+  void
+  motionFromEssential(const Mat &_E, vector<Mat> &_Rs, vector<Mat> &_ts)
+  {
     libmv::Mat3 E;
     vector<libmv::Mat3> Rs;
     vector<libmv::Vec3> ts;
 
-    cv2eigen( _E, E );
+    cv2eigen(_E, E);
 
-    libmv::MotionFromEssential( E, &Rs, &ts );
+    libmv::MotionFromEssential(E, &Rs, &ts);
 
     _Rs.clear();
     _ts.clear();
 
     int n = Rs.size();
-    CV_Assert( ts.size() == n );
+    CV_Assert( ts.size() == n);
     Mat R_temp, t_temp;
 
-    for ( int i=0; i < n; ++i )
+    for (int i = 0; i < n; ++i)
     {
-        eigen2cv( Rs[i], R_temp );
-        _Rs.push_back( R_temp );
+      eigen2cv(Rs[i], R_temp);
+      _Rs.push_back(R_temp);
 
-        eigen2cv( ts[i], t_temp );
-        _ts.push_back( t_temp );
+      eigen2cv(ts[i], t_temp);
+      _ts.push_back(t_temp);
     }
-}
+  }
 
-void
-motionFromEssential( const Mat &E, vector<Mat> &Rs, vector<Mat> &ts )
-{
+  void
+  motionFromEssential(const Mat &E, vector<Mat> &Rs, vector<Mat> &ts)
+  {
     int depth = E.depth();
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
-        // motionFromEssential<float>( E, Rs, ts );
-        cerr << "Function motionFromEssential not handled for float" << endl;
+      // motionFromEssential<float>( E, Rs, ts );
+      cerr << "Function motionFromEssential not handled for float" << endl;
     }
     else
     {
-        motionFromEssential<double>(E, Rs, ts);
+      motionFromEssential<double>(E, Rs, ts);
     }
-}
+  }
 
 // fundamentalFromEssential
-template<typename T>
-void
-fundamentalFromEssential( const Mat &_E, const Mat &_K1, const Mat &_K2, Mat &_F )
-{
+  template<typename T>
+  void
+  fundamentalFromEssential(const Mat &_E, const Mat &_K1, const Mat &_K2, Mat &_F)
+  {
     libmv::Mat3 E, K1, K2;
     libmv::Mat3 F;
 
-    cv2eigen( _E, E );
-    cv2eigen( _K1, K1 );
-    cv2eigen( _K2, K2 );
+    cv2eigen(_E, E);
+    cv2eigen(_K1, K1);
+    cv2eigen(_K2, K2);
 
-    libmv::FundamentalFromEssential( E, K1, K2, &F );
+    libmv::FundamentalFromEssential(E, K1, K2, &F);
 
-    eigen2cv( F, _F );
-}
+    eigen2cv(F, _F);
+  }
 
-void
-fundamentalFromEssential( const Mat &E, const Mat &K1, const Mat &K2, Mat &F )
-{
+  void
+  fundamentalFromEssential(const Mat &E, const Mat &K1, const Mat &K2, Mat &F)
+  {
     int depth = F.depth();
-    CV_Assert( depth == K1.depth() && depth == K2.depth() );
+    CV_Assert( depth == K1.depth() && depth == K2.depth());
 
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
-        // fundamentalFromEssential<float>( E, K1, K2, F );
-        cerr << "Function fundamentalFromEssential not handled for float" << endl;
+      // fundamentalFromEssential<float>( E, K1, K2, F );
+      cerr << "Function fundamentalFromEssential not handled for float" << endl;
     }
     else
     {
-        fundamentalFromEssential<double>( E, K1, K2, F );
+      fundamentalFromEssential<double>(E, K1, K2, F);
     }
-}
+  }
 
 // essentialFromFundamental
-template<typename T>
-void
-essentialFromFundamental( const Mat &_F, const Mat &_K1, const Mat &_K2, Mat &_E )
-{
+  template<typename T>
+  void
+  essentialFromFundamental(const Mat &_F, const Mat &_K1, const Mat &_K2, Mat &_E)
+  {
     libmv::Mat3 F, K1, K2;
     libmv::Mat3 E;
 
-    cv2eigen( _F, F );
-    cv2eigen( _K1, K1 );
-    cv2eigen( _K2, K2 );
+    cv2eigen(_F, F);
+    cv2eigen(_K1, K1);
+    cv2eigen(_K2, K2);
 
-    libmv::EssentialFromFundamental( F, K1, K2, &E );
+    libmv::EssentialFromFundamental(F, K1, K2, &E);
 
-    eigen2cv( E, _E );
-}
+    eigen2cv(E, _E);
+  }
 
-void
-essentialFromFundamental( const Mat &F, const Mat &K1, const Mat &K2, Mat &E )
-{
+  void
+  essentialFromFundamental(const Mat &F, const Mat &K1, const Mat &K2, Mat &E)
+  {
     int depth = F.depth();
-    CV_Assert( depth == K1.depth() && depth == K2.depth() );
+    CV_Assert( depth == K1.depth() && depth == K2.depth());
 
-    if( depth == CV_32F )
+    if (depth == CV_32F)
     {
-        // essentialFromFundamental<float>( F, K1, K2, E );
-        std::cerr << "Function essentialFromFundamental not handled for float" << std::endl;
+      // essentialFromFundamental<float>( F, K1, K2, E );
+      std::cerr << "Function essentialFromFundamental not handled for float" << std::endl;
     }
     else
     {
-        essentialFromFundamental<double>( F, K1, K2, E );
+      essentialFromFundamental<double>(F, K1, K2, E);
     }
-}
+  }
 
 } /* namespace cv */
