@@ -33,23 +33,27 @@
  *
  */
 
-#ifndef __OPENCV_FUNDAMENTAL_HPP__
-#define __OPENCV_FUNDAMENTAL_HPP__
+#ifndef __OPENCV_SFM_FUNDAMENTAL_HPP__
+#define __OPENCV_SFM_FUNDAMENTAL_HPP__
 
 #ifdef __cplusplus
 
 #include <opencv2/core/core.hpp>
-#include <vector>
 
-namespace cv {
-
-CV_EXPORTS
-void
-projectionsFromFundamental(const Mat &F, Mat &P1, Mat &P2);
+namespace cv
+{
 
 CV_EXPORTS
 void
-fundamentalFromProjections(const Mat &P1, const Mat &P2, Mat &F);
+projectionsFromFundamental( const Mat &F,
+                            Mat &P1,
+                            Mat &P2 );
+
+CV_EXPORTS
+void
+fundamentalFromProjections( const Mat &P1,
+                            const Mat &P2,
+                            Mat &F );
 
 /**
  * The normalized 8-point fundamental matrix solver.
@@ -57,7 +61,9 @@ fundamentalFromProjections(const Mat &P1, const Mat &P2, Mat &F);
  */
 CV_EXPORTS
 void
-normalizedEightPointSolver(const cv::Mat &x1, const cv::Mat &x2, cv::Mat &F);
+normalizedEightPointSolver( const cv::Mat &x1,
+                            const cv::Mat &x2,
+                            cv::Mat &F );
 
 /** Get Motion (R's and t's ) from Essential matrix.
  *  HZ 9.6 pag 259 (Result 9.19)
