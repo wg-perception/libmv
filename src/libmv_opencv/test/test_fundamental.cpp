@@ -102,7 +102,7 @@ TEST(Sfm_fundamental, motionFromEssential)
 {
 
     cvtest::TwoViewDataSet data;
-    double tol = 1e-9;
+    double tol = 1e-3;
 
 //	   generateTwoViewRandomScene( data, CV_32F );
     generateTwoViewRandomScene( data, CV_64F );
@@ -113,18 +113,17 @@ TEST(Sfm_fundamental, motionFromEssential)
 
     motionFromEssential( E, Rs, ts );
 
-//     EXPECT_MATRIX_NEAR(data.R1, Rs[0], tol);
-//     EXPECT_MATRIX_NEAR(data.R2, Rs[1], tol);
-//     EXPECT_MATRIX_NEAR(data.t1, ts[0], tol);
-//     EXPECT_MATRIX_NEAR(data.t2, ts[1], tol);
-    FAIL();
+    EXPECT_MATRIX_CV_64F_NEAR(data.R1, Rs[0], tol);
+    EXPECT_MATRIX_CV_64F_NEAR(data.R2, Rs[1], tol);
+    EXPECT_MATRIX_CV_64F_NEAR(data.t1, ts[0], tol);
+    EXPECT_MATRIX_CV_64F_NEAR(data.t2, ts[1], tol);
 }
 
 // Combined test for fundamentalFromEssential and essentialFromFundamental
-TEST(Sfm_fundamental, fundamentalFromEssential)
+TEST(Sfm_fundamental, fundamentalToAndFromEssential)
 {
     cvtest::TwoViewDataSet data;
-    double tol = 1e-9;
+    double tol = 1e-3;
 
     //	   generateTwoViewRandomScene( data, CV_32F );
     generateTwoViewRandomScene( data, CV_64F );
@@ -132,6 +131,5 @@ TEST(Sfm_fundamental, fundamentalFromEssential)
     Mat F, E;
     essentialFromFundamental( data.F, data.K1, data.K2, E );
     fundamentalFromEssential( E, data.K1, data.K2, F );
-//     EXPECT_MATRIX_NEAR(data.F, F, tol);
-    FAIL();
+    EXPECT_MATRIX_CV_64F_NEAR(data.F, F, tol);
 }

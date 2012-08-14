@@ -39,14 +39,14 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(sfm_tests test/scene.cpp
                          test/test_conditioning.cpp
-                         test/test_fundamental.cpp
+                         test/test_simple_pipeline.cpp                         
                          test/test_main.cpp
                          test/test_precomp.cpp
                          test/test_numeric.cpp
                          test/test_projection.cpp
                          test/test_reconstruct.cpp
-                         test/test_simple_pipeline.cpp
                          test/test_triangulation.cpp
+                         test/test_fundamental.cpp                         
 )
 
 find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})

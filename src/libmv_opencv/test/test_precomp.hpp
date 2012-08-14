@@ -35,6 +35,25 @@ do { \
   } \
 } while(false);
 
+// Unless we have a smarter way to do this we can have different
+// macros for different Mat types e.g. CV_64F, CV_64F3, etc as
+// needed.
+#define EXPECT_MATRIX_CV_64F_NEAR(a, b, tolerance) \
+do { \
+  EXPECT_EQ(a.type(), CV_64F); \
+  EXPECT_EQ(b.type(), CV_64F); \
+  bool dims_match = (a.rows == b.rows) && (a.cols == b.cols); \
+  EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match."; \
+  EXPECT_EQ(a.cols, b.cols) << "Matrix cols don't match."; \
+  if (dims_match) { \
+    for (int r = 0; r < a.rows; ++r) { \
+      for (int c = 0; c < a.cols; ++c) { \
+        EXPECT_NEAR(a.at<double>(r, c), b.at<double>(r, c), tolerance) \
+          << "r=" << r << ", c=" << c << "."; \
+      } \
+    } \
+  } \
+} while(false);
 
 namespace cvtest
 {
