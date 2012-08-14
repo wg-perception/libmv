@@ -197,21 +197,19 @@ relativeCameraMotion( const Mat &_R1,
                       const Mat &_t1,
                       const Mat &_R2,
                       const Mat &_t2,
-                      Mat &_R,
-                      Mat &_t )
+                      Mat &R,
+                      Mat &t )
 {
-    libmv::Mat3 R1, R2, R;
-    libmv::Vec3 t1, t2, t;
+    Mat_<T> R1(3,3), R2(3,3);
+    Mat_<T> t1(3,1), t2(3,1);
 
-    cv2eigen( _R1, R1 );
-    cv2eigen( _t1, t1 );
-    cv2eigen( _R2, R2 );
-    cv2eigen( _t2, t2 );
+    R1 = _R1;
+    R2 = _R2;
+    t1 = _t1;
+    t2 = _t2;
 
-    libmv::RelativeCameraMotion( R1, t1, R2, t2, &R, &t );
-
-    eigen2cv( R, _R );
-    eigen2cv( t, _t );
+    Mat(R2 * R1.t()).copyTo( R );
+    Mat(t2 - R * t1).copyTo( t );
 }
 
 void
@@ -227,8 +225,7 @@ relativeCameraMotion( const Mat &R1,
 
     if( depth == CV_32F )
     {
-        // relativeCameraMotion<float>( R1, t1, R2, t2, R, t );
-        cerr << "Function relativeCameraMotion not handled for float" << endl;
+        relativeCameraMotion<float>( R1, t1, R2, t2, R, t );
     }
     else
     {
