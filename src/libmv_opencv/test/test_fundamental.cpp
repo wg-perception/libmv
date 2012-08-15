@@ -95,26 +95,35 @@ TEST(Sfm_fundamental8Point, correctness)
 
 }
 
-//TEST(Sfm_fundamental, motionFromEssential)
-//{
-//
-//    cvtest::TwoViewDataSet data;
-//    double tol = 1e-3;
-//
-////	   generateTwoViewRandomScene( data, CV_32F );
-//    generateTwoViewRandomScene(data, CV_64F);
-//
-//    vector<Mat> Rs, ts;
-//    Mat E;
-//    essentialFromFundamental(data.F, data.K1, data.K2, E);
-//
-//    motionFromEssential(E, Rs, ts);
-//
-//    EXPECT_MATRIX_NEAR<double>(data.R1, Rs[0], tol);
+TEST(Sfm_fundamental, motionFromEssential)
+{
+
+    cvtest::TwoViewDataSet data;
+    double tol = 1e-3;
+
+//	   generateTwoViewRandomScene( data, CV_32F );
+    generateTwoViewRandomScene(data, CV_64F);
+
+    vector<Mat> Rs, ts;
+    Mat E(3, 3, CV_64F);
+    Mat R,t;
+    relativeCameraMotion( data.R1, data.t1, data.R2,
+            data.t2, R, t );
+    norm(t);
+
+    essentialFromFundamental(data.F, data.K1, data.K2, E);
+    motionFromEssential(E, Rs, ts);
+
+    bool one_solution_is_correct = false;
+
+    cout << Rs.size() << endl;
+    cout << ts.size() << endl;
+
+    EXPECT_MATRIX_NEAR<double>(data.R1, Rs[0], tol);
 //    EXPECT_MATRIX_NEAR<double>(data.R2, Rs[1], tol);
 //    EXPECT_MATRIX_NEAR<double>(data.t1, ts[0], tol);
 //    EXPECT_MATRIX_NEAR<double>(data.t2, ts[1], tol);
-//}
+}
 
 // Combined test for fundamentalFromEssential and essentialFromFundamental
 TEST(Sfm_fundamental, fundamentalToAndFromEssential)
