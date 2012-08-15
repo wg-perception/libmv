@@ -37,6 +37,7 @@
 #include <opencv2/sfm/projection.hpp>
 
 using namespace cv;
+using namespace cvtest;
 using namespace std;
 
 TEST(Sfm_projection, homogeneousToEuclidean)

@@ -36,6 +36,7 @@
 #include "test_precomp.hpp"
 
 using namespace cv;
+using namespace cvtest;
 using namespace std;
 
 TEST(Sfm_fundamental, fundamentalFromProjections)
@@ -109,10 +110,10 @@ TEST(Sfm_fundamental, motionFromEssential)
 
   motionFromEssential(E, Rs, ts);
 
-  EXPECT_MATRIX_CV_64F_NEAR(data.R1, Rs[0], tol);
-  EXPECT_MATRIX_CV_64F_NEAR(data.R2, Rs[1], tol);
-  EXPECT_MATRIX_CV_64F_NEAR(data.t1, ts[0], tol);
-  EXPECT_MATRIX_CV_64F_NEAR(data.t2, ts[1], tol);
+  EXPECT_MATRIX_NEAR<double>(data.R1, Rs[0], tol);
+  EXPECT_MATRIX_NEAR<double>(data.R2, Rs[1], tol);
+  EXPECT_MATRIX_NEAR<double>(data.t1, ts[0], tol);
+  EXPECT_MATRIX_NEAR<double>(data.t2, ts[1], tol);
 }
 
 // Combined test for fundamentalFromEssential and essentialFromFundamental
@@ -127,5 +128,5 @@ TEST(Sfm_fundamental, fundamentalToAndFromEssential)
   Mat F, E;
   essentialFromFundamental(data.F, data.K1, data.K2, E);
   fundamentalFromEssential(E, data.K1, data.K2, F);
-  EXPECT_MATRIX_CV_64F_NEAR(data.F, F, tol);
+  EXPECT_MATRIX_NEAR<double>(data.F, F, tol);
 }
