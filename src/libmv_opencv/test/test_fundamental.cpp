@@ -98,19 +98,19 @@ TEST(Sfm_fundamental8Point, correctness)
 TEST(Sfm_fundamental, motionFromEssential)
 {
 
-    cvtest::TwoViewDataSet data;
+    cvtest::TwoViewDataSet d;
     double tol = 1e-9;
 
-//	   generateTwoViewRandomScene( data, CV_32F );
-    generateTwoViewRandomScene(data, CV_64F);
+//	   generateTwoViewRandomScene( d, CV_32F );
+    generateTwoViewRandomScene(d, CV_64F);
 
     Mat E(3, 3, CV_64F);
-//Todo: change this to EssentialFromRt
-    essentialFromFundamental(data.F, data.K1, data.K2, E);
+//Todo: change this to EssentialFromRt - any diff???
+    essentialFromFundamental(d.F, d.K1, d.K2, E);
+//     essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
 
     Mat R,t;
-    relativeCameraMotion( data.R1, data.t1, data.R2,
-            data.t2, R, t );
+    relativeCameraMotion( d.R1, d.t1, d.R2, d.t2, R, t );
     cv::normalize(t,t);
 
     vector<Mat> Rs, ts;
@@ -141,4 +141,22 @@ TEST(Sfm_fundamental, fundamentalToAndFromEssential)
     essentialFromFundamental(data.F, data.K1, data.K2, E);
     fundamentalFromEssential(E, data.K1, data.K2, F);
     EXPECT_MATRIX_NEAR<double>(data.F, F, tol);
+}
+
+TEST(Sfm_fundamental, essentialFromFundamental) 
+{
+    double tol = 1e-4;
+
+    cvtest::TwoViewDataSet d;
+    generateTwoViewRandomScene(d, CV_64F);
+    
+    Mat E_from_Rt;
+    essentialFromRt(d.R1, d.t1, d.R2, d.t2, E_from_Rt);
+
+    Mat E_from_F;
+    essentialFromFundamental(d.F, d.K1, d.K2, E_from_F);
+
+//     EXPECT_MATRIX_PROP(E_from_Rt, E_from_F, 1e-6);
+    EXPECT_MATRIX_NEAR<double>(E_from_Rt, E_from_F, tol);
+
 }
