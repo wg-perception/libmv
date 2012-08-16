@@ -338,4 +338,48 @@ namespace cv
         }
     }
 
+    template<typename T>
+    void
+    essentialFromRt( const Mat &_R1,
+                    const Mat &_t1,
+                    const Mat &_R2,
+                    const Mat &_t2,
+                    Mat &_E )
+    {
+        libmv::Mat3 E;
+        libmv::Mat3 R1, R2;
+        libmv::Vec3 t1, t2;
+
+        cv2eigen( _R1, R1 );
+        cv2eigen( _t1, t1 );
+        cv2eigen( _R2, R2 );
+        cv2eigen( _t2, t2 );
+
+        libmv::EssentialFromRt( R1, t1, R2, t2, &E );
+
+        eigen2cv( E, _E );
+    }
+
+    void
+    essentialFromRt( const Mat &R1,
+                    const Mat &t1,
+                    const Mat &R2,
+                    const Mat &t2,
+                    Mat &E )
+    {
+        int depth = R1.depth();
+        CV_Assert( depth == t1.depth() && depth == R2.depth() && depth == t2.depth() );
+
+        if( depth == CV_32F )
+        {
+            // essentialFromRt<float>( R1, t1, R2, t2, E );
+            std::cerr << "Function essentialFromRt not handled for float" << std::endl;
+        }
+        else
+        {
+            essentialFromRt<double>( R1, t1, R2, t2, E );
+        }
+    }
+
+    
 } /* namespace cv */

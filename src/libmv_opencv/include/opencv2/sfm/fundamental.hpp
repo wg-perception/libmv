@@ -104,6 +104,19 @@ CV_EXPORTS
 void
 essentialFromFundamental(const Mat &F, const Mat &K1, const Mat &K2, Mat &E);
 
+/** Get Essential matrix from Motion (R's and t's )
+ *  HZ 9.6 pag 257 (formula 9.12)
+ */
+CV_EXPORTS
+void
+essentialFromRt( const Mat &R1,
+                 const Mat &t1,
+                 const Mat &R2,
+                 const Mat &t2,
+                 Mat &E );
+
+
+
 } /* namespace cv */
 
 #endif /* __cplusplus */
