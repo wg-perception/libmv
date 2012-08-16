@@ -110,3 +110,61 @@ Datasets to use
 ===============
 
 http://www.cvpapers.com/datasets.html
+
+Progress
+========
+
+Sfm module is divided in the following (low-level) headers:
+
+* *conditioning.hpp*
+=============================   ========    =====   ====    =====================
+Function                        Wrapper     Port    Test    Comments
+=============================   ========    =====   ====    =====================
+preconditionerFromPoints        *DONE*       ToDo    -   
+applyTransformationToPoints     *DONE*       ToDo    -   
+normalizePoints                 *DONE*        -     Yes*    Port is not needed.
+normalizeIsotropicPoints        *DONE*        -     ToDo    Port is not needed.
+=============================   ========    =====   ====    =====================
+
+* *fundamental.hpp*
+=============================   ========    ======   =====    =====================
+Function                        Wrapper     Port     Test     Comments
+=============================   ========    ======   =====    =====================
+projectionsFromFundamental       *DONE*     ToDo     Yes*    
+fundamentalFromProjections       *DONE*     ToDo     Yes*    
+normalizedEightPointSolver       *DONE*     ToDo     Yes*    
+relativeCameraMotion             *DONE*     *DONE*   ToDo    
+motionFromEssential              *DONE*     ToDo     ToDo    
+fundamentalFromEssential         *DONE*     ToDo     ToDo    
+essentialFromFundamental         *DONE*     ToDo     ToDo    
+essentialFromRt                  *DONE*     ToDo     ToDo    
+=============================   ========    ======   =====    =====================
+
+* *triangulationhpp*
+=============================   ========    ======   =====    =====================
+Function                        Wrapper     Port     Test     Comments
+=============================   ========    ======   =====    =====================
+triangulateDLT                  *DONE*      *DONE*   Yes     
+nViewTriangulate                *DONE*      *DONE*   Yes     
+=============================   ========    ======   =====    =====================
+  
+* *numeric.hpp*
+=============================   ========    ======   =====    =====================
+Function                        Wrapper     Port     Test     Comments
+=============================   ========    ======   =====    =====================
+meanAndVarianceAlongRows        *DONE*      *DONE*   Yes*    
+skewMat                         *DONE*      *DONE*   Yes     
+skewMatMinimal                  *DONE*      *DONE*   -   
+=============================   ========    ======   =====    =====================
+
+* *projection.hpp*
+=============================== ========    ======   =====    ============================================
+Function                        Wrapper     Port     Test     Comments
+=============================== ========    ======   =====    ============================================
+homogeneousToEuclidean          *DONE*      *DONE*   Yes      ToDo: check homogeneousToEuclidean( X, X );
+euclideanToHomogeneous          *DONE*      *DONE*   Yes     
+P_From_KRt                      *DONE*      *DONE*   Yes*     P = K * [R t]
+KRt_From_P                      *DONE*      ToDo     Yes*     RQ decomposition HZ A4.1.1 pag.579
+=============================== ========    ======   =====    ============================================
+
+Note: [*] Test only in double
