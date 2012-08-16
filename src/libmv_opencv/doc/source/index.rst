@@ -110,3 +110,20 @@ Datasets to use
 ===============
 
 http://www.cvpapers.com/datasets.html
+
+
+Progress
+========
+
+Sfm module is divided in the following (low-level) headers:
+
+=====================================   ========  =======   ====    ==================
+ conditioning.hpp
+Function                                Wrapper   Port      Test    Comments
+=====================================   ========  =======   ====    ==================
+preconditionerFromPoints                 DONE      ToDo      -       
+applyTransformationToPoints              DONE      ToDo      -       
+normalizePoints                          DONE      -         Yes     Port is not needed.
+normalizeIsotropicPoints
+=====================================   ========  =======   ====    ==================
+
