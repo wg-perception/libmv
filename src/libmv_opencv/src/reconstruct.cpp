@@ -83,7 +83,16 @@ namespace cv
       {
 
         // Get fundamental matrix
-        fundamental8Point(pts2d[0], pts2d[1], F, has_outliers);
+        if ( has_outliers )
+        {
+          double max_error = 0.1;
+          vector<int> inliers;
+          fundamentalFromCorrespondences8PointRobust(pts2d[0], pts2d[1], max_error, F, inliers);
+        }
+        else
+        {
+          normalizedEightPointSolver(pts2d[0], pts2d[1], F);
+        }
 
         // Get Projection matrices
         cv::Mat P, Pp;

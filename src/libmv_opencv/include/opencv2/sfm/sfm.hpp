@@ -43,6 +43,7 @@
 #include <opencv2/sfm/numeric.hpp>
 #include <opencv2/sfm/projection.hpp>
 #include <opencv2/sfm/simple_pipeline.hpp>
+#include "opencv2/sfm/robust.hpp"
 #include <opencv2/sfm/triangulation.hpp>
 
 namespace cv
