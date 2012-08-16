@@ -187,17 +187,9 @@ namespace cv
 
     template<typename T>
     void
-    relativeCameraMotion( const Mat &_R1, const Mat &_t1, const Mat &_R2,
-                          const Mat &_t2, Mat &R, Mat &t )
+    relativeCameraMotion( const Mat &R1, const Mat &t1, const Mat &R2,
+                          const Mat &t2, Mat &R, Mat &t )
     {
-        Mat_ < T > R1(3, 3), R2(3, 3);
-        Mat_ < T > t1(3, 1), t2(3, 1);
-
-        R1 = _R1;
-        R2 = _R2;
-        t1 = _t1;
-        t2 = _t2;
-
         Mat(R2 * R1.t()).copyTo(R);
         Mat(t2 - R * t1).copyTo(t);
     }
@@ -207,9 +199,13 @@ namespace cv
                           const Mat &t2, Mat &R, Mat &t )
     {
         int depth = R1.depth();
-        CV_Assert(
-                depth == t1.depth() && depth == R2.depth()
-                && depth == t2.depth());
+        CV_Assert(depth == t1.depth() && depth == R2.depth() && depth == t2.depth());
+
+        // check dimensions
+        CV_Assert( R1.rows == 3 && R1.cols == 3 );
+        CV_Assert( R2.rows == 3 && R2.cols == 3 );
+        CV_Assert( t1.rows == 3 && t1.cols == 1 );
+        CV_Assert( t2.rows == 3 && t2.cols == 1 );
 
         if ( depth == CV_32F )
         {
