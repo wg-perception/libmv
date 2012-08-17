@@ -90,11 +90,6 @@ TEST(Sfm_fundamental, normalizedEightPointSolver)
     }
 }
 
-TEST(Sfm_fundamental8Point, correctness)
-{
-
-}
-
 TEST(Sfm_fundamental, motionFromEssential)
 {
 

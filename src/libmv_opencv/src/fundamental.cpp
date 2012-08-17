@@ -144,47 +144,6 @@ namespace cv
         }
     }
 
-    void
-    fundamental8Point( InputArray _x1, InputArray _x2, OutputArray _F,
-                       bool has_outliers )
-    {
-        double max_error = 0.1;
-
-        cv::Mat F(3, 3, CV_64F), T1(3, 3, CV_64F), T2(3, 3, CV_64F);
-        cv::Mat x1, x2;
-        x1 = _x1.getMat();
-        x2 = _x2.getMat();
-
-        // Need at least 8 pts
-        CV_Assert(x1.cols >= 8 && x1.cols == x2.cols);
-        CV_Assert(x1.depth() == x2.depth());
-        int depth = x1.depth();
-
-        // Normalize points
-//     normalizeIsotropicPoints(x1, x1, T1);
-//     normalizeIsotropicPoints(x2, x2, T2);
-
-// Compute fundamental matrix
-        libmv::vector < int > inliers;
-        libmv::Mat x1_, x2_;
-        libmv::Mat3 F_;
-        cv2eigen(x1, x1_);
-        cv2eigen(x2, x2_);
-
-        if ( has_outliers )
-            FundamentalFromCorrespondences8PointRobust(x1_, x2_, max_error, &F_,
-                                                       &inliers);
-        else
-            libmv::NormalizedEightPointSolver(x1_, x2_, &F_);
-        eigen2cv(F_, F);
-
-        // Denormalized
-//     F = T2.t() * F * T1;
-
-// Pack output
-        F.convertTo(_F.getMatRef(), depth);
-    }
-
     template<typename T>
     void
     relativeCameraMotion( const Mat &R1, const Mat &t1, const Mat &R2,
