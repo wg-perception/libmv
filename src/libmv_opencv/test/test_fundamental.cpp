@@ -145,10 +145,10 @@ TEST(Sfm_fundamental, essentialFromFundamental)
     cvtest::TwoViewDataSet d;
     generateTwoViewRandomScene(d, CV_64F);
     
-    Mat E_from_Rt;
+    Mat E_from_Rt(3,3,CV_64F);
     essentialFromRt(d.R1, d.t1, d.R2, d.t2, E_from_Rt);
 
-    Mat E_from_F;
+    Mat E_from_F(3,3,CV_64F);
     essentialFromFundamental(d.F, d.K1, d.K2, E_from_F);
 
 //     EXPECT_MATRIX_PROP(E_from_Rt, E_from_F, 1e-6);
