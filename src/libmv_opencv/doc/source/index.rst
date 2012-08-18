@@ -90,10 +90,10 @@ Function                        Wrapper     Port       Test    Comments
 projectionsFromFundamental      **DONE**    **DONE**   Yes
 fundamentalFromProjections      **DONE**    **DONE**   Yes
 normalizedEightPointSolver      **DONE**    ToDo       Yes*
-relativeCameraMotion            **DONE**    **DONE**   ToDo
+relativeCameraMotion            **DONE**    **DONE**   --
 motionFromEssential             **DONE**    ToDo       ToDo
-fundamentalFromEssential        **DONE**    ToDo       Yes*
-essentialFromFundamental        **DONE**    ToDo       Yes*
+fundamentalFromEssential        **DONE**    **DONE**   Yes
+essentialFromFundamental        **DONE**    **DONE**   Yes
 essentialFromRt                 **DONE**    ToDo       Yes*
 normalizeFundamental            **DONE**    **DONE**   --
 =============================   ========    ========   ====    =====================

@@ -74,26 +74,33 @@ TEST(Sfm_fundamental, fundamentalFromProjections)
     test_fundamentalFromProjections<double>(1e-7, 1e-15);
 }
 
-TEST(Sfm_fundamental, normalizedEightPointSolver)
-{
-    TwoViewDataSet d;
-    generateTwoViewRandomScene<double>( d );
-
-    Mat F;
-    normalizedEightPointSolver( d.x1, d.x2, F );
-    expectFundamentalProperties<double>( F, d.x1, d.x2 );
-}
 
 template<typename T>
 static void
-test_motionFromEssential()
+test_normalizedEightPointSolver(T tolerance)
 {
+    TwoViewDataSet d;
+    generateTwoViewRandomScene<T>( d );
 
+    Mat F;
+    normalizedEightPointSolver( d.x1, d.x2, F );
+    expectFundamentalProperties<T>( F, d.x1, d.x2, tolerance );
+}
+
+TEST(Sfm_fundamental, normalizedEightPointSolver)
+{
+//     test_normalizedEightPointSolver<float>();
+    test_normalizedEightPointSolver<double>(1e-14);
+}
+
+
+template<typename T>
+static void
+test_motionFromEssential(T tolerance)
+{
     cvtest::TwoViewDataSet d;
-    double tol = 1e-8;
-
     generateTwoViewRandomScene<T>(d);
-    
+
     Mat_<T> E(3, 3);
 //Todo: change this to EssentialFromRt - any diff???
 //     essentialFromFundamental(d.F, d.K1, d.K2, E);
@@ -108,21 +115,21 @@ test_motionFromEssential()
     bool one_solution_is_correct = false;
     for( int i=0;i<Rs.size(); ++i)
     {
-        if((norm(Rs[i],R)<tol) && (norm(ts[i],t)<tol))
+        if((norm(Rs[i],R)<tolerance) && (norm(ts[i],t)<tolerance))
         {
             one_solution_is_correct=true;
             break;
         }
     }
     EXPECT_TRUE(one_solution_is_correct);
-
 }
 
 TEST(Sfm_fundamental, motionFromEssential)
 {
 //     test_motionFromEssential<float>();
-    test_motionFromEssential<double>();   
+    test_motionFromEssential<double>(1e-8);
 }
+
 
 template<typename T>
 static void
