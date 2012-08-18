@@ -224,23 +224,6 @@ namespace cv
     }
 
 // fundamentalFromEssential
-    template<typename T>
-    void
-    fundamentalFromEssential( const Mat &_E, const Mat &_K1, const Mat &_K2,
-                              Mat &_F )
-    {
-        libmv::Mat3 E, K1, K2;
-        libmv::Mat3 F;
-
-        cv2eigen(_E, E);
-        cv2eigen(_K1, K1);
-        cv2eigen(_K2, K2);
-
-        libmv::FundamentalFromEssential(E, K1, K2, &F);
-
-        eigen2cv(F, _F);
-    }
-
     void
     fundamentalFromEssential( const Mat &E, const Mat &K1, const Mat &K2,
                               Mat &F )
@@ -248,36 +231,10 @@ namespace cv
         int depth = F.depth();
         CV_Assert(depth == K1.depth() && depth == K2.depth());
 
-        if ( depth == CV_32F )
-        {
-            // fundamentalFromEssential<float>( E, K1, K2, F );
-            cerr << "Function fundamentalFromEssential not handled for float"
-            << endl;
-        }
-        else
-        {
-            fundamentalFromEssential < double >(E, K1, K2, F);
-        }
+        Mat(K2.inv().t() * E * K1.inv()).copyTo(F);
     }
 
 // essentialFromFundamental
-    template<typename T>
-    void
-    essentialFromFundamental( const Mat &_F, const Mat &_K1, const Mat &_K2,
-                              Mat &_E )
-    {
-        libmv::Mat3 F, K1, K2;
-        libmv::Mat3 E;
-
-        cv2eigen(_F, F);
-        cv2eigen(_K1, K1);
-        cv2eigen(_K2, K2);
-
-        libmv::EssentialFromFundamental(F, K1, K2, &E);
-
-        eigen2cv(E, _E);
-    }
-
     void
     essentialFromFundamental( const Mat &F, const Mat &K1, const Mat &K2,
                               Mat &E )
@@ -285,16 +242,7 @@ namespace cv
         int depth = F.depth();
         CV_Assert(depth == K1.depth() && depth == K2.depth());
 
-        if ( depth == CV_32F )
-        {
-            // essentialFromFundamental<float>( F, K1, K2, E );
-            std::cerr << "Function essentialFromFundamental not handled for float"
-            << std::endl;
-        }
-        else
-        {
-            essentialFromFundamental < double >(F, K1, K2, E);
-        }
+        Mat(K2.t() * F * K1).copyTo(E);
     }
 
     template<typename T>
