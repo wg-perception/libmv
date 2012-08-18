@@ -61,51 +61,6 @@ Use 64float (double) for everything to keep high accuracy.
 This is a collaborative effort to port libmv to OpenCV.
 
 
-To make sure we keep up to date with libmv SVN:
-===============================================
-
-Add to the end of your ~/.subversion/servers file:
-
-.. code-block:: sh
-
-  ssl-trust-default-ca = no
-
-(so that git SVN works)
-
-1) Define the new branch in .git/config :
-
-.. code-block:: sh
-
-  [svn-remote "libmv-upstream"]
-          url = https://svn.blender.org/svnroot/bf-blender/trunk/blender/extern/libmv/
-          fetch = :refs/remotes/git-svn-libmv-upstream
-
-2) Import the SVN branch (libmv appeared aaround revision 41000)
-
-.. code-block:: sh
-
-  git svn fetch libmv-upstream -r 41000:HEAD
-
-3) Hook up a local Git branch to the remote branch:
-
-.. code-block:: sh
-
-  git branch --track libmv-upstream git-svn-libmv-upstream
-
-5) Checkout and update from SVN once in while:
-
-.. code-block:: sh
-
-  git checkout libmv-upstream
-  git svn rebase
-
-6) Whenever changes need to be merged (and therefore the first time):
-
-.. code-block:: sh
-
-  git checkout master
-  git merge libmv-upstream
-
 Datasets to use
 ===============
 
@@ -116,55 +71,78 @@ Progress
 
 Sfm module is divided in the following (low-level) headers:
 
-* *conditioning.hpp*
-=============================   ========    =====   ====    =====================
-Function                        Wrapper     Port    Test    Comments
-=============================   ========    =====   ====    =====================
-preconditionerFromPoints        *DONE*       ToDo    -   
-applyTransformationToPoints     *DONE*       ToDo    -   
-normalizePoints                 *DONE*        -     Yes*    Port is not needed.
-normalizeIsotropicPoints        *DONE*        -     ToDo    Port is not needed.
-=============================   ========    =====   ====    =====================
+* **conditioning.hpp**
 
-* *fundamental.hpp*
-=============================   ========    ======   =====    =====================
-Function                        Wrapper     Port     Test     Comments
-=============================   ========    ======   =====    =====================
-projectionsFromFundamental       *DONE*     ToDo     Yes*    
-fundamentalFromProjections       *DONE*     ToDo     Yes*    
-normalizedEightPointSolver       *DONE*     ToDo     Yes*    
-relativeCameraMotion             *DONE*     *DONE*   ToDo    
-motionFromEssential              *DONE*     ToDo     ToDo    
-fundamentalFromEssential         *DONE*     ToDo     Yes*    
-essentialFromFundamental         *DONE*     ToDo     Yes*    
-essentialFromRt                  *DONE*     ToDo     Yes*    
-=============================   ========    ======   =====    =====================
+=============================   ========    ========   ====    =====================
+Function                        Wrapper     Port       Test    Comments
+=============================   ========    ========   ====    =====================
+preconditionerFromPoints        **DONE**    ToDo       --
+applyTransformationToPoints     **DONE**    ToDo       --
+normalizePoints                 **DONE**    --         Yes*    Port is not needed.
+normalizeIsotropicPoints        **DONE**    --         ToDo    Port is not needed.
+=============================   ========    ========   ====    =====================
 
-* *triangulationhpp*
-=============================   ========    ======   =====    =====================
-Function                        Wrapper     Port     Test     Comments
-=============================   ========    ======   =====    =====================
-triangulateDLT                  *DONE*      *DONE*   Yes     
-nViewTriangulate                *DONE*      *DONE*   Yes     
-=============================   ========    ======   =====    =====================
-  
-* *numeric.hpp*
-=============================   ========    ======   =====    =====================
-Function                        Wrapper     Port     Test     Comments
-=============================   ========    ======   =====    =====================
-meanAndVarianceAlongRows        *DONE*      *DONE*   Yes*    
-skewMat                         *DONE*      *DONE*   Yes     
-skewMatMinimal                  *DONE*      *DONE*   -   
-=============================   ========    ======   =====    =====================
+* **fundamental.hpp**
 
-* *projection.hpp*
-=============================== ========    ======   =====    ============================================
-Function                        Wrapper     Port     Test     Comments
-=============================== ========    ======   =====    ============================================
-homogeneousToEuclidean          *DONE*      *DONE*   Yes      ToDo: check homogeneousToEuclidean( X, X );
-euclideanToHomogeneous          *DONE*      *DONE*   Yes     
-P_From_KRt                      *DONE*      *DONE*   Yes*     P = K * [R t]
-KRt_From_P                      *DONE*      ToDo     Yes*     RQ decomposition HZ A4.1.1 pag.579
-=============================== ========    ======   =====    ============================================
+=============================   ========    ========   ====    =====================
+Function                        Wrapper     Port       Test    Comments
+=============================   ========    ========   ====    =====================
+projectionsFromFundamental      **DONE**    **DONE**   Yes
+fundamentalFromProjections      **DONE**    **DONE**   Yes
+normalizedEightPointSolver      **DONE**    ToDo       Yes*
+relativeCameraMotion            **DONE**    **DONE**   ToDo
+motionFromEssential             **DONE**    ToDo       ToDo
+fundamentalFromEssential        **DONE**    ToDo       Yes*
+essentialFromFundamental        **DONE**    ToDo       Yes*
+essentialFromRt                 **DONE**    ToDo       Yes*
+normalizeFundamental            **DONE**    **DONE**   --
+=============================   ========    ========   ====    =====================
+
+* **numeric.hpp**
+
+=============================   ========    ========   ====    =====================
+Function                        Wrapper     Port       Test    Comments
+=============================   ========    ========   ====    =====================
+meanAndVarianceAlongRows        **DONE**    **DONE**   Yes*
+skewMat                         **DONE**    **DONE**   Yes
+skewMatMinimal                  **DONE**    **DONE**   --
+=============================   ========    ========   ====    =====================
+
+* **projection.hpp**
+
+=============================   ========    ========   ====    =====================
+Function                        Wrapper     Port       Test    Comments
+=============================   ========    ========   ====    =====================
+homogeneousToEuclidean          **DONE**    **DONE**   Yes      ToDo: check homogeneousToEuclidean( X, X );
+euclideanToHomogeneous          **DONE**    **DONE**   Yes
+P_From_KRt                      **DONE**    **DONE**   Yes*     P = K * [R t]
+KRt_From_P                      **DONE**    ToDo       Yes*     RQ decomposition HZ A4.1.1 pag.579
+=============================   ========    ========   ====    =====================
+
+* **robust.hpp**
+
+==========================================  ========    ========   ====    =====================
+Function                                    Wrapper     Port       Test    Comments
+==========================================  ========    ========   ====    =====================
+fundamentalFromCorrespondences8PointRobust  **DONE**    ToDo       Yes     Mail: https://groups.google.com/d/msg/libmv_gsoc/-u3TPnBYmFs/4OnYErjjMSQJ
+==========================================  ========    ========   ====    =====================
+
+* **simple_pipeline.hpp**
+
+=============================   ========    ========   ====    =====================
+Function                        Wrapper     Port       Test    Comments
+=============================   ========    ========   ====    =====================
+libmv_solveReconstruction       **DONE**    ToDo       Yes     Slow test, many log messages
+=============================   ========    ========   ====    =====================
+
+
+* **triangulationhpp**
+
+=============================   ========    ========   ====    =====================
+Function                        Wrapper     Port       Test    Comments
+=============================   ========    ========   ====    =====================
+triangulateDLT                  **DONE**    **DONE**   Yes
+nViewTriangulate                **DONE**    **DONE**   Yes
+=============================   ========    ========   ====    =====================
 
 Note: [*] Test only in double
