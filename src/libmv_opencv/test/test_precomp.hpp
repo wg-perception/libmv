@@ -58,6 +58,13 @@ namespace cvtest
   void
   generateTwoViewRandomScene(TwoViewDataSet &data, int depth = CV_64F);
 
+  template<typename T>
+  inline void
+  generateTwoViewRandomScene(TwoViewDataSet &data)
+  {
+      generateTwoViewRandomScene(data, cv::DataDepth<T>::value);
+  }
+
   /**
    * 2D tracked points
    * -----------------
