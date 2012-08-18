@@ -84,25 +84,26 @@ TEST(Sfm_fundamental, normalizedEightPointSolver)
     expectFundamentalProperties<double>( F, d.x1, d.x2 );
 }
 
-TEST(Sfm_fundamental, motionFromEssential)
+template<typename T>
+static void
+test_motionFromEssential()
 {
 
-    TwoViewDataSet d;
-    double tol = 1e-9;
+    cvtest::TwoViewDataSet d;
+    double tol = 1e-8;
 
-//	   generateTwoViewRandomScene( d, CV_32F );
-    generateTwoViewRandomScene(d, CV_64F);
-
-    Mat E(3, 3, CV_64F);
+    generateTwoViewRandomScene<T>(d);
+    
+    Mat_<T> E(3, 3);
 //Todo: change this to EssentialFromRt - any diff???
-    essentialFromFundamental(d.F, d.K1, d.K2, E);
-//     essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
+//     essentialFromFundamental(d.F, d.K1, d.K2, E);
+    essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
 
-    Mat R,t;
+    Mat_<T>  R,t;
     relativeCameraMotion( d.R1, d.t1, d.R2, d.t2, R, t );
     cv::normalize(t,t);
 
-    vector<Mat> Rs, ts;
+    vector<Mat > Rs, ts;
     motionFromEssential(E, Rs, ts);
     bool one_solution_is_correct = false;
     for( int i=0;i<Rs.size(); ++i)
@@ -115,6 +116,12 @@ TEST(Sfm_fundamental, motionFromEssential)
     }
     EXPECT_TRUE(one_solution_is_correct);
 
+}
+
+TEST(Sfm_fundamental, motionFromEssential)
+{
+//     test_motionFromEssential<float>();
+    test_motionFromEssential<double>();   
 }
 
 template<typename T>
