@@ -116,16 +116,25 @@ TEST(Sfm_fundamental, fundamentalToAndFromEssential)
     EXPECT_MATRIX_NEAR<double>(data.F, F, tol);
 }
 
-TEST(Sfm_fundamental, essentialFromFundamental) 
-{
-    cvtest::TwoViewDataSet d;
-    generateTwoViewRandomScene<double>(d);
 
-    Mat_<double> E_from_Rt(3,3);
+template<typename T>
+static void
+test_essentialFromFundamental()
+{
+    TwoViewDataSet d;
+    generateTwoViewRandomScene<T>(d);
+
+    Mat_<T> E_from_Rt(3,3);
     essentialFromRt(d.R1, d.t1, d.R2, d.t2, E_from_Rt);
 
-    Mat_<double> E_from_F(3,3);
+    Mat_<T> E_from_F(3,3);
     essentialFromFundamental(d.F, d.K1, d.K2, E_from_F);
 
-    EXPECT_MATRIX_PROP(E_from_Rt, E_from_F, 1e-6);
+    EXPECT_MATRIX_PROP<T>(E_from_Rt, E_from_F, 1e-6);
+}
+
+TEST(Sfm_fundamental, essentialFromFundamental) 
+{
+//     test_essentialFromFundamental<float>();
+    test_essentialFromFundamental<double>();
 }
