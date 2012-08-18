@@ -135,9 +135,9 @@ fundamentalFromProjections       *DONE*     ToDo     Yes*
 normalizedEightPointSolver       *DONE*     ToDo     Yes*    
 relativeCameraMotion             *DONE*     *DONE*   ToDo    
 motionFromEssential              *DONE*     ToDo     ToDo    
-fundamentalFromEssential         *DONE*     ToDo     ToDo    
-essentialFromFundamental         *DONE*     ToDo     ToDo    
-essentialFromRt                  *DONE*     ToDo     ToDo    
+fundamentalFromEssential         *DONE*     ToDo     Yes*    
+essentialFromFundamental         *DONE*     ToDo     Yes*    
+essentialFromRt                  *DONE*     ToDo     Yes*    
 =============================   ========    ======   =====    =====================
 
 * *triangulationhpp*
