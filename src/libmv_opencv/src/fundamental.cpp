@@ -34,6 +34,7 @@
  */
 
 #include "opencv2/sfm/fundamental.hpp"
+#include "opencv2/sfm/numeric.hpp"
 
 #include "libmv/multiview/robust_fundamental.h"
 #include "libmv/multiview/fundamental.h"
@@ -48,17 +49,23 @@ namespace cv
 
     template<typename T>
     void
-    projectionsFromFundamental( const Mat &_F, Mat &_P1, Mat &_P2 )
+    projectionsFromFundamental( const Mat &F, Mat &_P1, Mat &_P2 )
     {
-        libmv::Mat3 F;
-        libmv::Mat34 P1, P2;
+        Mat_<T> P1(3,4), P2(3,4);
+        P1 << 1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0;
 
-        cv2eigen(_F, F);
+        Mat_<T> e2(3,1);
+        cv::SVD::solveZ(F.t(), e2);
 
-        libmv::ProjectionsFromFundamental(F, &P1, &P2);
+        P2(Range(0,3), Range(0, 3)) = skewMat(e2) * F;
+        P2(0,3) = e2(0);
+        P2(1,3) = e2(1);
+        P2(2,3) = e2(2);
 
-        eigen2cv(P1, _P1);
-        eigen2cv(P2, _P2);
+        P1.copyTo(_P1);
+        P2.copyTo(_P2);
     }
 
     void
@@ -68,29 +75,38 @@ namespace cv
 
         if ( depth == CV_32F )
         {
-//         projectionsFromFundamental<float>( F, P1, P2 );
-            cerr << "Function projectionsFromFundamental not handled for float"
-            << endl;
+            projectionsFromFundamental<float>(F, P1, P2);
         }
         else
         {
-            projectionsFromFundamental < double >(F, P1, P2);
+            projectionsFromFundamental<double>(F, P1, P2);
         }
     }
 
     template<typename T>
     void
-    fundamentalFromProjections( const Mat &_P1, const Mat &_P2, Mat &_F )
+    fundamentalFromProjections( const Mat &P1, const Mat &P2, Mat &_F )
     {
-        libmv::Mat34 P1, P2;
-        libmv::Mat3 F;
+        Mat X[3];
+        vconcat( P1.row(1), P1.row(2), X[0] );
+        vconcat( P1.row(2), P1.row(0), X[1] );
+        vconcat( P1.row(0), P1.row(1), X[2] );
 
-        cv2eigen(_P1, P1);
-        cv2eigen(_P2, P2);
+        Mat Y[3];
+        vconcat( P2.row(1), P2.row(2), Y[0] );
+        vconcat( P2.row(2), P2.row(0), Y[1] );
+        vconcat( P2.row(0), P2.row(1), Y[2] );
 
-        libmv::FundamentalFromProjections(P1, P2, &F);
-
-        eigen2cv(F, _F);
+        Mat_<T> F(3,3), XY;
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                vconcat(X[j], Y[i], XY);
+                F(i, j) = determinant(XY);
+            }
+        }
+        F.copyTo(_F);
     }
 
     void
@@ -101,13 +117,11 @@ namespace cv
 
         if ( depth == CV_32F )
         {
-            // fundamentalFromProjections<float>( P1, P2, F );
-            cerr << "Function fundamentalFromProjections not handled for float"
-            << endl;
+            fundamentalFromProjections<float>(P1, P2, F);
         }
         else
         {
-            fundamentalFromProjections < double >(P1, P2, F);
+            fundamentalFromProjections<double>(P1, P2, F);
         }
     }
 
@@ -307,8 +321,7 @@ namespace cv
         int depth = F.depth();
         if( depth == CV_32F )
         {
-            // normalizeFundamental<float>( F, F_normalized );
-            std::cerr << "Function normalizeFundamental not handled for float" << std::endl;
+            normalizeFundamental<float>( F, F_normalized );
         }
         else
         {

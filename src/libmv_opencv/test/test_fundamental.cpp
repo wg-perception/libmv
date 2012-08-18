@@ -39,28 +39,44 @@ using namespace cv;
 using namespace cvtest;
 using namespace std;
 
-TEST(Sfm_fundamental, fundamentalFromProjections)
+template<typename T>
+static void
+test_fundamentalFromProjections(T tolerance_prop, T tolerance_near)
 {
-    Mat_<double> P1_gt(3, 4), P2_gt(3, 4);
-    P1_gt << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0;
+    Mat_<T> P1_gt(3, 4), P2_gt(3, 4);
+    P1_gt << 1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1, 0;
+    P2_gt << 1, 1, 1, 3,
+             0, 2, 0, 3,
+             0, 1, 1, 0;
 
-    P2_gt << 1, 1, 1, 3, 0, 2, 0, 3, 0, 1, 1, 0;
-
-    Mat F_gt;
+    Mat_<T> F_gt;
     fundamentalFromProjections(P1_gt, P2_gt, F_gt);
 
-    Mat_<double> P1(3, 4), P2(3, 4);
+    Mat_<T> P1(3, 4), P2(3, 4);
     projectionsFromFundamental(F_gt, P1, P2);
 
-    Mat F;
+    Mat_<T> F;
     fundamentalFromProjections(P1, P2, F);
 
-    EXPECT_LE( norm(F_gt, F), 1e-6);
+    Mat_<T> F_gt_norm, F_norm;
+    normalizeFundamental(F_gt, F_gt_norm);
+    normalizeFundamental(F, F_norm);
+
+    EXPECT_MATRIX_PROP(F_gt, F, tolerance_prop);
+    EXPECT_MATRIX_NEAR(F_gt_norm, F_norm, tolerance_near);
+}
+
+TEST(Sfm_fundamental, fundamentalFromProjections)
+{
+    test_fundamentalFromProjections<float>(1e-3, 1e-7);
+    test_fundamentalFromProjections<double>(1e-7, 1e-15);
 }
 
 TEST(Sfm_fundamental, normalizedEightPointSolver)
 {
-    cvtest::TwoViewDataSet d;
+    TwoViewDataSet d;
     generateTwoViewRandomScene<double>( d );
 
     Mat F;
@@ -71,7 +87,7 @@ TEST(Sfm_fundamental, normalizedEightPointSolver)
 TEST(Sfm_fundamental, motionFromEssential)
 {
 
-    cvtest::TwoViewDataSet d;
+    TwoViewDataSet d;
     double tol = 1e-9;
 
 //	   generateTwoViewRandomScene( d, CV_32F );
@@ -103,7 +119,7 @@ TEST(Sfm_fundamental, motionFromEssential)
 
 template<typename T>
 static void
-test_fundamentalToAndFromEssential()
+test_fundamentalToAndFromEssential(T tolerance)
 {
     TwoViewDataSet d;
     generateTwoViewRandomScene<T>(d);
@@ -112,14 +128,18 @@ test_fundamentalToAndFromEssential()
     essentialFromFundamental(d.F, d.K1, d.K2, E);
     fundamentalFromEssential(E, d.K1, d.K2, F);
 
-    EXPECT_MATRIX_NEAR<T>(d.F, F, 1e-6);
+    Mat_<T> F_gt_norm, F_norm;
+    normalizeFundamental(d.F, F_gt_norm);
+    normalizeFundamental(F, F_norm);
+
+    EXPECT_MATRIX_NEAR(F_gt_norm, F_norm, tolerance);
 }
 
 // Combined test for fundamentalFromEssential and essentialFromFundamental
 TEST(Sfm_fundamental, fundamentalToAndFromEssential)
 {
-//     test_fundamentalToAndFromEssential<float>();
-    test_fundamentalToAndFromEssential<double>();
+    test_fundamentalToAndFromEssential<float>( 1e-9 );
+    test_fundamentalToAndFromEssential<double>( 1e-15 );
 }
 
 
