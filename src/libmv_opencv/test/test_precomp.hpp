@@ -65,6 +65,35 @@ namespace cvtest
       generateTwoViewRandomScene(data, cv::DataDepth<T>::value);
   }
 
+  /** Check the properties of a fundamental matrix:
+  *
+  *   1. The determinant is 0 (rank deficient)
+  *   2. The condition x'T*F*x = 0 is satisfied to precision.
+  */
+  template<typename T>
+  void
+  expectFundamentalProperties( const cv::Mat_<T> &F,
+                               const cv::Mat_<T> &ptsA,
+                               const cv::Mat_<T> &ptsB,
+                               double precision = 1e-9 )
+  {
+    EXPECT_NEAR( 0, determinant(F), precision );
+
+    int n = ptsA.cols;
+    EXPECT_EQ( n, ptsB.cols );
+
+    cv::Mat_<T> x1, x2;
+    euclideanToHomogeneous( ptsA, x1 );
+    euclideanToHomogeneous( ptsB, x2 );
+
+    for( int i = 0; i < n; ++i )
+    {
+      double residual = x2.col( i ).dot( F * x1.col( i ) );
+      EXPECT_NEAR( 0.0, residual, precision );
+    }
+  }
+
+
   /**
    * 2D tracked points
    * -----------------
