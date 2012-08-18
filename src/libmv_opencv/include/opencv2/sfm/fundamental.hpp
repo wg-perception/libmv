@@ -117,6 +117,11 @@ essentialFromRt( const Mat &R1,
 
 
 
+CV_EXPORTS
+void
+normalizeFundamental( const Mat &F,
+                      Mat &F_normalized );
+
 } /* namespace cv */
 
 #endif /* __cplusplus */

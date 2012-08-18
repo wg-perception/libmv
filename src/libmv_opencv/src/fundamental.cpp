@@ -340,5 +340,33 @@ namespace cv
         }
     }
 
-    
+    // normalizeFundamental
+    template<typename T>
+    void
+    normalizeFundamental( const Mat_<T> &F, Mat &F_normalized )
+    {
+        Mat( F/norm(F,NORM_L2) ).copyTo( F_normalized );  // Frobenius Norm
+
+        if ( F_normalized.at<T>(2,2) < 0 )
+        {
+            F_normalized *= -1;
+        }
+    }
+
+    void
+    normalizeFundamental( const Mat &F, Mat &F_normalized )
+    {
+        int depth = F.depth();
+        if( depth == CV_32F )
+        {
+            // normalizeFundamental<float>( F, F_normalized );
+            std::cerr << "Function normalizeFundamental not handled for float" << std::endl;
+        }
+        else
+        {
+            normalizeFundamental<double>( F, F_normalized );
+        }
+    }
+
+
 } /* namespace cv */
