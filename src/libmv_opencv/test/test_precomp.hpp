@@ -43,6 +43,36 @@ namespace cvtest
     }
   }
 
+  template<class T>
+  inline double
+  cosinusBetweenMatrices(const cv::Mat_<T> &a, const cv::Mat_<T> &b)
+  {
+    double s = cv::sum( a.mul(b) )[0];
+    return ( s / norm(a) / norm(b) );
+  }
+
+  // Check that sin(angle(a, b)) < tolerance
+  template<typename T>
+  inline void
+  EXPECT_MATRIX_PROP(const cv::Mat_<T> a, const cv::Mat_<T> b, T tolerance)
+  {
+    bool dims_match = (a.rows == b.rows) && (a.cols == b.cols);
+    EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
+    EXPECT_EQ(a.cols, b.cols) << "Matrix cols don't match.";
+
+    if (dims_match)
+    {
+      double c = cosinusBetweenMatrices(a, b);
+      if (c * c < 1)
+      {
+        double s = sqrt(1 - c * c);
+        EXPECT_NEAR(0, s, tolerance);
+      }
+    }
+  }
+
+  
+
 
   struct TwoViewDataSet
   {
