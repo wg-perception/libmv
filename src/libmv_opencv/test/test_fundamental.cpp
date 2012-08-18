@@ -80,8 +80,8 @@ test_motionFromEssential()
     
     Mat_<T> E(3, 3);
 //Todo: change this to EssentialFromRt - any diff???
-    essentialFromFundamental(d.F, d.K1, d.K2, E);
-//     essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
+//     essentialFromFundamental(d.F, d.K1, d.K2, E);
+    essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
 
     Mat_<T>  R,t;
     relativeCameraMotion( d.R1, d.t1, d.R2, d.t2, R, t );
