@@ -146,8 +146,8 @@ namespace cv
 
     template<typename T>
     void
-    relativeCameraMotion( const Mat &R1, const Mat &t1, const Mat &R2,
-                          const Mat &t2, Mat &R, Mat &t )
+    relativeCameraMotion( const Mat_<T> &R1, const Mat_<T> &t1, const Mat_<T> &R2,
+                          const Mat_<T> &t2, Mat &R, Mat &t )
     {
         Mat(R2 * R1.t()).copyTo(R);
         Mat(t2 - R * t1).copyTo(t);
