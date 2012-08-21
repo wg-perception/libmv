@@ -218,6 +218,9 @@ namespace cv
 
             eigen2cv(ts[i], t_temp);
             _ts.push_back(t_temp);
+
+//            cout << "ts[" << i << "]" << ts[i] << endl;
+            cout << "_ts[" << i << "]" << _ts[i] << endl;
         }
     }
 

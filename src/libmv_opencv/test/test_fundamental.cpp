@@ -101,23 +101,24 @@ test_motionFromEssential(T tolerance)
     cvtest::TwoViewDataSet d;
     generateTwoViewRandomScene<T>(d);
 
-    Mat_<T> E(3, 3);
-//Todo: change this to EssentialFromRt - any diff???
-//     essentialFromFundamental(d.F, d.K1, d.K2, E);
+    Mat_ < T > E(3, 3);
     essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
 
-    Mat_<T>  R,t;
-    relativeCameraMotion( d.R1, d.t1, d.R2, d.t2, R, t );
-    cv::normalize(t,t);
+    Mat_ < T > R, t;
+    relativeCameraMotion(d.R1, d.t1, d.R2, d.t2, R, t);
+    cv::normalize(t, t);
 
-    vector<Mat > Rs, ts;
+    vector < Mat > Rs, ts;
     motionFromEssential(E, Rs, ts);
     bool one_solution_is_correct = false;
-    for( int i=0;i<Rs.size(); ++i)
+    for ( int i = 0; i < Rs.size(); ++i )
     {
-        if((norm(Rs[i],R)<tolerance) && (norm(ts[i],t)<tolerance))
+//        cout << "Rs[" << i << "]" << Rs[i] << endl;
+        cout << "ts[" << i << "]" << ts[i] << endl;
+
+        if ( (norm(Rs[i], R) < tolerance) && (norm(ts[i], t) < tolerance) )
         {
-            one_solution_is_correct=true;
+            one_solution_is_correct = true;
             break;
         }
     }
