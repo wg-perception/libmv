@@ -209,18 +209,16 @@ namespace cv
 
         int n = Rs.size();
         CV_Assert(ts.size() == n);
-        Mat R_temp, t_temp;
 
         for ( int i = 0; i < n; ++i )
         {
+            Mat R_temp, t_temp;
+
             eigen2cv(Rs[i], R_temp);
             _Rs.push_back(R_temp);
 
             eigen2cv(ts[i], t_temp);
             _ts.push_back(t_temp);
-
-//            cout << "ts[" << i << "]" << ts[i] << endl;
-            cout << "_ts[" << i << "]" << _ts[i] << endl;
         }
     }
 

@@ -113,9 +113,6 @@ test_motionFromEssential(T tolerance)
     bool one_solution_is_correct = false;
     for ( int i = 0; i < Rs.size(); ++i )
     {
-//        cout << "Rs[" << i << "]" << Rs[i] << endl;
-        cout << "ts[" << i << "]" << ts[i] << endl;
-
         if ( (norm(Rs[i], R) < tolerance) && (norm(ts[i], t) < tolerance) )
         {
             one_solution_is_correct = true;
@@ -127,7 +124,7 @@ test_motionFromEssential(T tolerance)
 
 TEST(Sfm_fundamental, motionFromEssential)
 {
-//     test_motionFromEssential<float>();
+    //test_motionFromEssential<float>();
     test_motionFromEssential<double>(1e-8);
 }
 
