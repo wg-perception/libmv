@@ -38,12 +38,9 @@
 #include "libmv/multiview/conditioning.h"
 #include <opencv2/core/eigen.hpp>
 
-#include <iostream>
-
 namespace cv
 {
 
-template<typename T>
 void
 preconditionerFromPoints( const Mat &_points,
                           Mat &_Tr )
@@ -59,23 +56,6 @@ preconditionerFromPoints( const Mat &_points,
 }
 
 void
-preconditionerFromPoints( const Mat &points,
-                          Mat &T )
-{
-    int depth = points.depth();
-    if( depth == CV_32F )
-    {
-        // preconditionerFromPoints<float>( points, T );
-        std::cerr << "Function preconditionerFromPoints not handled for float" << std::endl;
-    }
-    else
-    {
-        preconditionerFromPoints<double>( points, T );
-    }
-}
-
-template<typename T>
-void
 isotropicPreconditionerFromPoints( const Mat &_points,
                                    Mat &_T )
 {
@@ -89,23 +69,6 @@ isotropicPreconditionerFromPoints( const Mat &_points,
     eigen2cv( Tr, _T );
 }
 
-void
-isotropicPreconditionerFromPoints( const Mat &points,
-                                   Mat &T )
-{
-    int depth = points.depth();
-    if( depth == CV_32F )
-    {
-        // isotropicPreconditionerFromPoints<float>( points, T );
-        std::cerr << "Function isotropicPreconditionerFromPoints not handled for float" << std::endl;
-    }
-    else
-    {
-        isotropicPreconditionerFromPoints<double>( points, T );
-    }
-}
-
-template<typename T>
 void
 applyTransformationToPoints( const Mat &_points,
                              const Mat &_T,
@@ -123,40 +86,12 @@ applyTransformationToPoints( const Mat &_points,
 }
 
 void
-applyTransformationToPoints( const Mat &points,
-                             const Mat &T,
-                             Mat &transformed_points )
-{
-    int depth = points.depth();
-    CV_Assert( depth == T.depth() );
-
-    if( depth == CV_32F )
-    {
-        // applyTransformationToPoints<float>( points, T, transformed_points );
-        std::cerr << "Function applyTransformationToPoints not handled for float" << std::endl;
-    }
-    else
-    {
-        applyTransformationToPoints<double>( points, T, transformed_points );
-    }
-}
-
-void
 normalizePoints( const Mat &points,
                  Mat &normalized_points,
                  Mat &T )
 {
-    int depth = points.depth();
-    if( depth == CV_32F )
-    {
-        preconditionerFromPoints<float>( points, T );
-        applyTransformationToPoints<float>( points, T, normalized_points );
-    }
-    else
-    {
-        preconditionerFromPoints<double>( points, T );
-        applyTransformationToPoints<double>( points, T, normalized_points );
-    }
+    preconditionerFromPoints(points, T);
+    applyTransformationToPoints(points, T, normalized_points);
 }
 
 void
@@ -164,17 +99,8 @@ normalizeIsotropicPoints( const Mat &points,
                           Mat &normalized_points,
                           Mat &T )
 {
-    int depth = points.depth();
-    if( depth == CV_32F )
-    {
-        isotropicPreconditionerFromPoints<float>( points, T );
-        applyTransformationToPoints<float>( points, T, normalized_points );
-    }
-    else
-    {
-        isotropicPreconditionerFromPoints<double>( points, T );
-        applyTransformationToPoints<double>( points, T, normalized_points );
-    }
+    isotropicPreconditionerFromPoints(points, T);
+    applyTransformationToPoints(points, T, normalized_points);
 }
 
 } /* namespace cv */

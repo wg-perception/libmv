@@ -39,15 +39,22 @@ using namespace cv;
 using namespace std;
 
 static void
-checkTriangulation(int nviews, int npoints, bool is_projective, int depth, float err_max2d, float err_max3d)
+checkTriangulation(int nviews, int npoints, bool is_projective, float err_max2d, float err_max3d)
 {
-    vector<Mat> points2d, Rs, ts, Ps;
-    Mat K, points3d;
-    generateScene(nviews, npoints, is_projective, depth, K, Rs, ts, Ps, points3d, points2d);
+    vector<Mat_<double> > points2d;
+    vector<cv::Matx33d> Rs;
+    vector<cv::Vec3d> ts;
+    vector<cv::Matx34d> Ps;
+    Matx33d K;
+    Mat_<double> points3d;
+    generateScene(nviews, npoints, is_projective, K, Rs, ts, Ps, points3d, points2d);
 
     // get 3d points
     Mat X, X_homogeneous;
-    triangulatePoints(points2d, Ps, X);
+    vector<Mat_<double> > Ps_d(Ps.size());
+    for(size_t i=0; i<Ps.size(); ++i)
+        Ps_d[i] = cv::Mat_<double>(Ps[i]);
+    triangulatePoints(points2d, Ps_d, X);
     euclideanToHomogeneous(X, X_homogeneous);
 
     for (int i = 0; i < npoints; ++i)
@@ -55,7 +62,7 @@ checkTriangulation(int nviews, int npoints, bool is_projective, int depth, float
         for (int k = 0; k < nviews; ++k)
         {
             Mat x_reprojected;
-            homogeneousToEuclidean( Ps[k]*X_homogeneous.col(i), x_reprojected );
+            homogeneousToEuclidean( cv::Mat(Ps[k])*X_homogeneous.col(i), x_reprojected );
 
             // Check reprojection error. Should be nearly zero.
             double error = norm( x_reprojected - points2d[k].col(i) );
@@ -75,8 +82,7 @@ TEST(Sfm_triangulate, TriangulateDLT)
     int npoints = 30;
     bool is_projective = true;
 
-    checkTriangulation(nviews, npoints, is_projective, CV_32F, 1e-5, 1e-9);
-    checkTriangulation(nviews, npoints, is_projective, CV_64F, 1e-7, 1e-9);
+    checkTriangulation(nviews, npoints, is_projective, 1e-7, 1e-9);
 }
 
 TEST(Sfm_triangulate, NViewTriangulate_FiveViews)
@@ -85,6 +91,5 @@ TEST(Sfm_triangulate, NViewTriangulate_FiveViews)
     int npoints = 6;
     bool is_projective = true;
 
-    checkTriangulation(nviews, npoints, is_projective, CV_32F, 1e-5, 1e-9);
-    checkTriangulation(nviews, npoints, is_projective, CV_64F, 1e-7, 1e-9);
+    checkTriangulation(nviews, npoints, is_projective, 1e-7, 1e-9);
 }

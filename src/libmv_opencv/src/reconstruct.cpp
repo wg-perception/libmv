@@ -46,8 +46,6 @@
 #include <libmv/reconstruction/projective_reconstruction.h>
 #include <libmv/reconstruction/projective_reconstruction.h>
 
-#include <iostream>
-
 using namespace cv;
 using namespace libmv;
 using namespace std;
@@ -65,7 +63,7 @@ namespace cv
   {
 
     int nviews = points2d.total();
-    cv::Mat F;
+    cv::Matx33d F;
 
     // OpenCV data types
     std::vector<cv::Mat> pts2d;
@@ -95,11 +93,11 @@ namespace cv
         }
 
         // Get Projection matrices
-        cv::Mat P, Pp;
+        Matx34d P, Pp;
         projectionsFromFundamental(F, P, Pp);
         projection_matrices.create(2, 1, depth);
-        P.copyTo(projection_matrices.getMatRef(0));
-        Pp.copyTo(projection_matrices.getMatRef(1));
+        Mat(P).copyTo(projection_matrices.getMatRef(0));
+        Mat(Pp).copyTo(projection_matrices.getMatRef(1));
 
         //  Triangulate and find 3D points using inliers
         triangulatePoints(points2d, projection_matrices, points3d);

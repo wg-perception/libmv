@@ -40,8 +40,8 @@ using namespace std;
 
 /* Check projection errors */
 static void
-check_projection_errors(const Mat& X_estimated, const vector<Mat>& Ps,
-                        const vector<Mat>& xs, float err_max2d)
+check_projection_errors(const Mat& X_estimated, const vector<Matx34d>& Ps,
+                        const vector<Mat_<double> >& xs, float err_max2d)
 {
     Mat X;
     euclideanToHomogeneous(X_estimated, X);   // 3D point
@@ -49,7 +49,7 @@ check_projection_errors(const Mat& X_estimated, const vector<Mat>& Ps,
     for (int m = 0; m < xs.size(); ++m)
     {
         Mat x;
-        homogeneousToEuclidean(Ps[m] * X, x); // 2d projection
+        homogeneousToEuclidean(cv::Mat(Ps[m]) * X, x); // 2d projection
         Mat projerr = xs[m] - x;
 
         for (int n = 0; n < projerr.cols; ++n)
@@ -61,18 +61,22 @@ check_projection_errors(const Mat& X_estimated, const vector<Mat>& Ps,
 }
 
 static void
-test_twoViewProjectiveOutliers(int depth, float err_max2d)
+test_twoViewProjectiveOutliers(float err_max2d)
 {
     int nviews = 2;
     int npoints = 50;
     bool is_projective = true;
     bool has_outliers = true;
 
-    vector<Mat> points2d, Rs, ts, Ps;
-    Mat K, points3d;
-    generateScene(nviews, npoints, is_projective, depth, K, Rs, ts, Ps, points3d, points2d);
+    vector<Mat_<double> > points2d;
+    vector<cv::Matx33d> Rs;
+    vector<cv::Vec3d> ts;
+    vector<cv::Matx34d> Ps;
+    Matx33d K;
+    Mat_<double> points3d;
+    generateScene(nviews, npoints, is_projective, K, Rs, ts, Ps, points3d, points2d);
 
-    Mat points3d_estimated;
+    Mat_<double> points3d_estimated;
     vector<Mat> Ps_estimated;
     reconstruct(points2d, Ps_estimated, points3d_estimated, is_projective, has_outliers);
 
@@ -80,11 +84,14 @@ test_twoViewProjectiveOutliers(int depth, float err_max2d)
     check_projection_errors(points3d, Ps, points2d, err_max2d);
 
     /* Check projection errors on estimates */
-    check_projection_errors(points3d_estimated, Ps_estimated, points2d, err_max2d);
+    vector<cv::Matx34d> Ps_estimated_d;
+    Ps_estimated_d.resize(Ps_estimated.size());
+    for(size_t i=0; i<Ps_estimated.size(); ++i)
+      Ps_estimated_d[i] = Ps_estimated[i];
+    check_projection_errors(points3d_estimated, Ps_estimated_d, points2d, err_max2d);
 }
 
 TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
 {
-    // test_twoViewProjectiveOutliers(CV_32F, 1e-5);
-    test_twoViewProjectiveOutliers(CV_64F, 1e-7);
+    test_twoViewProjectiveOutliers(1e-7);
 }

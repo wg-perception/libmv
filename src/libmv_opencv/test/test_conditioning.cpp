@@ -46,7 +46,7 @@ TEST(Sfm_conditioning, normalizePoints) {
     points << 0, 0, 1, 1,
               0, 2, 1, 3;
 
-    Mat T, normalized_points;
+    Mat_<double> T, normalized_points;
     normalizePoints( points, normalized_points, T );
 
     // ToDo (pablo): rewrite libmv::MeanAndVarianceAlongRows in order to avoid the next 'for' loop

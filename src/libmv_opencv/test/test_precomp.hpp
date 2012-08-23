@@ -25,7 +25,7 @@ namespace cvtest
 
   template<typename T>
   inline void
-  EXPECT_MATRIX_NEAR(const cv::Mat_<T> a, const cv::Mat_<T> b, T tolerance)
+  EXPECT_MATRIX_NEAR(const T a, const T b, double tolerance)
   {
     bool dims_match = (a.rows == b.rows) && (a.cols == b.cols);
     EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
@@ -43,9 +43,25 @@ namespace cvtest
     }
   }
 
+  template<typename T>
+  inline void
+  EXPECT_VECTOR_NEAR(const T a, const T b, double tolerance)
+  {
+    bool dims_match = (a.rows == b.rows);
+    EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
+
+    if (dims_match)
+    {
+      for (int r = 0; r < a.rows; ++r)
+      {
+        EXPECT_NEAR(a(r), b(r), tolerance) << "r=" << r << ".";
+      }
+    }
+  }
+
   template<class T>
   inline double
-  cosinusBetweenMatrices(const cv::Mat_<T> &a, const cv::Mat_<T> &b)
+  cosinusBetweenMatrices(const T &a, const T &b)
   {
     double s = cv::sum( a.mul(b) )[0];
     return ( s / norm(a) / norm(b) );
@@ -54,7 +70,7 @@ namespace cvtest
   // Check that sin(angle(a, b)) < tolerance
   template<typename T>
   inline void
-  EXPECT_MATRIX_PROP(const cv::Mat_<T> a, const cv::Mat_<T> b, T tolerance)
+  EXPECT_MATRIX_PROP(const T a, const T b, double tolerance)
   {
     bool dims_match = (a.rows == b.rows) && (a.cols == b.cols);
     EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
@@ -76,53 +92,28 @@ namespace cvtest
 
   struct TwoViewDataSet
   {
-    Mat K1, K2; // Internal parameters
-    Mat R1, R2; // Rotation
-    Mat t1, t2; // Translation
-    Mat P1, P2; // Projection matrix, P = K(R|t)
-    Mat F; // Fundamental matrix
-    Mat X; // 3D points
-    Mat x1, x2; // Projected points
+    cv::Matx33d K1, K2; // Internal parameters
+    cv::Matx33d R1, R2; // Rotation
+    cv::Vec3d t1, t2; // Translation
+    cv::Matx34d P1, P2; // Projection matrix, P = K(R|t)
+    cv::Matx33d F; // Fundamental matrix
+    cv::Mat_<double> X; // 3D points
+    cv::Mat_<double> x1, x2; // Projected points
   };
 
   void
-  generateTwoViewRandomScene(TwoViewDataSet &data, int depth = CV_64F);
-
-  template<typename T>
-  inline void
-  generateTwoViewRandomScene(TwoViewDataSet &data)
-  {
-      generateTwoViewRandomScene(data, cv::DataDepth<T>::value);
-  }
+  generateTwoViewRandomScene(TwoViewDataSet &data);
 
   /** Check the properties of a fundamental matrix:
   *
   *   1. The determinant is 0 (rank deficient)
   *   2. The condition x'T*F*x = 0 is satisfied to precision.
   */
-  template<typename T>
   void
-  expectFundamentalProperties( const cv::Mat_<T> &F,
-                               const cv::Mat_<T> &ptsA,
-                               const cv::Mat_<T> &ptsB,
-                               double precision = 1e-9 )
-  {
-    EXPECT_NEAR( 0, determinant(F), precision );
-
-    int n = ptsA.cols;
-    EXPECT_EQ( n, ptsB.cols );
-
-    cv::Mat_<T> x1, x2;
-    euclideanToHomogeneous( ptsA, x1 );
-    euclideanToHomogeneous( ptsB, x2 );
-
-    for( int i = 0; i < n; ++i )
-    {
-      double residual = x2.col( i ).dot( F * x1.col( i ) );
-      EXPECT_NEAR( 0.0, residual, precision );
-    }
-  }
-
+  expectFundamentalProperties( const cv::Matx33d &F,
+                               const cv::Mat_<double> &ptsA,
+                               const cv::Mat_<double> &ptsB,
+                               double precision = 1e-9 );
 
   /**
    * 2D tracked points

@@ -54,30 +54,30 @@ namespace cv
 
 /** Triangulates the 3d position of 2d correspondences between two images, using the DLT
  * Reference: HZ 12.2 pag.312
- * @param xl vectors of 2d points (left camera)
- * @param xr vectors of 2d points (right camera)
+ * @param xl vectors of 2d points (left camera). Has to be 2 x N
+ * @param xr vectors of 2d points (right camera). Has to be 2 x N
  * @param Pl The 3 x 4 projection matrix of left camera
  * @param Pr The 3 x 4 projection matrix of right camera
- * @param points3d (output) 3d points
+ * @param points3d (output) 3d points. Is 3 x N
  */
 CV_EXPORTS
 void
-triangulateDLT( const Mat &xl, const Mat &xr,
-                const Mat &Pl, const Mat &Pr,
-                Mat &points3d );
+triangulateDLT( const Vec2d &xl, const Vec2d &xr,
+                const Matx34d &Pl, const Matx34d &Pr,
+                Vec3d &points3d );
 
 
 /** Triangulates the 3d position of 2d correspondences between n images, using the DLT
  * Reference: it is the standard DLT; for derivation see appendix of Keir's thesis
- * @param x  vectors of 2d points (n camera)
+ * @param x  vectors of 2d points (n camera). Has to be 2 x N
  * @param Ps The 3 x 4 projections matrices of each image
- * @param points3d (output) 3d points
+ * @param points3d (output) 3d points. Is 3 x N
  */
 CV_EXPORTS
 void
-nViewTriangulate( const Mat &x,
-                  const vector<Mat> &Ps,
-                  Mat &points3d );
+nViewTriangulate( const Mat_<double> &x,
+                  const vector<Matx34d> &Ps,
+                  Vec3d &points3d );
 
 
 } /* namespace cv */

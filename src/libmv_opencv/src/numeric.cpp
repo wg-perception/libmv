@@ -95,34 +95,15 @@ meanAndVarianceAlongRows( const Mat &A,
 }
 
 
-template<typename T>
-inline Mat
-skewMat( const Mat_<T> &x )
+Matx33d
+skewMat( const Vec3d &x )
 {
-    Mat_<T> skew(3,3);
+    Matx33d skew;
     skew <<   0 , -x(2),  x(1),
             x(2),    0 , -x(0),
            -x(1),  x(0),    0;
     return skew;
 }
-
-Mat
-skewMat( InputArray _x )
-{
-    Mat x = _x.getMat();
-    CV_Assert( x.rows == 3 && x.cols == 1 );
-
-    int depth = x.depth();
-    if( depth == CV_32F )
-    {
-        return skewMat<float>(x);
-    }
-    else
-    {
-        return skewMat<double>(x);
-    }
-}
-
 
 template<typename T>
 inline Mat

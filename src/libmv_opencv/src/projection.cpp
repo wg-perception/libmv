@@ -37,7 +37,7 @@
 
 #include "libmv/multiview/projection.h"
 #include <opencv2/core/eigen.hpp>
-#include <iostream>
+#include <opencv2/sfm/numeric.hpp>
 
 namespace cv
 {
@@ -93,20 +93,21 @@ euclideanToHomogeneous(const InputArray _x, OutputArray _X)
 }
 
 void
-P_From_KRt(const Mat &K, const Mat &R, const Mat &t, Mat &P)
+P_From_KRt(const Matx33d &K, const Matx33d &R, const Vec3d &t, Matx34d &P)
 {
-    int depth = K.depth();
-    CV_Assert( depth == R.depth() && depth == t.depth() );
-
-    P.create(3, 4, depth );
-    cv::Mat(K * R).copyTo(P.colRange(0, 3));
-    cv::Mat(K * t).copyTo(P.col(3));
+    Matx33d KR = K*R;
+    Vec3d Kt = K*t;
+    for(char j = 0; j < 3; ++j) {
+        for(char i = 0; i < 3; ++i) {
+          P(j, i) = KR(j, i);
+        }
+        P(j, 3) = Kt(j);
+    }
 }
 
 // RQ decomposition HZ A4.1.1 pag.579
-template<typename T>
 void
-KRt_From_P( const Mat &_P, Mat &_K, Mat &_R, Mat &_t )
+KRt_From_P( const Matx34d &_P, Matx33d &_K, Matx33d &_R, Vec3d &_t )
 {
     libmv::Mat34 P;
     libmv::Mat3 K, R;
@@ -120,21 +121,5 @@ KRt_From_P( const Mat &_P, Mat &_K, Mat &_R, Mat &_t )
     eigen2cv( R, _R );
     eigen2cv( t, _t );
 }
-
-void
-KRt_From_P( const Mat &P, Mat &K, Mat &R, Mat &t )
-{
-    int depth = P.depth();
-    if( depth == CV_32F )
-    {
-        // KRt_From_P<float>( P, K, R, t );
-        std::cerr << "Function kRt_From_P not handled for float" << std::endl;
-    }
-    else
-    {
-        KRt_From_P<double>( P, K, R, t );
-    }
-}
-
 
 } /* namespace cv */

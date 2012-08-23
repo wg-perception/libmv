@@ -40,24 +40,23 @@ using namespace cv;
 using namespace cvtest;
 using namespace std;
 
-template<typename T>
 static void
-test_fundamentalFromCorrespondences8PointRobust(T tolerance)
+test_fundamentalFromCorrespondences8PointRobust(double tolerance)
 {
     const int n = 16;
-    Mat_<T> x1(2,n);
+    Mat_<double> x1(2,n);
     x1 << 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
           0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 5;
 
-    Mat_<T> x2 = x1.clone();
+    Mat_<double> x2 = x1.clone();
     for (int i = 0; i < n; ++i)
     {
-        x2(0, i) += i % 2;  // Multiple horizontal disparities.
+        x2(0,i) += i % 2;  // Multiple horizontal disparities.
     }
-    x2(0, n - 1) = 10;
-    x2(1, n - 1) = 10;      // The outlier has vertical disparity.
+    x2(0,n - 1) = 10;
+    x2(1,n - 1) = 10;      // The outlier has vertical disparity.
 
-    Mat_<T> F;
+    Matx33d F;
     vector<int> inliers;
     fundamentalFromCorrespondences8PointRobust(x1, x2, 0.1, F, inliers);
 
@@ -81,39 +80,36 @@ test_fundamentalFromCorrespondences8PointRobust(T tolerance)
 
 TEST(Sfm_robust, fundamentalFromCorrespondences8PointRobust)
 {
-//     test_fundamentalFromCorrespondences8PointRobust<float>();
-    test_fundamentalFromCorrespondences8PointRobust<double>( 1e-8 );
+    test_fundamentalFromCorrespondences8PointRobust( 1e-8 );
 }
 
 
-template<typename T>
 static void
-test_fundamentalFromCorrespondences8PointRealisticNoOutliers(T tolerance)
+test_fundamentalFromCorrespondences8PointRealisticNoOutliers(double tolerance)
 {
     cvtest::TwoViewDataSet d;
-    generateTwoViewRandomScene<T>(d);
+    generateTwoViewRandomScene(d);
 
-    Mat_<T> F_estimated(3,3);
+    Matx33d F_estimated;
 
     vector<int> inliers;
     fundamentalFromCorrespondences8PointRobust(d.x1, d.x2, 3.0, F_estimated, inliers);
     EXPECT_EQ(d.x1.cols, inliers.size());
 
     // Normalize.
-    Mat_<T> F_gt_norm(3,3), F_estimated_norm(3,3);
+    Matx33d F_gt_norm, F_estimated_norm;
     normalizeFundamental(d.F, F_gt_norm);
     normalizeFundamental(F_estimated, F_estimated_norm);
-    cout << "F_gt_norm =\n" << F_gt_norm;
-    cout << "F_estimated_norm =\n" << F_estimated_norm;
+    cout << "F_gt_norm =\n" << Mat(F_gt_norm);
+    cout << "F_estimated_norm =\n" << Mat(F_estimated_norm);
 
     EXPECT_MATRIX_NEAR(F_gt_norm, F_estimated_norm, tolerance);
 
     // Check fundamental properties.
-    expectFundamentalProperties<T>( F_estimated, d.x1, d.x2, tolerance);
+    expectFundamentalProperties( F_estimated, d.x1, d.x2, tolerance);
 }
 
 TEST(Sfm_robust, fundamentalFromCorrespondences8PointRealisticNoOutliers)
 {
-//     test_fundamentalFromCorrespondences8PointRealisticNoOutliers<float>();
-    test_fundamentalFromCorrespondences8PointRealisticNoOutliers<double>( 1e-8 );
+    test_fundamentalFromCorrespondences8PointRealisticNoOutliers( 1e-8 );
 }

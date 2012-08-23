@@ -64,12 +64,12 @@ euclideanToHomogeneous(InputArray src, OutputArray dst);
  */
 CV_EXPORTS
 void
-P_From_KRt(const Mat &K, const Mat &R, const Mat &t, Mat &P);
+P_From_KRt(const Matx33d &K, const Matx33d &R, const Vec3d &t, Matx34d &P);
 
 /** Decompose using the RQ decomposition HZ A4.1.1 pag.579 */
 CV_EXPORTS
 void
-KRt_From_P( const Mat &P, Mat &K, Mat &R, Mat &t );
+KRt_From_P( const Matx34d &P, Matx33d &K, Matx33d &R, Vec3d &t );
 
 
 } /* namespace cv */

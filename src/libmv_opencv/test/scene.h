@@ -36,5 +36,6 @@
 #include <opencv2/core/core.hpp>
 
 void
-generateScene(size_t n_views, size_t n_points, bool is_projective, int depth, cv::Mat & K, std::vector<cv::Mat> & R,
-              std::vector<cv::Mat> & t, std::vector<cv::Mat> & P, cv::Mat & points3d, std::vector<cv::Mat> & points2d);
+generateScene(size_t n_views, size_t n_points, bool is_projective, cv::Matx33d & K, std::vector<cv::Matx33d> & R,
+              std::vector<cv::Vec3d> & t, std::vector<cv::Matx34d> & P, cv::Mat_<double> & points3d,
+              std::vector<cv::Mat_<double> > & points2d);

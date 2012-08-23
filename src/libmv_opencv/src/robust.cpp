@@ -34,24 +34,21 @@
  */
 
 #include "opencv2/sfm/robust.hpp"
+#include "opencv2/sfm/numeric.hpp"
 
 #include "libmv/multiview/robust_fundamental.h"
 #include <opencv2/core/eigen.hpp>
-
-#include <iostream>
 
 using namespace std;
 
 namespace cv
 {
 
-
-template<typename T>
 void
-fundamentalFromCorrespondences8PointRobust( const Mat &_x1,
-                                            const Mat &_x2,
+fundamentalFromCorrespondences8PointRobust( const Mat_<double> &_x1,
+                                            const Mat_<double> &_x2,
                                             double max_error,
-                                            Mat &_F,
+                                            Matx33d &_F,
                                             vector<int> &_inliers,
                                             double outliers_probability )
 {
@@ -74,28 +71,5 @@ fundamentalFromCorrespondences8PointRobust( const Mat &_x1,
         _inliers[i] = inliers.at(i);
     }
 }
-
-void
-fundamentalFromCorrespondences8PointRobust( const Mat &x1,
-                                            const Mat &x2,
-                                            double max_error,
-                                            Mat &F,
-                                            vector<int> &inliers,
-                                            double outliers_probability )
-{
-    int depth = x1.depth();
-    CV_Assert( depth == x2.depth() );
-
-    if( depth == CV_32F )
-    {
-        // fundamentalFromCorrespondences8PointRobust<float>( x1, x2, max_error, F, inliers, outliers_probability );
-        std::cerr << "Function fundamentalFromCorrespondences8PointRobust not handled for float" << std::endl;
-    }
-    else
-    {
-        fundamentalFromCorrespondences8PointRobust<double>( x1, x2, max_error, F, inliers, outliers_probability );
-    }
-}
-
 
 } /* namespace cv */

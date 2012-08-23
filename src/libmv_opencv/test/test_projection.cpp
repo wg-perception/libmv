@@ -84,36 +84,28 @@ TEST(Sfm_projection, euclideanToHomogeneous)
     EXPECT_EQ( 1, X2(2) );
 }
 
-template<typename T>
-static void
-test_P_From_KRt()
+TEST(Sfm_projection, P_From_KRt)
 {
-  Mat_<T> K(3,3), Kp(3,3);
+  Matx33d K, Kp;
   K << 10,  1, 30,
         0, 20, 40,
         0,  0,  1;
 
-  Mat_<T> R(3,3), Rp(3,3);
+  Matx33d R, Rp;
   R << 1, 0, 0,
        0, 1, 0,
        0, 0, 1;
 
-  Mat_<T> t(3,1), tp(3,1);
+  Vec3d t, tp;
   t << 1, 2, 3;
 
-  Mat_<T> P(3,4);
+  Matx34d P(3,4);
   P_From_KRt(K, R, t, P);
   KRt_From_P(P, Kp, Rp, tp);
 
   EXPECT_MATRIX_NEAR(K, Kp, 1e-8);
   EXPECT_MATRIX_NEAR(R, Rp, 1e-8);
-  EXPECT_MATRIX_NEAR(t, tp, 1e-8);
-}
-
-TEST(Sfm_projection, P_From_KRt)
-{
-//     test_P_From_KRt<float>();
-    test_P_From_KRt<double>();
+  EXPECT_VECTOR_NEAR(t, tp, 1e-8);
 
   // TODO: Change the code to ensure det(R) == 1, which is not currently
   // the case. Also add a test for that here.

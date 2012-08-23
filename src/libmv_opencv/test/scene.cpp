@@ -38,13 +38,12 @@
 
 #include "test_precomp.hpp"
 
-template<typename T>
-cv::Mat_<T>
+cv::Matx33d
 randomK(bool is_projective)
 {
   static cv::RNG rng;
 
-  cv::Mat_<T> K = cv::Mat_ < T > ::zeros(3, 3);
+  cv::Matx33d K = cv::Matx33d::zeros();
   K(0, 0) = rng.uniform(100, 1000);
   K(1, 1) = rng.uniform(100, 1000);
   if (is_projective)
@@ -57,94 +56,62 @@ randomK(bool is_projective)
   return K;
 }
 
-/** Generate a set of random views of a rigid scene for testing purposes
- * @param n_points
- * @param K
- * @param R
- * @param T
- * @param P
- * @param points3d
- * @param points2d
- */
-template<typename T>
 void
-generateScene(size_t n_views, size_t n_points, bool is_projective, cv::Mat & K_out, std::vector<cv::Mat> & R_out,
-              std::vector<cv::Mat> & t_out, cv::Mat & points3d_out)
+generateScene(size_t n_views, size_t n_points, bool is_projective, cv::Matx33d & K, std::vector<cv::Matx33d> & R,
+              std::vector<cv::Vec3d> & t, std::vector<cv::Matx34d> & P, cv::Mat_<double> & points3d,
+              std::vector<cv::Mat_<double> > & points2d)
 {
+  R.resize(n_views);
+  t.resize(n_views);
+
   cv::RNG rng;
 
   // Generate a bunch of random 3d points in a 0, 1 cube
-  cv::Mat_<T> points3d(3, n_points);
+  points3d.create(3, n_points);
   rng.fill(points3d, cv::RNG::UNIFORM, 0, 1);
 
   // Generate random intrinsics
-  cv::Mat_<T> K = randomK<T>(is_projective);
+  K = randomK(is_projective);
 
   // Generate random camera poses
   // TODO deal with smooth camera poses (e.g. from a video sequence)
-  std::vector<cv::Mat_<T> > R(n_views);
-  std::vector<cv::Vec<T, 3> > t(n_views);
   for (size_t i = 0; i < n_views; ++i)
   {
     // Get a random rotation axis
-    cv::Vec<T, 3> vec;
+    cv::Vec3d vec;
     rng.fill(vec, cv::RNG::UNIFORM, 0, 1);
     // Give a random angle to the rotation vector
     vec = vec / cv::norm(vec) * rng.uniform(0.0f, float(2 * CV_PI));
     cv::Rodrigues(vec, R[i]);
     // Create a random translation
-    t[i] = cv::Vec<T, 3>(rng.uniform(-0.5f, 0.5f), rng.uniform(-0.5f, 0.5f), rng.uniform(1.0f, 2.0f));
+    t[i] = cv::Vec3d(rng.uniform(-0.5f, 0.5f), rng.uniform(-0.5f, 0.5f), rng.uniform(1.0f, 2.0f));
     // Make sure the shape is in front of the camera
-    cv::Mat_<T> points3d_transformed = R[i] * points3d + cv::Mat(t[i]) * cv::Mat_ < T > ::ones(1, n_points);
+    cv::Mat_<double> points3d_transformed = cv::Mat(R[i]) * points3d + cv::Mat(t[i]) * cv::Mat_<double> ::ones(1, n_points);
     double min_dist, max_dist;
     cv::minMaxIdx(points3d_transformed.row(2), &min_dist, &max_dist);
     if (min_dist < 0)
       t[i][2] = t[i][2] - min_dist + 1.0;
   }
 
-  // Copy the data back
-  K.copyTo(K_out);
-  R_out.resize(n_views);
-  t_out.resize(n_views);
-  for (size_t i = 0; i < n_views; ++i)
-  {
-    R[i].copyTo(R_out[i]);
-    cv::Mat(t[i]).copyTo(t_out[i]);
-  }
-  points3d.copyTo(points3d_out);
-}
-
-void
-generateScene(size_t n_views, size_t n_points, bool is_projective, int depth, cv::Mat & K, std::vector<cv::Mat> & R,
-              std::vector<cv::Mat> & t, std::vector<cv::Mat> & P, cv::Mat & points3d, std::vector<cv::Mat> & points2d)
-{
-  CV_Assert(depth == CV_32F || depth == CV_64F);
-
-  R.resize(n_views);
-  t.resize(n_views);
-
-  if (depth == CV_32F)
-    generateScene<float>(n_views, n_points, is_projective, K, R, t, points3d);
-  else
-    generateScene<double>(n_views, n_points, is_projective, K, R, t, points3d);
-
   // Compute projection matrices
   P.resize(n_views);
   for (size_t i = 0; i < n_views; ++i)
   {
-    P_From_KRt(K, R[i], t[i], P[i]);
+    cv::Matx33d K3 = K, R3 = R[i];
+    cv::Vec3d t3 = t[i];
+    P_From_KRt(K3, R3, t3, P[i]);
   }
 
   // Compute homogeneous 3d points
-  cv::Mat points3d_homogeneous(4, n_points, depth);
+  cv::Mat_<double> points3d_homogeneous(4, n_points);
   points3d.copyTo(points3d_homogeneous.rowRange(0, 3));
   points3d_homogeneous.row(3).setTo(1);
   // Project those points for every view
   points2d.resize(n_views);
   for (size_t i = 0; i < n_views; ++i)
   {
-    cv::Mat points2d_tmp = P[i] * points3d_homogeneous;
-    points2d[i].create(2, n_points, depth);
+    cv::Mat_<double> points2d_tmp = cv::Mat(P[i]) * points3d_homogeneous;
+    points2d[i].create(2, n_points);
     for (unsigned char j = 0; j < 2; ++j)
       cv::Mat(points2d_tmp.row(j) / points2d_tmp.row(2)).copyTo(points2d[i].row(j));
   }

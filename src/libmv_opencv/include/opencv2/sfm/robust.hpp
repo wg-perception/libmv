@@ -49,10 +49,10 @@ namespace cv
  */
 CV_EXPORTS
 void
-fundamentalFromCorrespondences8PointRobust( const Mat &x1,
-                                            const Mat &x2,
+fundamentalFromCorrespondences8PointRobust( const Mat_<double> &x1,
+                                            const Mat_<double> &x2,
                                             double max_error,
-                                            Mat &F,
+                                            Matx33d &F,
                                             vector<int> &inliers,
                                             double outliers_probability = 1e-2 );
 

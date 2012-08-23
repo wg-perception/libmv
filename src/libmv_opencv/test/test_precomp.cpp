@@ -9,16 +9,20 @@ using namespace std;
 namespace cvtest
 {
 
-void generateTwoViewRandomScene( cvtest::TwoViewDataSet &data, int depth )
+void generateTwoViewRandomScene( cvtest::TwoViewDataSet &data )
 {
-    vector<Mat> points2d, Rs, ts, Ps;
-    Mat K, points3d;
+    vector<Mat_<double> > points2d;
+    vector<cv::Matx33d> Rs;
+    vector<cv::Vec3d> ts;
+    vector<cv::Matx34d> Ps;
+    Matx33d K;
+    Mat_<double> points3d;
 
     int nviews = 2;
     int npoints = 30;
     bool is_projective = true;
 
-    generateScene(nviews, npoints, is_projective, depth, K, Rs, ts, Ps, points3d, points2d);
+    generateScene(nviews, npoints, is_projective, K, Rs, ts, Ps, points3d, points2d);
 
     // Internal parameters (same K)
     data.K1 = K;
@@ -45,6 +49,33 @@ void generateTwoViewRandomScene( cvtest::TwoViewDataSet &data, int depth )
     // Projected points
     data.x1 = points2d[0];
     data.x2 = points2d[1];
+}
+
+/** Check the properties of a fundamental matrix:
+*
+*   1. The determinant is 0 (rank deficient)
+*   2. The condition x'T*F*x = 0 is satisfied to precision.
+*/
+void
+expectFundamentalProperties( const cv::Matx33d &F,
+                             const cv::Mat_<double> &ptsA,
+                             const cv::Mat_<double> &ptsB,
+                             double precision )
+{
+  EXPECT_NEAR( 0, determinant(F), precision );
+
+  int n = ptsA.cols;
+  EXPECT_EQ( n, ptsB.cols );
+
+  cv::Mat_<double> x1, x2;
+  euclideanToHomogeneous( ptsA, x1 );
+  euclideanToHomogeneous( ptsB, x2 );
+
+  for( int i = 0; i < n; ++i )
+  {
+    double residual = Vec3d(x2(0,i),x2(1,i),x2(2,i)).ddot( F * Vec3d(x1(0,i),x1(1,i),x1(2,i)) );
+    EXPECT_NEAR( 0.0, residual, precision );
+  }
 }
 
 void

@@ -38,6 +38,8 @@
 
 #ifdef __cplusplus
 
+#include <vector>
+
 #include <opencv2/core/core.hpp>
 
 namespace cv
@@ -45,15 +47,15 @@ namespace cv
 
 CV_EXPORTS
 void
-projectionsFromFundamental( const Mat &F,
-                            Mat &P1,
-                            Mat &P2 );
+projectionsFromFundamental( const Matx33d &F,
+                            Matx34d &P1,
+                            Matx34d &P2 );
 
 CV_EXPORTS
 void
-fundamentalFromProjections( const Mat &P1,
-                            const Mat &P2,
-                            Mat &F );
+fundamentalFromProjections( const Matx34d &P1,
+                            const Matx34d &P2,
+                            Matx33d &F );
 
 /**
  * The normalized 8-point fundamental matrix solver.
@@ -61,9 +63,9 @@ fundamentalFromProjections( const Mat &P1,
  */
 CV_EXPORTS
 void
-normalizedEightPointSolver( const cv::Mat &x1,
-                            const cv::Mat &x2,
-                            cv::Mat &F );
+normalizedEightPointSolver( const cv::Mat_<double> &x1,
+                            const cv::Mat_<double> &x2,
+                            Matx33d &F );
 
 /**
  * Compute the relative camera motion between two cameras.
@@ -75,19 +77,19 @@ normalizedEightPointSolver( const cv::Mat &x1,
  */
 CV_EXPORTS
 void
-relativeCameraMotion( const Mat &R1,
-                      const Mat &t1,
-                      const Mat &R2,
-                      const Mat &t2,
-                      Mat &R,
-                      Mat &t );
+relativeCameraMotion( const Matx33d &R1,
+                      const Vec3d &t1,
+                      const Matx33d &R2,
+                      const Vec3d &t2,
+                      Matx33d &R,
+                      Vec3d &t );
 
 /** Get Motion (R's and t's ) from Essential matrix.
  *  HZ 9.6 pag 259 (Result 9.19)
  */
 CV_EXPORTS
 void
-motionFromEssential(const Mat &E, vector<Mat> &Rs, vector<Mat> &ts);
+motionFromEssential(const Matx33d &E, std::vector<Matx33d> &Rs, std::vector<Vec3d> &ts);
 
 /** Get Essential matrix from Fundamental and Camera matrices
  *  HZ 9.6 pag 257 (formula 9.12)
@@ -95,32 +97,32 @@ motionFromEssential(const Mat &E, vector<Mat> &Rs, vector<Mat> &ts);
  */
 CV_EXPORTS
 void
-fundamentalFromEssential(const Mat &E, const Mat &K1, const Mat &K2, Mat &F);
+fundamentalFromEssential(const Matx33d &E, const Matx33d &K1, const Matx33d &K2, Matx33d &F);
 
 /** Get Essential matrix from Fundamental and Camera matrices
  *  HZ 9.6 pag 257 (formula 9.12)
  */
 CV_EXPORTS
 void
-essentialFromFundamental(const Mat &F, const Mat &K1, const Mat &K2, Mat &E);
+essentialFromFundamental(const Matx33d &F, const Matx33d &K1, const Matx33d &K2, Matx33d &E);
 
 /** Get Essential matrix from Motion (R's and t's )
  *  HZ 9.6 pag 257 (formula 9.12)
  */
 CV_EXPORTS
 void
-essentialFromRt( const Mat &R1,
-                 const Mat &t1,
-                 const Mat &R2,
-                 const Mat &t2,
-                 Mat &E );
+essentialFromRt( const Matx33d &R1,
+                 const Vec3d &t1,
+                 const Matx33d &R2,
+                 const Vec3d &t2,
+                 Matx33d &E );
 
 
 
 CV_EXPORTS
 void
-normalizeFundamental( const Mat &F,
-                      Mat &F_normalized );
+normalizeFundamental( const Matx33d &F,
+                      Matx33d &F_normalized );
 
 } /* namespace cv */
 
