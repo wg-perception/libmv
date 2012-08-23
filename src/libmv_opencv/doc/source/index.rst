@@ -91,7 +91,7 @@ projectionsFromFundamental      **DONE**    **DONE**   Yes
 fundamentalFromProjections      **DONE**    **DONE**   Yes
 normalizedEightPointSolver      **DONE**    ToDo       Yes*
 relativeCameraMotion            **DONE**    **DONE**   --
-motionFromEssential             **DONE**    ToDo       ToDo
+motionFromEssential             **DONE**    ToDo       Yes*
 fundamentalFromEssential        **DONE**    **DONE**   Yes
 essentialFromFundamental        **DONE**    **DONE**   Yes
 essentialFromRt                 **DONE**    ToDo       Yes*
