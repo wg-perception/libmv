@@ -100,8 +100,6 @@ test_fundamentalFromCorrespondences8PointRealisticNoOutliers(double tolerance)
     Matx33d F_gt_norm, F_estimated_norm;
     normalizeFundamental(d.F, F_gt_norm);
     normalizeFundamental(F_estimated, F_estimated_norm);
-    cout << "F_gt_norm =\n" << Mat(F_gt_norm);
-    cout << "F_estimated_norm =\n" << Mat(F_estimated_norm);
 
     EXPECT_MATRIX_NEAR(F_gt_norm, F_estimated_norm, tolerance);
 
