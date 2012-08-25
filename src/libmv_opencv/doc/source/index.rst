@@ -7,7 +7,7 @@ TODO
 ====
 
 The following has to be achieved as a first step
- * figure out what OpenCV has already and why it sucks
+ * figure out what OpenCV has already
  * replace the image type with the OpenCV one
  * remove Eigen by cv::Matx and make sure that does not impact the performance (Keir agreed that this would be good to remove an LGPL dependency and make it pure BSD)
  * replace hand-written functionalities with OpenCV ones (like convolution)

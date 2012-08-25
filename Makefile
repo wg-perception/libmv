@@ -30,7 +30,11 @@ uninstall : debug
 uninstall-release : release
 	cd bin-opt && make uninstall
 
-documentation :
+documentation:
+	sphinx-build -b html src/libmv_opencv/doc/source ./bin-opt/doc/
+	@echo "\nOpen './bin-opt/doc/index.html' file."
+
+doxygen :
 	cd doc && doxygen Doxyfile
 
 kdevelop :
