@@ -1,11 +1,15 @@
-# GSoC 2012 - SfM: adapt libmv for OpenCV
+## GSoC 2012 - SfM: adapt libmv for OpenCV
 
-This is a collaborative effort to port libmv to OpenCV. [libmv](http://code.google.com/p/libmv/) is a Structure from Motion (SfM) library, which is divided into different modules (image/detector/descriptor/multiview) that allow to resolve part of the SfM process. We focus on the muliview functionalities, trying to port them to OpenCV.
+This is a collaborative effort to port libmv to OpenCV. [libmv](http://code.google.com/p/libmv/) is a Structure from Motion (SfM) library, which is divided into different modules (image/detector/descriptor/multiview) that allow to resolve part of the SfM process. We are focused on the muliview functionalities, trying to port them to OpenCV.
 
-Most of the our code is going to be in the folder: *./src/libmv_opencv/*
+Most of our code is going to be in the folder: **./src/libmv_opencv/**
+
+### Members:
+  - **Mentors**:  Vincent Rabaud, Ilya Lysenkov
+  - **Students**: Pablo Speciale, Srimal Jayawardena
 
 
-## Github repository
+### Github repository
   https://github.com/wg-perception/libmv
 
 
@@ -27,7 +31,6 @@ On Linux,
     cmake ../src/
     make
 
-
 An alternative way is using the top-level Makefile, just doing:
 
     make
@@ -37,12 +40,13 @@ Compiling for debug,
     make debug
 
 
+
 ## Documentation (internal)
     make documentation
     cd bin-opt/doc/
     open 'index.html' file
 
-Documentation content:
+### Documentation content:
 - ToDo
 - **Detailed TODO**
 - Docs on what has been done
