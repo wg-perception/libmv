@@ -2,23 +2,26 @@
 
 This is a collaborative effort to port libmv to OpenCV. [libmv](http://code.google.com/p/libmv/) is a Structure from Motion (SfM) library, which is divided into different modules (image/detector/descriptor/multiview) that allow to resolve part of the SfM process. We focus on the muliview functionalities, trying to port them to OpenCV.
 
-Most of the our code is going to be in the folder: ./src/libmv_opencv/
+Most of the our code is going to be in the folder: *./src/libmv_opencv/*
+
 
 ## Github repository
   https://github.com/wg-perception/libmv
+
 
 ## Compile
 To compile CMake is used: http://www.cmake.org
 
 Prerequisite
-- OpenCV: http://opencv.org/
+- OpenCV 2.4.2: http://opencv.org
 - Qt4 (optional): http://qt.nokia.com
-- Sphinx (optional): http://sphinx.pocoo.org/
+- Sphinx (optional): http://sphinx.pocoo.org
 
 
 ### How to compile
 
 On Linux,
+
     mkdir bin-opt
     cd bin-opt
     cmake ../src/
@@ -26,13 +29,15 @@ On Linux,
 
 
 An alternative way is using the top-level Makefile, just doing:
+
     make
 
-For debug,
+Compiling for debug,
+
     make debug
 
 
-## Documentation
+## Documentation (internal)
     make documentation
     cd bin-opt/doc/
     open 'index.html' file
@@ -45,8 +50,9 @@ Documentation content:
 - Datasets to use
 - **Progress**
 
-Note: Important sections are **Detailed TODO** and **Progress**. The Progress section is duplicated in the github wiki:
-   https://github.com/wg-perception/libmv/wiki/Progress
+Click [*here*](https://github.com/wg-perception/libmv/blob/master/src/libmv_opencv/doc/source/index.rst) to see a preview of our internal documentation.
+
+_Note_: github does not include recursively '.rst' files, so this preview is incomplete. See important sections like: **Detailed TODO** and **Progress**.
 
 
 ## Test cases
@@ -55,14 +61,14 @@ Note: Important sections are **Detailed TODO** and **Progress**. The Progress se
     ./bin/tests/sfm_tests
 
 
-Note 1: the test case *Sfm_simple_pipeline.backyard* takes times, so it can be skipped using *gtest* options:
+_Note 1_: the test case *Sfm_simple_pipeline.backyard* takes times, so it can be skipped using *gtest* options:
 
     make
     cd bin-opt
     ./bin/tests/sfm_tests --gtest_filter=-Sfm_simple_pipeline.backyard
 
 
-Note 2: if you want to see the data with blender, take a look at:
+_Note 2_: if you want to see the data with blender, take a look at:
 
     blender ./src/libmv_opencv/testdata/cv/sfm/backyard.blend
 
