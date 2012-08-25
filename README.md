@@ -2,7 +2,10 @@
 
 This is a collaborative effort to port libmv to OpenCV. [libmv](http://code.google.com/p/libmv/) is a Structure from Motion (SfM) library, which is divided into different modules (image/detector/descriptor/multiview) that allow to resolve part of the SfM process. We are focused on the muliview functionalities, trying to port them to OpenCV.
 
-Most of our code is going to be in the folder: **./src/libmv_opencv/**
+### Quick links:
+   - Most of the code developed during GSoC 2012: **./src/libmv_opencv/**
+   - GSoC 2012 progress: https://github.com/wg-perception/libmv/wiki/Progress
+
 
 ### Members:
   - **Mentors**:  Vincent Rabaud, Ilya Lysenkov
@@ -65,7 +68,7 @@ _Note_: github does not include recursively '.rst' files, so this preview is inc
     ./bin/tests/sfm_tests
 
 
-_Note 1_: the test case *Sfm_simple_pipeline.backyard* takes times, so it can be skipped using *gtest* options:
+_Note 1_: the test case *Sfm_simple_pipeline.backyard* takes time, so it can be skipped using *gtest* options:
 
     make
     cd bin-opt
