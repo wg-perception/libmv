@@ -87,3 +87,7 @@ If you have troubles compiling the project, use the development version of OpenC
 
 There was a bug in OpenCV, and it was fixed here:
    https://github.com/Itseez/opencv/commit/1baf5209c4df292922f78e2757321c359f8b28e8
+
+
+### Mail list
+   Google Group: https://groups.google.com/forum/?hl=en#!forum/libmv_gsoc
