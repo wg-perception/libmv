@@ -92,7 +92,7 @@ fundamentalFromProjections        **DONE**    **DONE**   Yes
 normalizedEightPointSolver        **DONE**    ToDo       Yes*
 relativeCameraMotion              **DONE**    **DONE**   --
 motionFromEssential               **DONE**    ToDo       Yes*
-MotionFromEssentialChooseSolution **DONE**	  **DONE**	 Todo
+MotionFromEssentialChooseSolution **DONE**	  **DONE**	 Fail
 fundamentalFromEssential          **DONE**    **DONE**   Yes
 essentialFromFundamental          **DONE**    **DONE**   Yes
 essentialFromRt                   **DONE**    ToDo       Yes*
@@ -114,7 +114,7 @@ skewMatMinimal                  **DONE**    **DONE**   --
 =============================   ========    ========   ====    =====================
 Function                        Wrapper     Port       Test    Comments
 =============================   ========    ========   ====    =====================
-depth							Todo
+depth							**DONE**	**DONE**   No
 euclideanToHomogeneous          **DONE**    **DONE**   Yes
 homogeneousToEuclidean          **DONE**    **DONE**   Yes      ToDo: check homogeneousToEuclidean( X, X );
 P_From_KRt                      **DONE**    **DONE**   Yes*     P = K * [R t]
