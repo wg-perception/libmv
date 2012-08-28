@@ -33,6 +33,8 @@
  *
  */
 
+#include "opencv2/sfm/projection.hpp"
+#include "opencv2/sfm/triangulation.hpp"
 #include "opencv2/sfm/fundamental.hpp"
 #include "opencv2/sfm/numeric.hpp"
 
@@ -138,6 +140,39 @@ namespace cv
             eigen2cv(ts[i], t_temp);
             _ts.push_back(t_temp);
         }
+    }
+
+
+    int motionFromEssentialChooseSolution( const vector<Matx33d> &Rs,
+                                           const vector<Vec3d> &ts,
+                                           const Matx33d &K1,
+                                           const Vec2d &x1,
+                                           const Matx33d &K2,
+                                           const Vec2d &x2 )
+    {
+
+        CV_Assert( 4 == Rs.size());
+        CV_Assert( 4 == ts.size());
+
+        Matx34d P1, P2;
+        Matx33d R1 = Matx33d::eye();
+        Vec3d t1(0.0, 0.0, 0.0);
+
+        P_From_KRt(K1, R1, t1, P1);
+
+        for ( int i = 0; i < 4; ++i )
+        {
+            const Matx33d R2 = Rs[i];
+            const Vec3d t2 = ts[i];
+            P_From_KRt(K2, R2, t2, P2);
+
+            Vec3d X;
+            triangulateDLT(x1, x2, P1, P2, X);
+
+
+        }
+
+        return -1;
     }
 
 // fundamentalFromEssential

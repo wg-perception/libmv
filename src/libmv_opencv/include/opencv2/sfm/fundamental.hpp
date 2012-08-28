@@ -91,6 +91,23 @@ CV_EXPORTS
 void
 motionFromEssential(const Matx33d &E, std::vector<Matx33d> &Rs, std::vector<Vec3d> &ts);
 
+/**
+ * Choose one of the four possible motion solutions from an essential matrix.
+ *
+ * Decides the right solution by checking that the triangulation of a match
+ * x1--x2 lies in front of the cameras.  See HZ 9.6 pag 259 (9.6.3 Geometrical
+ * interpretation of the 4 solutions)
+ *
+ * \return index of the right solution or -1 if no solution.
+ */
+CV_EXPORTS
+int motionFromEssentialChooseSolution( const vector<Matx33d> &Rs,
+                                       const vector<Vec3d> &ts,
+                                       const Matx33d &K1,
+                                       const Vec2d &x1,
+                                       const Matx33d &K2,
+                                       const Vec2d &x2 );
+
 /** Get Essential matrix from Fundamental and Camera matrices
  *  HZ 9.6 pag 257 (formula 9.12)
  *  Or http://ai.stanford.edu/~birch/projective/node20.html

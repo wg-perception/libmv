@@ -84,19 +84,20 @@ normalizeIsotropicPoints        **DONE**    --         ToDo    Port is not neede
 
 * **fundamental.hpp**
 
-=============================   ========    ========   ====    =====================
-Function                        Wrapper     Port       Test    Comments
-=============================   ========    ========   ====    =====================
-projectionsFromFundamental      **DONE**    **DONE**   Yes
-fundamentalFromProjections      **DONE**    **DONE**   Yes
-normalizedEightPointSolver      **DONE**    ToDo       Yes*
-relativeCameraMotion            **DONE**    **DONE**   --
-motionFromEssential             **DONE**    ToDo       Yes*
-fundamentalFromEssential        **DONE**    **DONE**   Yes
-essentialFromFundamental        **DONE**    **DONE**   Yes
-essentialFromRt                 **DONE**    ToDo       Yes*
-normalizeFundamental            **DONE**    **DONE**   --
-=============================   ========    ========   ====    =====================
+================================= ========    ========   ====    =====================
+Function                          Wrapper     Port       Test    Comments
+================================= ========    ========   ====    =====================
+projectionsFromFundamental        **DONE**    **DONE**   Yes
+fundamentalFromProjections        **DONE**    **DONE**   Yes
+normalizedEightPointSolver        **DONE**    ToDo       Yes*
+relativeCameraMotion              **DONE**    **DONE**   --
+motionFromEssential               **DONE**    ToDo       Yes*
+MotionFromEssentialChooseSolution **DONE**	  **DONE**	 Todo
+fundamentalFromEssential          **DONE**    **DONE**   Yes
+essentialFromFundamental          **DONE**    **DONE**   Yes
+essentialFromRt                   **DONE**    ToDo       Yes*
+normalizeFundamental              **DONE**    **DONE**   --
+================================= ========    ========   ====    =====================
 
 * **numeric.hpp**
 
@@ -113,8 +114,9 @@ skewMatMinimal                  **DONE**    **DONE**   --
 =============================   ========    ========   ====    =====================
 Function                        Wrapper     Port       Test    Comments
 =============================   ========    ========   ====    =====================
-homogeneousToEuclidean          **DONE**    **DONE**   Yes      ToDo: check homogeneousToEuclidean( X, X );
+depth							Todo
 euclideanToHomogeneous          **DONE**    **DONE**   Yes
+homogeneousToEuclidean          **DONE**    **DONE**   Yes      ToDo: check homogeneousToEuclidean( X, X );
 P_From_KRt                      **DONE**    **DONE**   Yes*     P = K * [R t]
 KRt_From_P                      **DONE**    ToDo       Yes*     RQ decomposition HZ A4.1.1 pag.579
 =============================   ========    ========   ====    =====================

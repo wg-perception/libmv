@@ -122,4 +122,18 @@ KRt_From_P( const Matx34d &_P, Matx33d &_K, Matx33d &_R, Vec3d &_t )
     eigen2cv( t, _t );
 }
 
+
+double depth( const Matx33d &R, const Vec3d &t, const Vec3d &X )
+{
+    Vec3d RX = R * X;
+//    return (R*X)(2) + t(2);
+    return RX[2] + t[2];
+}
+
+double depth( const Matx33d &R, const Vec3d &t, const Vec4d &X )
+{
+    Vec3d Xe( X[0] / X[3], X[1] / X[3], X[2] / X[3] );
+    return depth( R, t, Xe );
+}
+
 } /* namespace cv */
