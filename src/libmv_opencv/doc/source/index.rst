@@ -65,6 +65,7 @@ Datasets to use
 ===============
 
 http://www.cvpapers.com/datasets.html
+http://cvlab.epfl.ch/~strecha/multiview/denseMVS.html
 
 Progress
 ========
