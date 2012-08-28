@@ -169,7 +169,14 @@ namespace cv
             Vec3d X;
             triangulateDLT(x1, x2, P1, P2, X);
 
+            double d1 = depth(R1, t1, X);
+            double d2 = depth(R2, t2, X);
 
+            // Test if point is front to the two cameras.
+            if ( d1 > 0 && d2 > 0 )
+            {
+                return i;
+            }
         }
 
         return -1;
