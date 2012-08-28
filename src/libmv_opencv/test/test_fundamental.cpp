@@ -145,3 +145,33 @@ TEST(Sfm_fundamental, essentialFromFundamental)
 
     EXPECT_MATRIX_PROP(E_from_Rt, E_from_F, 1e-6);
 }
+
+
+TEST(Sfm_fundamental, motionFromEssentialChooseSolution)
+{
+    TwoViewDataSet d;
+    generateTwoViewRandomScene(d);
+
+    Matx33d E;
+    essentialFromRt(d.R1, d.t1, d.R2, d.t2, E);
+
+    Matx33d R;
+    Vec3d t;
+    relativeCameraMotion(d.R1, d.t1, d.R2, d.t2, R, t);
+    normalize(t, t);
+
+    vector < Matx33d > Rs;
+    vector < Vec3d > ts;
+    motionFromEssential(E, Rs, ts);
+
+    Vec2d x1(d.x1(0, 0), d.x1(1, 0));
+    Vec2d x2(d.x2(0, 0), d.x2(1, 0));
+    int solution = motionFromEssentialChooseSolution(Rs, ts, d.K1, x1, d.K2,
+                                                     x2);
+
+    EXPECT_LE(0, solution);
+    EXPECT_LE(solution, 3);
+    EXPECT_LE(norm(Rs[solution]-R), 1e-8);
+    EXPECT_LE(norm(ts[solution]-t), 1e-8);
+}
+
