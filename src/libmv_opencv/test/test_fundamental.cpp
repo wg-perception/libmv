@@ -166,8 +166,7 @@ TEST(Sfm_fundamental, motionFromEssentialChooseSolution)
 
     Vec2d x1(d.x1(0, 0), d.x1(1, 0));
     Vec2d x2(d.x2(0, 0), d.x2(1, 0));
-    int solution = motionFromEssentialChooseSolution(Rs, ts, d.K1, x1, d.K2,
-                                                     x2);
+    int solution = motionFromEssentialChooseSolution(Rs, ts, d.K1, x1, d.K2,x2);
 
     EXPECT_LE(0, solution);
     EXPECT_LE(solution, 3);
