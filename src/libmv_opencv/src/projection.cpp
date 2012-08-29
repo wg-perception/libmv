@@ -95,14 +95,7 @@ euclideanToHomogeneous(const InputArray _x, OutputArray _X)
 void
 P_From_KRt(const Matx33d &K, const Matx33d &R, const Vec3d &t, Matx34d &P)
 {
-    Matx33d KR = K*R;
-    Vec3d Kt = K*t;
-    for(char j = 0; j < 3; ++j) {
-        for(char i = 0; i < 3; ++i) {
-          P(j, i) = KR(j, i);
-        }
-        P(j, 3) = Kt(j);
-    }
+    hconcat( K*R, K*t, P );
 }
 
 // RQ decomposition HZ A4.1.1 pag.579
