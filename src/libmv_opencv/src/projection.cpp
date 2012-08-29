@@ -125,9 +125,7 @@ KRt_From_P( const Matx34d &_P, Matx33d &_K, Matx33d &_R, Vec3d &_t )
 
 double depth( const Matx33d &R, const Vec3d &t, const Vec3d &X )
 {
-    Vec3d RX = R * X;
-//    return (R*X)(2) + t(2);
-    return RX[2] + t[2];
+    return (R*X)(2) + t(2);
 }
 
 double depth( const Matx33d &R, const Vec3d &t, const Vec4d &X )
