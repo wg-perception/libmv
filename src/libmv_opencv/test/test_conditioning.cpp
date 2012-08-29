@@ -49,16 +49,13 @@ TEST(Sfm_conditioning, normalizePoints) {
     Mat_<double> T, normalized_points;
     normalizePoints( points, normalized_points, T );
 
-    // ToDo (pablo): rewrite libmv::MeanAndVarianceAlongRows in order to avoid the next 'for' loop
-    Mat mean, std;
-    for( int i=0; i < 2; ++i )
-    {
-        meanStdDev(normalized_points.row(i), mean, std);
+    Mat_<double> mean, variance;
+    meanAndVarianceAlongRows(normalized_points, mean, variance);
 
-        Mat variance = std * std;
-        EXPECT_NEAR(0, mean.at<double>(0), 1e-8);
-        EXPECT_NEAR(2, variance.at<double>(0), 1e-8);
-    }
+    EXPECT_NEAR(0, mean(0), 1e-8);
+    EXPECT_NEAR(0, mean(1), 1e-8);
+    EXPECT_NEAR(2, variance(0), 1e-8);
+    EXPECT_NEAR(2, variance(1), 1e-8);
 }
 
 TEST(Sfm_conditioning, normalizeIsotropicPoints)
