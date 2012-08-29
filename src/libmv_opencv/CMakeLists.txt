@@ -1,20 +1,23 @@
 LIBMV_INSTALL_ALL_HEADERS()
 
-
 find_package(OpenCV REQUIRED)
+
+
+##############
+#  opencv_sfm
+##############
 
 include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
 include_directories(include)
 
-add_library(opencv_sfm src/conditioning.cpp
-                       src/fundamental.cpp
-                       src/numeric.cpp
-                       src/projection.cpp
-                       src/reconstruct.cpp
-                       src/robust.cpp
-                       src/simple_pipeline.cpp
-                       src/triangulation.cpp
-)
+# source files
+FILE(GLOB OPENCV_SFM_SRC src/*.cpp)
+
+# define the header files (make the headers appear in IDEs.)
+FILE(GLOB OPENCV_SFM_HDRS include/opencv2/sfm/*.hpp)
+
+add_library(opencv_sfm ${OPENCV_SFM_SRC} ${OPENCV_SFM_HDRS})
+
 
 target_link_libraries(opencv_sfm  ${OpenCV_LIBRARIES}
                                   reconstruction
@@ -35,21 +38,22 @@ install(DIRECTORY include/opencv2/sfm
         COMPONENT main
 )
 
+
+##############
+#  sfm_tests
+##############
+
 # Add some tests
 include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(sfm_tests test/scene.cpp
-                         test/test_conditioning.cpp
-                         test/test_simple_pipeline.cpp                         
-                         test/test_main.cpp
-                         test/test_precomp.cpp
-                         test/test_numeric.cpp
-                         test/test_projection.cpp
-                         test/test_reconstruct.cpp
-                         test/test_robust.cpp
-                         test/test_triangulation.cpp
-                         test/test_fundamental.cpp                         
-)
+# source files
+FILE(GLOB SFM_TESTS_SRC test/*.cpp)
+
+# define the header files (make the headers appear in IDEs.)
+FILE(GLOB SFM_TESTS_HDRS test/*.hpp)
+
+add_executable(sfm_tests ${SFM_TESTS_SRC} ${SFM_TESTS_HDRS})
+
 
 find_library(OPENCV_TS_LIBRARY opencv_ts ${OpenCV_LIB_DIR})
 target_link_libraries(sfm_tests opencv_sfm
