@@ -72,7 +72,7 @@ void
 KRt_From_P( const Matx34d &P, Matx33d &K, Matx33d &R, Vec3d &t );
 
 CV_EXPORTS
-inline double
+double
 depth(const Matx33d &R, const Vec3d &t, const Vec3d &X);
 
 CV_EXPORTS
