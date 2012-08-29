@@ -60,9 +60,10 @@ check_projection_errors(const Mat& X_estimated, const vector<Matx34d>& Ps,
     }
 }
 
-static void
-test_twoViewProjectiveOutliers(float err_max2d)
+
+TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
 {
+    float err_max2d = 1e-7;
     int nviews = 2;
     int npoints = 50;
     bool is_projective = true;
@@ -87,11 +88,6 @@ test_twoViewProjectiveOutliers(float err_max2d)
     vector<cv::Matx34d> Ps_estimated_d;
     Ps_estimated_d.resize(Ps_estimated.size());
     for(size_t i=0; i<Ps_estimated.size(); ++i)
-      Ps_estimated_d[i] = Ps_estimated[i];
+        Ps_estimated_d[i] = Ps_estimated[i];
     check_projection_errors(points3d_estimated, Ps_estimated_d, points2d, err_max2d);
-}
-
-TEST(Sfm_reconstruct, twoViewProjectiveOutliers)
-{
-    test_twoViewProjectiveOutliers(1e-7);
 }

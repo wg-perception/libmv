@@ -40,9 +40,10 @@ using namespace cv;
 using namespace cvtest;
 using namespace std;
 
-static void
-test_fundamentalFromCorrespondences8PointRobust(double tolerance)
+
+TEST(Sfm_robust, fundamentalFromCorrespondences8PointRobust)
 {
+    double tolerance = 1e-8;
     const int n = 16;
     Mat_<double> x1(2,n);
     x1 << 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
@@ -60,9 +61,6 @@ test_fundamentalFromCorrespondences8PointRobust(double tolerance)
     vector<int> inliers;
     fundamentalFromCorrespondences8PointRobust(x1, x2, 0.1, F, inliers);
 
-//     cout << "F\n" << F << "\n";
-//     cout << "INLIERS " << inliers.size() << "\n";
-
     // F should be 0, 0,  0,
     //             0, 0, -1,
     //             0, 1,  0
@@ -78,15 +76,10 @@ test_fundamentalFromCorrespondences8PointRobust(double tolerance)
     EXPECT_EQ(n - 1, inliers.size());
 }
 
-TEST(Sfm_robust, fundamentalFromCorrespondences8PointRobust)
-{
-    test_fundamentalFromCorrespondences8PointRobust( 1e-8 );
-}
 
-
-static void
-test_fundamentalFromCorrespondences8PointRealisticNoOutliers(double tolerance)
+TEST(Sfm_robust, fundamentalFromCorrespondences8PointRealisticNoOutliers)
 {
+    double tolerance = 1e-8;
     cvtest::TwoViewDataSet d;
     generateTwoViewRandomScene(d);
 
@@ -105,9 +98,4 @@ test_fundamentalFromCorrespondences8PointRealisticNoOutliers(double tolerance)
 
     // Check fundamental properties.
     expectFundamentalProperties( F_estimated, d.x1, d.x2, tolerance);
-}
-
-TEST(Sfm_robust, fundamentalFromCorrespondences8PointRealisticNoOutliers)
-{
-    test_fundamentalFromCorrespondences8PointRealisticNoOutliers( 1e-8 );
 }
