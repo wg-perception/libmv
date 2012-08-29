@@ -55,7 +55,7 @@ libmv_solveReconstruction( const libmv::Tracks &tracks,
                            double principal_x, double principal_y,
                            double k1, double k2, double k3,
                            libmv_Reconstruction &libmv_reconstruction,
-                           bool refine_intrinsics )
+                           int refine_intrinsics )
 {
     /* Invert the camera intrinsics. */
     libmv::vector<libmv::Marker> markers = tracks.AllMarkers();
@@ -86,10 +86,10 @@ libmv_solveReconstruction( const libmv::Tracks &tracks,
     libmv::EuclideanBundle(normalized_tracks, reconstruction);
     libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
 
-//     if (refine_intrinsics) {
-//         libmv_solveRefineIntrinsics(tracks, intrinsics, reconstruction,
-//             refine_intrinsics, progress_update_callback, callback_customdata);
-//     }
+    if (refine_intrinsics)
+    {
+        libmv::EuclideanBundleCommonIntrinsics( tracks, refine_intrinsics, reconstruction, intrinsics );
+    }
 
     libmv_reconstruction.tracks = tracks;
     libmv_reconstruction.error = libmv::EuclideanReprojectionError(tracks, *reconstruction, *intrinsics);

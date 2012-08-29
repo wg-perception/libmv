@@ -67,7 +67,7 @@ libmv_solveReconstruction( const libmv::Tracks &tracks,
                            double principal_x, double principal_y,
                            double k1, double k2, double k3,
                            libmv_Reconstruction &libmv_reconstruction,
-                           bool refine_intrinsics = false );
+                           int refine_intrinsics = 0 );
 
 
 } /* namespace cv */

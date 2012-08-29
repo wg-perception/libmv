@@ -37,6 +37,7 @@
 
 #include <opencv2/sfm/simple_pipeline.hpp>
 #include "third_party/ssba/Math/v3d_optimization.h"
+#include "libmv/simple_pipeline/bundle.h"
 
 using namespace cv;
 using namespace cvtest;
@@ -59,11 +60,12 @@ TEST(Sfm_simple_pipeline, backyard)
 
 
     libmv_Reconstruction libmv_reconstruction;
+    int refine_intrinsics = libmv::BUNDLE_FOCAL_LENGTH | libmv::BUNDLE_PRINCIPAL_POINT | libmv::BUNDLE_RADIAL_K1 | libmv::BUNDLE_RADIAL_K2; // | libmv::BUNDLE_TANGENTIAL;  /* (see libmv::EuclideanBundleCommonIntrinsics) */
     libmv_solveReconstruction( tracks, keyframe1, keyframe2,
                                focal_length, principal_x, principal_y, k1, k2, k3,
-                               libmv_reconstruction );
+                               libmv_reconstruction, refine_intrinsics );
 
     cout << "libmv_reconstruction.error = " << libmv_reconstruction.error << endl;
 
-    EXPECT_LE( libmv_reconstruction.error, 1.6 );  // actually 1.50247
+    EXPECT_LE( libmv_reconstruction.error, 1.4 );  // actually 1.38671
 }
