@@ -68,3 +68,11 @@ set_target_properties(sfm_tests PROPERTIES
 add_test(sfm_tests  ${PROJECT_BINARY_DIR}/bin/tests/sfm_tests)
 
 ADD_DEFINITIONS(-DTEST_DATA_DIR="\\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/cv/sfm/\\"")
+
+
+################
+#  sfm_samples
+################
+
+# Todo: Build inside bin/samples directory later
+add_executable(recon2v samples/recon2v.cpp samples/recon2v.hpp)
