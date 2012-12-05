@@ -1,3 +1,5 @@
+namespace Eigen { 
+
 namespace internal {
 
 template <typename Scalar>
@@ -93,8 +95,10 @@ algo_end:
 
     /* form appropriate convex combination of the gauss-newton */
     /* direction and the scaled gradient direction. */
-    temp = (1.-alpha) * std::min(sgnorm,delta);
+    temp = (1.-alpha) * (std::min)(sgnorm,delta);
     x = temp * wa1 + alpha * x;
 }
 
 } // end namespace internal
+
+} // end namespace Eigen

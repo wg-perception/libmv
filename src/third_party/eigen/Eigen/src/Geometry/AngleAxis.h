@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_ANGLEAXIS_H
 #define EIGEN_ANGLEAXIS_H
+
+namespace Eigen { 
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -144,7 +131,7 @@ public:
     m_angle = Scalar(other.angle());
   }
 
-  inline static const AngleAxis Identity() { return AngleAxis(0, Vector3::UnitX()); }
+  static inline const AngleAxis Identity() { return AngleAxis(0, Vector3::UnitX()); }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.
@@ -171,6 +158,9 @@ template<typename Scalar>
 template<typename QuatDerived>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
+  using std::acos;
+  using std::min;
+  using std::max;
   Scalar n2 = q.vec().squaredNorm();
   if (n2 < NumTraits<Scalar>::dummy_precision()*NumTraits<Scalar>::dummy_precision())
   {
@@ -179,7 +169,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived
   }
   else
   {
-    m_angle = Scalar(2)*std::acos(std::min(std::max(Scalar(-1),q.w()),Scalar(1)));
+    m_angle = Scalar(2)*acos((min)((max)(Scalar(-1),q.w()),Scalar(1)));
     m_axis = q.vec() / internal::sqrt(n2);
   }
   return *this;
@@ -234,5 +224,7 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
 
   return res;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ANGLEAXIS_H

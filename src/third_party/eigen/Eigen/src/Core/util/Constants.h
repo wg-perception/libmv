@@ -4,27 +4,14 @@
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_CONSTANTS_H
 #define EIGEN_CONSTANTS_H
+
+namespace Eigen {
 
 /** This value means that a quantity is not known at compile-time, and that instead the value is
   * stored in some runtime variable.
@@ -161,23 +148,70 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
                                   | EvalBeforeAssigningBit;
 
-// Possible values for the Mode parameter of triangularView()
+/** \defgroup enums Enumerations
+  * \ingroup Core_Module
+  *
+  * Various enumerations used in %Eigen. Many of these are used as template parameters.
+  */
+
+/** \ingroup enums
+  * Enum containing possible values for the \p Mode parameter of 
+  * MatrixBase::selfadjointView() and MatrixBase::triangularView(). */
 enum {
-  Lower=0x1, Upper=0x2, UnitDiag=0x4, ZeroDiag=0x8,
-  UnitLower=UnitDiag|Lower, UnitUpper=UnitDiag|Upper,
-  StrictlyLower=ZeroDiag|Lower, StrictlyUpper=ZeroDiag|Upper,
-  SelfAdjoint=0x10};
+  /** View matrix as a lower triangular matrix. */
+  Lower=0x1,                      
+  /** View matrix as an upper triangular matrix. */
+  Upper=0x2,                      
+  /** %Matrix has ones on the diagonal; to be used in combination with #Lower or #Upper. */
+  UnitDiag=0x4, 
+  /** %Matrix has zeros on the diagonal; to be used in combination with #Lower or #Upper. */
+  ZeroDiag=0x8,
+  /** View matrix as a lower triangular matrix with ones on the diagonal. */
+  UnitLower=UnitDiag|Lower, 
+  /** View matrix as an upper triangular matrix with ones on the diagonal. */
+  UnitUpper=UnitDiag|Upper,
+  /** View matrix as a lower triangular matrix with zeros on the diagonal. */
+  StrictlyLower=ZeroDiag|Lower, 
+  /** View matrix as an upper triangular matrix with zeros on the diagonal. */
+  StrictlyUpper=ZeroDiag|Upper,
+  /** Used in BandMatrix and SelfAdjointView to indicate that the matrix is self-adjoint. */
+  SelfAdjoint=0x10,
+  /** Used to support symmetric, non-selfadjoint, complex matrices. */
+  Symmetric=0x20
+};
 
-enum { Unaligned=0, Aligned=1 };
-enum { ConditionalJumpCost = 5 };
+/** \ingroup enums
+  * Enum for indicating whether an object is aligned or not. */
+enum { 
+  /** Object is not correctly aligned for vectorization. */
+  Unaligned=0, 
+  /** Object is aligned for vectorization. */
+  Aligned=1 
+};
 
+/** \ingroup enums
+ * Enum used by DenseBase::corner() in Eigen2 compatibility mode. */
 // FIXME after the corner() API change, this was not needed anymore, except by AlignedBox
 // TODO: find out what to do with that. Adapt the AlignedBox API ?
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 
-enum DirectionType { Vertical, Horizontal, BothDirections };
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct };
+/** \ingroup enums
+  * Enum containing possible values for the \p Direction parameter of
+  * Reverse, PartialReduxExpr and VectorwiseOp. */
+enum DirectionType { 
+  /** For Reverse, all columns are reversed; 
+    * for PartialReduxExpr and VectorwiseOp, act on columns. */
+  Vertical, 
+  /** For Reverse, all rows are reversed; 
+    * for PartialReduxExpr and VectorwiseOp, act on rows. */
+  Horizontal, 
+  /** For Reverse, both rows and columns are reversed; 
+    * not used for PartialReduxExpr and VectorwiseOp. */
+  BothDirections 
+};
 
+/** \internal \ingroup enums
+  * Enum to specify how to traverse the entries of a matrix. */
 enum {
   /** \internal Default traversal, no vectorization, no index-based access */
   DefaultTraversal,
@@ -196,14 +230,32 @@ enum {
   InvalidTraversal
 };
 
+/** \internal \ingroup enums
+  * Enum to specify whether to unroll loops when traversing over the entries of a matrix. */
 enum {
+  /** \internal Do not unroll loops. */
   NoUnrolling,
+  /** \internal Unroll only the inner loop, but not the outer loop. */
   InnerUnrolling,
+  /** \internal Unroll both the inner and the outer loop. If there is only one loop, 
+    * because linear traversal is used, then unroll that loop. */
   CompleteUnrolling
 };
 
+/** \internal \ingroup enums
+  * Enum to specify whether to use the default (built-in) implementation or the specialization. */
 enum {
+  Specialized,
+  BuiltIn
+};
+
+/** \ingroup enums
+  * Enum containing possible values for the \p _Options template parameter of
+  * Matrix, Array and BandMatrix. */
+enum {
+  /** Storage order is column major (see \ref TopicStorageOrders). */
   ColMajor = 0,
+  /** Storage order is row major (see \ref TopicStorageOrders). */
   RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
   /** \internal Align the matrix itself if it is vectorizable fixed-size */
   AutoAlign = 0,
@@ -211,81 +263,136 @@ enum {
   DontAlign = 0x2
 };
 
-/** \brief Enum for specifying whether to apply or solve on the left or right. 
-  */
+/** \ingroup enums
+  * Enum for specifying whether to apply or solve on the left or right. */
 enum {
-  OnTheLeft = 1,  /**< \brief Apply transformation on the left. */
-  OnTheRight = 2  /**< \brief Apply transformation on the right. */
+  /** Apply transformation on the left. */
+  OnTheLeft = 1,  
+  /** Apply transformation on the right. */
+  OnTheRight = 2  
 };
 
-/* the following could as well be written:
- *   enum NoChange_t { NoChange };
- * but it feels dangerous to disambiguate overloaded functions on enum/integer types.
- * If on some platform it is really impossible to get rid of "unused variable" warnings, then
- * we can always come back to that solution.
+/* the following used to be written as:
+ *
+ *   struct NoChange_t {};
+ *   namespace {
+ *     EIGEN_UNUSED NoChange_t NoChange;
+ *   }
+ *
+ * on the ground that it feels dangerous to disambiguate overloaded functions on enum/integer types.  
+ * However, this leads to "variable declared but never referenced" warnings on Intel Composer XE,
+ * and we do not know how to get rid of them (bug 450).
  */
-struct NoChange_t {};
-namespace {
-  EIGEN_UNUSED NoChange_t NoChange;
-}
 
-struct Sequential_t {};
-namespace {
-  EIGEN_UNUSED Sequential_t Sequential;
-}
+enum NoChange_t   { NoChange };
+enum Sequential_t { Sequential };
+enum Default_t    { Default };
 
-struct Default_t {};
-namespace {
-  EIGEN_UNUSED Default_t Default;
-}
-
+/** \internal \ingroup enums
+  * Used in AmbiVector. */
 enum {
   IsDense         = 0,
   IsSparse
 };
 
+/** \ingroup enums
+  * Used as template parameter in DenseCoeffBase and MapBase to indicate 
+  * which accessors should be provided. */
 enum AccessorLevels {
-  ReadOnlyAccessors, WriteAccessors, DirectAccessors, DirectWriteAccessors
+  /** Read-only access via a member function. */
+  ReadOnlyAccessors, 
+  /** Read/write access via member functions. */
+  WriteAccessors, 
+  /** Direct read-only access to the coefficients. */
+  DirectAccessors, 
+  /** Direct read/write access to the coefficients. */
+  DirectWriteAccessors
 };
 
+/** \ingroup enums
+  * Enum with options to give to various decompositions. */
 enum DecompositionOptions {
-  Pivoting            = 0x01, // LDLT,
-  NoPivoting          = 0x02, // LDLT,
-  ComputeFullU        = 0x04, // SVD,
-  ComputeThinU        = 0x08, // SVD,
-  ComputeFullV        = 0x10, // SVD,
-  ComputeThinV        = 0x20, // SVD,
-  EigenvaluesOnly     = 0x40, // all eigen solvers
-  ComputeEigenvectors = 0x80, // all eigen solvers
+  /** \internal Not used (meant for LDLT?). */
+  Pivoting            = 0x01, 
+  /** \internal Not used (meant for LDLT?). */
+  NoPivoting          = 0x02, 
+  /** Used in JacobiSVD to indicate that the square matrix U is to be computed. */
+  ComputeFullU        = 0x04,
+  /** Used in JacobiSVD to indicate that the thin matrix U is to be computed. */
+  ComputeThinU        = 0x08,
+  /** Used in JacobiSVD to indicate that the square matrix V is to be computed. */
+  ComputeFullV        = 0x10,
+  /** Used in JacobiSVD to indicate that the thin matrix V is to be computed. */
+  ComputeThinV        = 0x20,
+  /** Used in SelfAdjointEigenSolver and GeneralizedSelfAdjointEigenSolver to specify
+    * that only the eigenvalues are to be computed and not the eigenvectors. */
+  EigenvaluesOnly     = 0x40,
+  /** Used in SelfAdjointEigenSolver and GeneralizedSelfAdjointEigenSolver to specify
+    * that both the eigenvalues and the eigenvectors are to be computed. */
+  ComputeEigenvectors = 0x80,
+  /** \internal */
   EigVecMask = EigenvaluesOnly | ComputeEigenvectors,
+  /** Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
+    * solve the generalized eigenproblem \f$ Ax = \lambda B x \f$. */
   Ax_lBx              = 0x100,
+  /** Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
+    * solve the generalized eigenproblem \f$ ABx = \lambda x \f$. */
   ABx_lx              = 0x200,
+  /** Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
+    * solve the generalized eigenproblem \f$ BAx = \lambda x \f$. */
   BAx_lx              = 0x400,
+  /** \internal */
   GenEigMask = Ax_lBx | ABx_lx | BAx_lx
 };
 
+/** \ingroup enums
+  * Possible values for the \p QRPreconditioner template parameter of JacobiSVD. */
 enum QRPreconditioners {
+  /** Do not specify what is to be done if the SVD of a non-square matrix is asked for. */
   NoQRPreconditioner,
+  /** Use a QR decomposition without pivoting as the first step. */
   HouseholderQRPreconditioner,
+  /** Use a QR decomposition with column pivoting as the first step. */
   ColPivHouseholderQRPreconditioner,
+  /** Use a QR decomposition with full pivoting as the first step. */
   FullPivHouseholderQRPreconditioner
 };
 
-/** \brief Enum for reporting the status of a computation.
-  */
+#ifdef Success
+#error The preprocessor symbol 'Success' is defined, possibly by the X11 header file X.h
+#endif
+
+/** \ingroup enums
+  * Enum for reporting the status of a computation. */
 enum ComputationInfo {
-  Success = 0,        /**< \brief Computation was successful. */
-  NumericalIssue = 1, /**< \brief The provided data did not satisfy the prerequisites. */
-  NoConvergence = 2   /**< \brief Iterative procedure did not converge. */
+  /** Computation was successful. */
+  Success = 0,        
+  /** The provided data did not satisfy the prerequisites. */
+  NumericalIssue = 1, 
+  /** Iterative procedure did not converge. */
+  NoConvergence = 2,
+  /** The inputs are invalid, or the algorithm has been improperly called.
+    * When assertions are enabled, such errors trigger an assert. */
+  InvalidInput = 3
 };
 
+/** \ingroup enums
+  * Enum used to specify how a particular transformation is stored in a matrix.
+  * \sa Transform, Hyperplane::transform(). */
 enum TransformTraits {
+  /** Transformation is an isometry. */
   Isometry      = 0x1,
+  /** Transformation is an affine transformation stored as a (Dim+1)^2 matrix whose last row is 
+    * assumed to be [0 ... 0 1]. */
   Affine        = 0x2,
+  /** Transformation is an affine transformation stored as a (Dim) x (Dim+1) matrix. */
   AffineCompact = 0x10 | Affine,
+  /** Transformation is a general projective transformation stored as a (Dim+1)^2 matrix. */
   Projective    = 0x20
 };
 
+/** \internal \ingroup enums
+  * Enum used to choose between implementation depending on the computer architecture. */
 namespace Architecture
 {
   enum Type {
@@ -302,8 +409,12 @@ namespace Architecture
   };
 }
 
+/** \internal \ingroup enums
+  * Enum used as template parameter in GeneralProduct. */
 enum { CoeffBasedProductMode, LazyCoeffBasedProductMode, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
 
+/** \internal \ingroup enums
+  * Enum used in experimental parallel implementation. */
 enum Action {GetAction, SetAction};
 
 /** The type used to identify a dense storage. */
@@ -314,5 +425,7 @@ struct MatrixXpr {};
 
 /** The type used to identify an array expression */
 struct ArrayXpr {};
+
+} // end namespace Eigen
 
 #endif // EIGEN_CONSTANTS_H

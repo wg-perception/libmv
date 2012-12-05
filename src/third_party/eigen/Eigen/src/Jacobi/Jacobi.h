@@ -4,27 +4,14 @@
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
+
+namespace Eigen { 
 
 /** \ingroup Jacobi_Module
   * \jacobi_module
@@ -104,9 +91,9 @@ bool JacobiRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
   else
   {
     RealScalar tau = (x-z)/(RealScalar(2)*internal::abs(y));
-    RealScalar w = internal::sqrt(internal::abs2(tau) + 1);
+    RealScalar w = internal::sqrt(internal::abs2(tau) + RealScalar(1));
     RealScalar t;
-    if(tau>0)
+    if(tau>RealScalar(0))
     {
       t = RealScalar(1) / (tau + w);
     }
@@ -114,8 +101,8 @@ bool JacobiRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
     {
       t = RealScalar(1) / (tau - w);
     }
-    RealScalar sign_t = t > 0 ? 1 : -1;
-    RealScalar n = RealScalar(1) / internal::sqrt(internal::abs2(t)+1);
+    RealScalar sign_t = t > RealScalar(0) ? RealScalar(1) : RealScalar(-1);
+    RealScalar n = RealScalar(1) / internal::sqrt(internal::abs2(t)+RealScalar(1));
     m_s = - sign_t * (internal::conj(y) / internal::abs(y)) * internal::abs(t) * n;
     m_c = n;
     return true;
@@ -221,15 +208,15 @@ template<typename Scalar>
 void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::false_type)
 {
 
-  if(q==0)
+  if(q==Scalar(0))
   {
     m_c = p<Scalar(0) ? Scalar(-1) : Scalar(1);
-    m_s = 0;
+    m_s = Scalar(0);
     if(r) *r = internal::abs(p);
   }
-  else if(p==0)
+  else if(p==Scalar(0))
   {
-    m_c = 0;
+    m_c = Scalar(0);
     m_s = q<Scalar(0) ? Scalar(1) : Scalar(-1);
     if(r) *r = internal::abs(q);
   }
@@ -326,7 +313,7 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     // both vectors are sequentially stored in memory => vectorization
     enum { Peeling = 2 };
 
-    Index alignedStart = first_aligned(y, size);
+    Index alignedStart = internal::first_aligned(y, size);
     Index alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
     const Packet pc = pset1<Packet>(j.c());
@@ -344,7 +331,7 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     Scalar* EIGEN_RESTRICT px = x + alignedStart;
     Scalar* EIGEN_RESTRICT py = y + alignedStart;
 
-    if(first_aligned(x, size)==alignedStart)
+    if(internal::first_aligned(x, size)==alignedStart)
     {
       for(Index i=alignedStart; i<alignedEnd; i+=PacketSize)
       {
@@ -425,6 +412,9 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     }
   }
 }
-}
+
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_JACOBI_H

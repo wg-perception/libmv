@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H
+
+namespace Eigen { 
 
 namespace internal {
 
@@ -42,14 +29,14 @@ struct tribb_kernel;
 template <typename Index,
           typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
           typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs,
-                              int ResStorageOrder, int  UpLo>
+                              int ResStorageOrder, int  UpLo, int Version = Specialized>
 struct general_matrix_matrix_triangular_product;
 
 // as usual if the result is row major => we transpose the product
 template <typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
-                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo>
-struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,RowMajor,UpLo>
-{  
+                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo, int Version>
+struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,RowMajor,UpLo,Version>
+{
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* lhs, Index lhsStride,
                                       const RhsScalar* rhs, Index rhsStride, ResScalar* res, Index resStride, ResScalar alpha)
@@ -63,8 +50,8 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 };
 
 template <typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
-                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo>
-struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo>
+                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo, int Version>
+struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo,Version>
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* _lhs, Index lhsStride,
@@ -83,10 +70,10 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
     if(mc > Traits::nr)
       mc = (mc/Traits::nr)*Traits::nr;
 
-    LhsScalar* blockA = ei_aligned_stack_new(LhsScalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*size;
-    RhsScalar* allocatedBlockB = ei_aligned_stack_new(RhsScalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(RhsScalar, allocatedBlockB, sizeB, 0);
     RhsScalar* blockB = allocatedBlockB + sizeW;
     
     gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
@@ -96,14 +83,14 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 
     for(Index k2=0; k2<depth; k2+=kc)
     {
-      const Index actual_kc = std::min(k2+kc,depth)-k2;
+      const Index actual_kc = (std::min)(k2+kc,depth)-k2;
 
       // note that the actual rhs is the transpose/adjoint of mat
       pack_rhs(blockB, &rhs(k2,0), rhsStride, actual_kc, size);
 
       for(Index i2=0; i2<size; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,size)-i2;
+        const Index actual_mc = (std::min)(i2+mc,size)-i2;
 
         pack_lhs(blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
@@ -112,7 +99,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
         //  2 - the actual_mc x actual_mc symmetric block => processed with a special kernel
         //  3 - after the diagonal => processed with gebp or skipped
         if (UpLo==Lower)
-          gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, std::min(size,i2), alpha,
+          gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, (std::min)(size,i2), alpha,
                -1, -1, 0, 0, allocatedBlockB);
 
         sybb(res+resStride*i2 + i2, resStride, blockA, blockB + actual_kc*i2, actual_mc, actual_kc, alpha, allocatedBlockB);
@@ -120,13 +107,11 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
         if (UpLo==Upper)
         {
           Index j2 = i2+actual_mc;
-          gebp(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, std::max(Index(0), size-j2), alpha,
+          gebp(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, (std::max)(Index(0), size-j2), alpha,
                -1, -1, 0, 0, allocatedBlockB);
         }
       }
     }
-    ei_aligned_stack_delete(LhsScalar, blockA, kc*mc);
-    ei_aligned_stack_delete(RhsScalar, allocatedBlockB, sizeB);
   }
 };
 
@@ -203,13 +188,13 @@ TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(
   typedef internal::blas_traits<Lhs> LhsBlasTraits;
   typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhs;
   typedef typename internal::remove_all<ActualLhs>::type _ActualLhs;
-  const ActualLhs actualLhs = LhsBlasTraits::extract(prod.lhs());
+  typename internal::add_const_on_value_type<ActualLhs>::type actualLhs = LhsBlasTraits::extract(prod.lhs());
   
   typedef typename internal::remove_all<typename ProductDerived::RhsNested>::type Rhs;
   typedef internal::blas_traits<Rhs> RhsBlasTraits;
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhs;
   typedef typename internal::remove_all<ActualRhs>::type _ActualRhs;
-  const ActualRhs actualRhs = RhsBlasTraits::extract(prod.rhs());
+  typename internal::add_const_on_value_type<ActualRhs>::type actualRhs = RhsBlasTraits::extract(prod.rhs());
 
   typename ProductDerived::Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs().derived()) * RhsBlasTraits::extractScalarFactor(prod.rhs().derived());
 
@@ -223,5 +208,7 @@ TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(
   
   return *this;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H
