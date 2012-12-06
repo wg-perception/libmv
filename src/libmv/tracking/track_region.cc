@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //
-// Author: mierle@google.com (Keir Mierle)
+// Author: mierle@gmail.com (Keir Mierle)
 //
 // TODO(keir): While this tracking code works rather well, it has some
 // outragous inefficiencies. There is probably a 5-10x speedup to be had if a
@@ -1369,12 +1369,6 @@ void TemplatedTrackRegion(const FloatImage &image1,
   // TODO(keir): Update the result statistics.
   // TODO(keir): Add a normalize-cross-correlation variant.
 
-  // TODO(sergey): in previous bundled Ceres from Windows branch our callback
-  //               wasn't called, so USER_ABORT was never happen.
-  //               now callback is calling and in some cases it returns SOLVER_ABORT
-  //               not sure if it's bug somewhere or we could just mark tracking
-  //               result as failed without causing general panic
-  // CHECK_NE(summary.termination_type, ceres::USER_ABORT) << "Libmv bug.";
   if (summary.termination_type == ceres::USER_ABORT) {
     result->termination = TrackRegionResult::FELL_OUT_OF_BOUNDS;
     return;
