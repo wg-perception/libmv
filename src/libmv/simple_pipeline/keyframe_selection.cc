@@ -27,53 +27,54 @@
 namespace libmv {
 
 namespace {
-template<typename T>
-T SymmetricGeometricDistance(const Eigen::Matrix<T, 3, 3> &H,
-                                  const Eigen::Matrix<T, 2, 1> &x1,
-                                  const Eigen::Matrix<T, 2, 1> &x2) {
-  Eigen::Matrix<T, 3, 1> x(x1(0), x1(1), T(1.0));
-  Eigen::Matrix<T, 3, 1> y(x2(0), x2(1), T(1.0));
+double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2) {
+  Vec3 x(x1(0), x1(1), 1.0);
+  Vec3 y(x2(0), x2(1), 1.0);
 
-  Eigen::Matrix<T, 3, 1> H_x = H * x;
-  Eigen::Matrix<T, 3, 1> Hinv_y = H.inverse() * y;
+  Vec3 H_x = H * x;
+  Vec3 Hinv_y = H.inverse() * y;
 
   H_x /= H_x(2);
   Hinv_y /= Hinv_y(2);
 
-  return (H_x.head(2) - y.head(2)).squaredNorm() +
-         (Hinv_y.head(2) - x.head(2)).squaredNorm();
+  return (H_x.head<2>() - y.head<2>()).norm() +
+         (Hinv_y.head<2>() - x.head<2>()).norm();
 }
 
 class HomographySymmetricGeometricCostFunctor {
  public:
-  HomographySymmetricGeometricCostFunctor(Mat &x1, Mat &x2)
-      : x1_(x1),
-        x2_(x2) {
+  HomographySymmetricGeometricCostFunctor(Vec2 x, Vec2 y)
+      : x_(x),
+        y_(y) {
   }
 
   template<typename T>
   bool operator()(const T *homography_parameters, T *residuals) const {
     typedef Eigen::Matrix<T, 3, 3> Mat3;
-    typedef Eigen::Matrix<T, 2, 1> Vec2;
+    typedef Eigen::Matrix<T, 3, 1> Vec3;
 
     Mat3 H(homography_parameters);
 
-    T symmetric_error = T(0.0);
+    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
+    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
 
-    for (int i = 0; i < x1_.cols(); i++) {
-      Vec2 x1(T(x1_(0, i)), T(x1_(1, i)));
-      Vec2 x2(T(x2_(0, i)), T(x2_(1, i)));
+    Vec3 H_x = H * x;
+    Vec3 Hinv_y = H.inverse() * x;
 
-      symmetric_error += SymmetricGeometricDistance(H, x1, x2);
-    }
+    H_x /= H_x(2);
+    Hinv_y /= Hinv_y(2);
 
-    residuals[0] = symmetric_error;
+    residuals[0] = H_x(0) - T(y_(0));
+    residuals[1] = H_x(1) - T(y_(1));
+
+    residuals[2] = Hinv_y(0) - T(x_(0));
+    residuals[3] = Hinv_y(1) - T(x_(1));
 
     return true;
   }
 
-  const Mat &x1_;
-  const Mat &x2_;
+  const Vec2 x_;
+  const Vec2 y_;
 };
 
 void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, Mat3 *H) {
@@ -83,16 +84,18 @@ void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, Mat3 *H) {
   // Refine matrix using Ceres minimizer
   ceres::Problem problem;
 
-  HomographySymmetricGeometricCostFunctor *homography_symmetric_geometric_cost_function =
-       new HomographySymmetricGeometricCostFunctor(x1, x2);
+  for (int i = 0; i < x1.cols(); i++) {
+    HomographySymmetricGeometricCostFunctor *homography_symmetric_geometric_cost_function =
+        new HomographySymmetricGeometricCostFunctor(x1.col(i), x2.col(i));
 
-  problem.AddResidualBlock(
-      new ceres::AutoDiffCostFunction<
-          HomographySymmetricGeometricCostFunctor,
-          1, /* num_residuals */
-          9>(homography_symmetric_geometric_cost_function),
-      NULL,
-      H->data());
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<
+            HomographySymmetricGeometricCostFunctor,
+            4, /* num_residuals */
+            9>(homography_symmetric_geometric_cost_function),
+        NULL,
+        H->data());
+  }
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
@@ -111,34 +114,33 @@ void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, Mat3 *H) {
 
 class FundamentalSymmetricEpipolarCostFunctor {
  public:
-  FundamentalSymmetricEpipolarCostFunctor(Mat &x1, Mat &x2)
-      : x1_(x1),
-        x2_(x2) {
+  FundamentalSymmetricEpipolarCostFunctor(Vec2 x, Vec2 y)
+      : x_(x),
+        y_(y) {
   }
 
   template<typename T>
   bool operator()(const T *fundamental_parameters, T *residuals) const {
     typedef Eigen::Matrix<T, 3, 3> Mat3;
-    typedef Eigen::Matrix<T, 2, 1> Vec2;
+    typedef Eigen::Matrix<T, 3, 1> Vec3;
 
     Mat3 F(fundamental_parameters);
 
-    T error = T(0.0);
+    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
+    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
 
-    for (int i = 0; i < x1_.cols(); i++) {
-      Vec2 x1(T(x1_(0, i)), T(x1_(1, i)));
-      Vec2 x2(T(x2_(0, i)), T(x2_(1, i)));
+    Vec3 F_x = F * x;
+    Vec3 Ft_y = F.transpose() * y;
+    T y_F_x = y.dot(F_x);
 
-      error += SymmetricEpipolarDistance(F, x1, x2);
-    }
-
-    residuals[0] = error;
+    residuals[0] = y_F_x * T(1) / F_x.head(2).norm();
+    residuals[1] = y_F_x * T(1) / Ft_y.head(2).norm();
 
     return true;
   }
 
-  const Mat &x1_;
-  const Mat &x2_;
+  const Mat x_;
+  const Mat y_;
 };
 
 void ComputeFundamentalFromCorrespondences(Mat &x1, Mat &x2, Mat3 *F)
@@ -149,16 +151,18 @@ void ComputeFundamentalFromCorrespondences(Mat &x1, Mat &x2, Mat3 *F)
   // Refine matrix using Ceres minimizer
   ceres::Problem problem;
 
-  FundamentalSymmetricEpipolarCostFunctor *fundamental_symmetric_epipolar_cost_function =
-       new FundamentalSymmetricEpipolarCostFunctor(x1, x2);
+  for (int i = 0; i < x1.cols(); i++) {
+    FundamentalSymmetricEpipolarCostFunctor *fundamental_symmetric_epipolar_cost_function =
+        new FundamentalSymmetricEpipolarCostFunctor(x1.col(i), x2.col(i));
 
-  problem.AddResidualBlock(
-      new ceres::AutoDiffCostFunction<
-          FundamentalSymmetricEpipolarCostFunctor,
-          1, /* num_residuals */
-          9>(fundamental_symmetric_epipolar_cost_function),
-      NULL,
-      F->data());
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<
+            FundamentalSymmetricEpipolarCostFunctor,
+            2, /* num_residuals */
+            9>(fundamental_symmetric_epipolar_cost_function),
+        NULL,
+        F->data());
+  }
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
@@ -185,8 +189,8 @@ void ComputeFundamentalFromCorrespondences(Mat &x1, Mat &x2, Mat3 *F)
 // r is the dimension of the data (r = 4 for 2D correspondences between two frames)
 double GRIC(Vec &e, int d, int k, int r) {
   int n = e.rows();
-  double lambda1 = log10((double) r);
-  double lambda2 = log10((double) r * n);
+  double lambda1 = log((double) r);
+  double lambda2 = log((double) r * n);
 
   // lambda3 limits the residual error, and this paper
   // http://elvera.nue.tu-berlin.de/files/0990Knorr2006.pdf
@@ -211,9 +215,11 @@ double GRIC(Vec &e, int d, int k, int r) {
   double gric_result = 0.0;
 
   for (int i = 0; i < n; i++) {
-    double rho = std::min(e(i) * e(i) / sigma2, rho_max);
+    // disable rho stuff for now since it seems to be clamping what it shouldn't
+    //double rho = std::min(e(i) * e(i) / sigma2, rho_max);
+    //gric_result += rho;
 
-    gric_result += rho;
+    gric_result += e(i) * e(i) / sigma2;
   }
 
   gric_result += lambda1 * d * n;
@@ -263,6 +269,8 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
       Mat x1, x2;
       CoordinatesForMarkersInImage(tracked_markers, current_keyframe, &x1);
       CoordinatesForMarkersInImage(tracked_markers, candidate_image, &x2);
+
+      LG << "Found " << x1.cols() << " correspondences";
 
       // Not enough points to construct fundamental matrix
       if (x1.cols() < 8 || x2.cols() < 8)

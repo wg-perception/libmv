@@ -81,26 +81,6 @@ double SampsonDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2);
 double SymmetricEpipolarDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2);
 
 /**
- * Calculates the sum of the distances from the points to the epipolar lines.
- *
- * Templated and not optimized version of function above
- */
-template<typename T> inline
-T SymmetricEpipolarDistance(const Eigen::Matrix<T, 3, 3> &F,
-                            const Eigen::Matrix<T, 2, 1> &x1,
-                            const Eigen::Matrix<T, 2, 1> &x2) {
-  Eigen::Matrix<T, 3, 1> x(x1(0), x1(1), T(1.0));
-  Eigen::Matrix<T, 3, 1> y(x2(0), x2(1), T(1.0));
-
-  Eigen::Matrix<T, 3, 1> F_x = F * x;
-  Eigen::Matrix<T, 3, 1> Ft_y = F.transpose() * y;
-  T y_F_x = y.dot(F_x);
-
-  return Square(y_F_x) * (  T(1) / F_x.head(2).squaredNorm()
-                          + T(1) / Ft_y.head(2).squaredNorm());
-}
-
-/**
  * Compute the relative camera motion between two cameras.
  *
  * Given the motion parameters of two cameras, computes the motion parameters
