@@ -270,7 +270,8 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
       CoordinatesForMarkersInImage(tracked_markers, current_keyframe, &x1);
       CoordinatesForMarkersInImage(tracked_markers, candidate_image, &x2);
 
-      LG << "Found " << x1.cols() << " correspondences";
+      LG << "Found " << x1.cols() << " correspondences between " << current_keyframe
+         << " and " << candidate_image;
 
       // Not enough points to construct fundamental matrix
       if (x1.cols() < 8 || x2.cols() < 8)
