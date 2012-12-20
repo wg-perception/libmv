@@ -59,7 +59,7 @@ class HomographySymmetricGeometricCostFunctor {
     Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
 
     Vec3 H_x = H * x;
-    Vec3 Hinv_y = H.inverse() * x;
+    Vec3 Hinv_y = H.inverse() * y;
 
     H_x /= H_x(2);
     Hinv_y /= Hinv_y(2);
@@ -304,6 +304,9 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
         H_e(i) = SymmetricGeometricDistance(H, current_x1, current_x2);
         F_e(i) = SymmetricEpipolarDistance(F, current_x1, current_x2);
       }
+
+      LG << "H_e: " << H_e.transpose();
+      LG << "F_e: " << F_e.transpose();
 
       // Degeneracy constraint
       double GRIC_H = GRIC(H_e, 2, 8, 4);
