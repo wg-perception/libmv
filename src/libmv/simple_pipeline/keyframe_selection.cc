@@ -208,17 +208,14 @@ double GRIC(Vec &e, int d, int k, int r) {
     sigma2 += Square(e(i) - mean_value);
   sigma2 /= n;
 
-  // pre-compute for faster calculation of cycle body
-  double rho_max = lambda3 * (r - d);
-
   // Actual GRIC computation
   double gric_result = 0.0;
 
   for (int i = 0; i < n; i++) {
-    // disable rho stuff for now since it seems to be clamping what it shouldn't
-    //double rho = std::min(e(i) * e(i) / sigma2, rho_max);
+    // disable rho stuff for now since it seems to be leading to wrong
+    // results in some cases
+    //double rho = std::min(e(i) * e(i) / sigma2, lambda3 * (r - d));
     //gric_result += rho;
-
     gric_result += e(i) * e(i) / sigma2;
   }
 
@@ -237,7 +234,8 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
   // http://www.cs.ait.ac.th/~mdailey/papers/Tahir-KeyFrame.pdf
 
   int max_image = tracks.MaxImage();
-  int image = 1, next_keyframe = 1;
+  int next_keyframe = 1;
+  int number_keyframes = 0;
 
   // Limit correspondence ratio from both sides.
   // On the one hand if number of correspondent features is too low,
@@ -253,7 +251,7 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
     LG << "Found keyframe " << next_keyframe;
 
     keyframes.push_back(next_keyframe);
-    image++;
+    number_keyframes++;
     next_keyframe = -1;
 
     for (int candidate_image = current_keyframe + 1;
@@ -277,12 +275,6 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
       if (x1.cols() < 8 || x2.cols() < 8)
         continue;
 
-      Mat3 H, F;
-      ComputeHomographyFromCorrespondences(x1, x2, &H);
-      ComputeFundamentalFromCorrespondences(x1, x2, &F);
-
-      // TODO(sergey): Discard outlier matches
-
       // Correspondence ratio constraint
       int Tc = tracked_markers.size();
       int Tf = all_markers.size();
@@ -293,6 +285,12 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
 
       if (Rc < Tmin || Rc > Tmax)
         continue;
+
+      Mat3 H, F;
+      ComputeHomographyFromCorrespondences(x1, x2, &H);
+      ComputeFundamentalFromCorrespondences(x1, x2, &F);
+
+      // TODO(sergey): Discard outlier matches
 
       // Compute error values for homography and fundamental matrices
       Vec H_e, F_e;
@@ -323,7 +321,35 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
 
       next_keyframe = candidate_image;
     }
+
+    // This is a bit arbitrary and main reason of having this is to deal better
+    // with situations when there's no keyframes were found for current current
+    // keyframe this could happen when there's no so much parallax in the beginning
+    // of image sequence and then most of features are getting occluded.
+    // In this case there could be good keyframe pain in the middle of the sequence
+    //
+    // However, it's just quick hack and smarter way to do this would be nice
+    //
+    // Perhaps we shouldn't put all the keyframes inti the same plain list and
+    // use some kind of sliced list instead
+    if (next_keyframe == -1) {
+      if (number_keyframes == 1) {
+        LG << "Removing previous candidate keyframe because no other keyframe could be used with it";
+        keyframes.pop_back();
+      }
+
+      next_keyframe = current_keyframe + 10;
+      number_keyframes = 0;
+
+      if (next_keyframe >= max_image)
+        break;
+
+      LG << "Starting searching for keyframes starting from " << next_keyframe;
+    }
   }
+
+  //for (int i =  0; i < keyframes.size(); i++)
+  //  LG << keyframes[i];
 }
 
 } // namespace libmv
