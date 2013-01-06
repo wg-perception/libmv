@@ -37,8 +37,8 @@ double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2) {
   H_x /= H_x(2);
   Hinv_y /= Hinv_y(2);
 
-  return (H_x.head<2>() - y.head<2>()).norm() +
-         (Hinv_y.head<2>() - x.head<2>()).norm();
+  return (H_x.head<2>() - y.head<2>()).squaredNorm() +
+         (Hinv_y.head<2>() - x.head<2>()).squaredNorm();
 }
 
 class HomographySymmetricGeometricCostFunctor {
@@ -79,7 +79,7 @@ class HomographySymmetricGeometricCostFunctor {
 
 void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, Mat3 *H) {
   // Algebraic homography estimation
-  Homography2DFromCorrespondencesLinear(x1, x2, H);
+  Homography2DFromCorrespondencesLinear(x1, x2, H, 1e-12);
 
   // Refine matrix using Ceres minimizer
   ceres::Problem problem;
@@ -219,6 +219,8 @@ double GRIC(Vec &e, int d, int k, int r) {
     gric_result += e(i) * e(i) / sigma2;
   }
 
+  LG << "Sum of e_i^2 / sigma^2 " << gric_result;
+
   gric_result += lambda1 * d * n;
   gric_result += lambda2 * k;
 
@@ -242,7 +244,7 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
   // triangulation will suffer.
   // On the other hand high correspondence likely means short baseline.
   // which also will affect om accuracy
-  const double Tmin = 0.9;
+  const double Tmin = 0.8;
   const double Tmax = 1.0;
 
   while (next_keyframe != -1) {

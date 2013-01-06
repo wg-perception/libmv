@@ -56,7 +56,7 @@ TEST(KeyframeSelection, SyntheticNeighborFrame) {
   SelectkeyframesBasedOnGRIC(tracks, keyframes);
 
   // Synthetic second frame shouldn't be considered a keyframe
-  EXPECT_TRUE(keyframes.size() == 0);
+  EXPECT_EQ(keyframes.size(), 0);
 }
 
 // frames 1 and 2 of FabrikEingang footage
@@ -131,7 +131,7 @@ TEST(KeyframeSelection, FabrikEingangNeighborFrames) {
   vector<int> keyframes;
   SelectkeyframesBasedOnGRIC(tracks, keyframes);
 
-  EXPECT_TRUE(keyframes.size() == 0);
+  EXPECT_EQ(keyframes.size(), 0);
 }
 
 // Frames 120 and 200 from FabrikEingang footage
@@ -184,6 +184,58 @@ TEST(KeyframeSelection, FabrikEingangFarFrames) {
   vector<int> keyframes;
   SelectkeyframesBasedOnGRIC(tracks, keyframes);
 
-  EXPECT_TRUE(keyframes.size() == 2);
+  EXPECT_EQ(keyframes.size(), 2);
 }
+
+TEST(KeyframeSelection, CopterManualFrames) {
+  CameraIntrinsics intrinsics;
+  intrinsics.SetFocalLength(1155.043, 1155.043);
+  intrinsics.SetPrincipalPoint(640.000, 360.000);
+  intrinsics.SetRadialDistortion(-0.08590, 0.0, 0.0);
+
+  Marker markers[] = {
+      {1, 0, 645.792694, 403.115931},
+      {2, 0, 630.641174, 307.996409},
+      {1, 1, 783.469086, 403.904328},
+      {2, 1, 766.001129, 308.998225},
+      {1, 2, 650.000000, 160.000001},
+      {1, 3, 785.225906, 158.619039},
+      {2, 3, 767.526474, 70.449695},
+      {1, 4, 290.640526, 382.335634},
+      {2, 4, 273.001728, 86.993319},
+      {1, 5, 291.162739, 410.602684},
+      {2, 5, 273.287849, 111.937487},
+      {1, 6, 136.919317, 349.895797},
+      {1, 7, 490.844345, 47.572222},
+      {1, 8, 454.406433, 488.935761},
+      {1, 9, 378.655815, 618.522248},
+      {2, 9, 357.061806, 372.265077},
+      {1, 10, 496.011391, 372.668824},
+      {2, 10, 477.979164, 222.986112},
+      {1, 11, 680.060272, 256.103625},
+      {2, 11, 670.587540, 204.830453},
+      {1, 12, 1070.817108, 218.775322},
+      {2, 12, 1046.129913, 128.969783},
+      {1, 14, 242.516403, 596.048512},
+      {2, 14, 224.182606, 248.272154},
+      {1, 15, 613.936272, 287.519073},
+      {2, 15, 600.467644, 196.085722},
+      {1, 31, 844.637451, 256.354315},
+      {2, 31, 823.200150, 165.714952},
+    };
+  int num_markers = sizeof(markers) / sizeof(Marker);
+
+  Tracks tracks;
+  for (int i = 0; i < num_markers; i++) {
+    double x = markers[i].x, y = markers[i].y;
+    intrinsics.InvertIntrinsics(x, y, &x, &y);
+    tracks.Insert(markers[i].image, markers[i].track, x, y);
+  }
+
+  vector<int> keyframes;
+  SelectkeyframesBasedOnGRIC(tracks, keyframes);
+
+  EXPECT_EQ(keyframes.size(), 2);
+}
+
 } // namespace libmv
