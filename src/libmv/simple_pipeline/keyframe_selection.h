@@ -23,6 +23,7 @@
 
 #include "libmv/base/vector.h"
 #include "libmv/simple_pipeline/tracks.h"
+#include "libmv/simple_pipeline/camera_intrinsics.h"
 
 namespace libmv {
 
@@ -31,9 +32,13 @@ namespace libmv {
 // approach for correspondence ratio constraint.
 //
 // \param tracks contains all tracked correspondences between frames
+//        expected to be undistorted and normalized
+// \param intrinsics is camera intrinsics
 // \param keyframes will contain all images number which are considered
 //        good to be used for reconstruction
-void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes);
+void SelectkeyframesBasedOnGRIC(Tracks &tracks,
+                                CameraIntrinsics &intrinsics,
+                                vector<int> &keyframes);
 
 }  // namespace libmv
 

@@ -27,18 +27,26 @@
 namespace libmv {
 
 namespace {
-double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2) {
-  Vec3 x(x1(0), x1(1), 1.0);
-  Vec3 y(x2(0), x2(1), 1.0);
 
-  Vec3 H_x = H * x;
-  Vec3 Hinv_y = H.inverse() * y;
+Vec2 NorrmalizedToPixelSpace(Vec2 vec, CameraIntrinsics &intrinsics) {
+  Vec2 result;
 
-  H_x /= H_x(2);
-  Hinv_y /= Hinv_y(2);
+  result(0) = vec(0) * intrinsics.focal_length_x() + intrinsics.principal_point_x();
+  result(1) = vec(1) * intrinsics.focal_length_y() + intrinsics.principal_point_y();
 
-  return (H_x.head<2>() - y.head<2>()).squaredNorm() +
-         (Hinv_y.head<2>() - x.head<2>()).squaredNorm();
+  return result;
+}
+
+Mat3 IntrinsicsNormalizationMatrix(CameraIntrinsics &intrinsics) {
+  Mat3 T = Mat3::Identity(), S = Mat3::Identity();
+
+  T(0, 2) = -intrinsics.principal_point_x();
+  T(1, 2) = -intrinsics.principal_point_y();
+
+  S(0, 0) /= intrinsics.focal_length_x();
+  S(1, 1) /= intrinsics.focal_length_y();
+
+  return S * T;
 }
 
 class HomographySymmetricGeometricCostFunctor {
@@ -77,16 +85,23 @@ class HomographySymmetricGeometricCostFunctor {
   const Vec2 y_;
 };
 
-void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, Mat3 *H) {
-  // Algebraic homography estimation
+void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, CameraIntrinsics &intrinsics, Mat3 *H) {
+  // Algebraic homography estimation, happens with normalized coordinates
   Homography2DFromCorrespondencesLinear(x1, x2, H, 1e-12);
 
-  // Refine matrix using Ceres minimizer
+  // Convert homography to original pixel space
+  Mat3 N = IntrinsicsNormalizationMatrix(intrinsics);
+  *H = N.inverse() * (*H) * N;
+
+  // Refine matrix using Ceres minimizer, it'll be in pixel space
   ceres::Problem problem;
 
   for (int i = 0; i < x1.cols(); i++) {
+    Vec2 pixel_space_x1 = NorrmalizedToPixelSpace(x1.col(i), intrinsics),
+         pixel_space_x2 = NorrmalizedToPixelSpace(x2.col(i), intrinsics);
+
     HomographySymmetricGeometricCostFunctor *homography_symmetric_geometric_cost_function =
-        new HomographySymmetricGeometricCostFunctor(x1.col(i), x2.col(i));
+        new HomographySymmetricGeometricCostFunctor(pixel_space_x1, pixel_space_x2);
 
     problem.AddResidualBlock(
         new ceres::AutoDiffCostFunction<
@@ -143,17 +158,24 @@ class FundamentalSymmetricEpipolarCostFunctor {
   const Mat y_;
 };
 
-void ComputeFundamentalFromCorrespondences(Mat &x1, Mat &x2, Mat3 *F)
+void ComputeFundamentalFromCorrespondences(Mat &x1, Mat &x2, CameraIntrinsics &intrinsics, Mat3 *F)
 {
-  // Algebraic fundamental estimation
+  // Algebraic fundamental estimation, happens with normalized coordinates
   NormalizedEightPointSolver(x1, x2, F);
 
-  // Refine matrix using Ceres minimizer
+  // Convert fundamental to original pixel space
+  Mat3 N = IntrinsicsNormalizationMatrix(intrinsics);
+  *F = N.inverse() * (*F) * N;
+
+  // Refine matrix using Ceres minimizer, it'll be in pixel space
   ceres::Problem problem;
 
   for (int i = 0; i < x1.cols(); i++) {
+    Vec2 pixel_space_x1 = NorrmalizedToPixelSpace(x1.col(i), intrinsics),
+         pixel_space_x2 = NorrmalizedToPixelSpace(x2.col(i), intrinsics);
+
     FundamentalSymmetricEpipolarCostFunctor *fundamental_symmetric_epipolar_cost_function =
-        new FundamentalSymmetricEpipolarCostFunctor(x1.col(i), x2.col(i));
+        new FundamentalSymmetricEpipolarCostFunctor(pixel_space_x1, pixel_space_x2);
 
     problem.AddResidualBlock(
         new ceres::AutoDiffCostFunction<
@@ -195,31 +217,21 @@ double GRIC(Vec &e, int d, int k, int r) {
   // lambda3 limits the residual error, and this paper
   // http://elvera.nue.tu-berlin.de/files/0990Knorr2006.pdf
   // suggests using lambda3 of 2
+  // same value is used in Torr's Problem of degeneracy in structure and motion recovery
+  // from uncalibrated image sequences
+  // http://www.robots.ox.ac.uk/~vgg/publications/papers/torr99.ps.gz
   double lambda3 = 2.0;
 
-  // Compute squared standard deviation sigma2 of the error
-  double mean_value = 0;
-  for (int i = 0; i < n; i++)
-    mean_value += e(i);
-  mean_value /= (double) n;
-
-  double sigma2 = 0.0;
-  for (int i = 0; i < n; i++)
-    sigma2 += Square(e(i) - mean_value);
-  sigma2 /= n;
+  // measurement error of tracker
+  double sigma2 = 0.01;
 
   // Actual GRIC computation
   double gric_result = 0.0;
 
   for (int i = 0; i < n; i++) {
-    // disable rho stuff for now since it seems to be leading to wrong
-    // results in some cases
-    //double rho = std::min(e(i) * e(i) / sigma2, lambda3 * (r - d));
-    //gric_result += rho;
-    gric_result += e(i) * e(i) / sigma2;
+    double rho = std::min(e(i) * e(i) / sigma2, lambda3 * (r - d));
+    gric_result += rho;
   }
-
-  LG << "Sum of e_i^2 / sigma^2 " << gric_result;
 
   gric_result += lambda1 * d * n;
   gric_result += lambda2 * k;
@@ -229,7 +241,9 @@ double GRIC(Vec &e, int d, int k, int r) {
 
 } // namespace
 
-void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
+void SelectkeyframesBasedOnGRIC(Tracks &tracks,
+                                CameraIntrinsics &intrinsics,
+                                vector<int> &keyframes) {
   // Mirza Tahir Ahmed, Matthew N. Dailey
   // Robust key frame extraction for 3D reconstruction from video streams
   //
@@ -266,6 +280,7 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
       // Match keypoints between frames current_keyframe and candidate_image
       vector<Marker> tracked_markers = tracks.MarkersForTracksInBothImages(current_keyframe, candidate_image);
 
+      // Correspondences in normalized space
       Mat x1, x2;
       CoordinatesForMarkersInImage(tracked_markers, current_keyframe, &x1);
       CoordinatesForMarkersInImage(tracked_markers, candidate_image, &x2);
@@ -289,8 +304,8 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
         continue;
 
       Mat3 H, F;
-      ComputeHomographyFromCorrespondences(x1, x2, &H);
-      ComputeFundamentalFromCorrespondences(x1, x2, &F);
+      ComputeHomographyFromCorrespondences(x1, x2, intrinsics, &H);
+      ComputeFundamentalFromCorrespondences(x1, x2, intrinsics, &F);
 
       // TODO(sergey): Discard outlier matches
 
@@ -299,8 +314,8 @@ void SelectkeyframesBasedOnGRIC(Tracks &tracks, vector<int> &keyframes) {
       H_e.resize(x1.cols());
       F_e.resize(x1.cols());
       for (int i = 0; i < x1.cols(); i++) {
-        Vec2 current_x1(x1(0, i), x1(1, i));
-        Vec2 current_x2(x2(0, i), x2(1, i));
+        Vec2 current_x1 = NorrmalizedToPixelSpace(Vec2(x1(0, i), x1(1, i)), intrinsics);
+        Vec2 current_x2 = NorrmalizedToPixelSpace(Vec2(x2(0, i), x2(1, i)), intrinsics);
 
         H_e(i) = SymmetricGeometricDistance(H, current_x1, current_x2);
         F_e(i) = SymmetricEpipolarDistance(F, current_x1, current_x2);
