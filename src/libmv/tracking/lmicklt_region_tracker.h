@@ -43,8 +43,8 @@ struct LmickltRegionTracker : public RegionTracker {
   virtual ~LmickltRegionTracker() {}
 
   // Tracker interface.
-  virtual bool Track(const cv::Mat_<float> &image1,
-                     const cv::Mat_<float> &image2,
+  virtual bool Track(const cv::Mat_<cv::Vec3f> &image1,
+                     const cv::Mat_<cv::Vec3f> &image2,
                      double  x1, double  y1,
                      double *x2, double *y2) const;
 

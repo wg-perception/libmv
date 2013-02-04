@@ -27,7 +27,7 @@
 namespace libmv {
 
 // TODO(keir): Reduce duplication between here and the other region trackers.
-static bool RegionIsInBounds(const cv::Mat_<float> &image1,
+static bool RegionIsInBounds(const cv::Mat_<cv::Vec3f> &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.
@@ -51,7 +51,7 @@ static bool RegionIsInBounds(const cv::Mat_<float> &image1,
 }
 
 // Estimate "reasonable" error by computing autocorrelation for a small shift.
-static double EstimateReasonableError(const cv::Mat_<float> &image,
+static double EstimateReasonableError(const cv::Mat_<cv::Vec3f> &image,
                                double x, double y,
                                int half_width) {
   double error = 0.0;
@@ -68,8 +68,8 @@ static double EstimateReasonableError(const cv::Mat_<float> &image,
 
 // This is implemented from "Lukas and Kanade 20 years on: Part 1. Page 42,
 // figure 14: the Levenberg-Marquardt-Inverse Compositional Algorithm".
-bool LmickltRegionTracker::Track(const cv::Mat_<float> &image1,
-                             const cv::Mat_<float> &image2,
+bool LmickltRegionTracker::Track(const cv::Mat_<cv::Vec3f> &image1,
+                             const cv::Mat_<cv::Vec3f> &image2,
                              double  x1, double  y1,
                              double *x2, double *y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {

@@ -48,7 +48,7 @@ class RegionTracker {
 // image, and store the results in three channels. Since the blurred value and
 // gradients are closer in memory, this leads to better performance if all
 // three values are needed at the same time.
-inline void BlurredImageAndDerivativesChannels(const cv::Mat &in,
+inline void BlurredImageAndDerivativesChannels(const cv::Mat_<cv::Vec3f> &in,
                                         cv::Mat_<cv::Vec3f> &blurred_and_gradxy) {
   CV_Assert(in.channels() == 1);
 

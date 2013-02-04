@@ -573,7 +573,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "Release")
     ELSE (${BUILD_ANDROID})
       # Linux
       IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        SET (CERES_CXX_FLAGS "${CERES_CXX_FLAGS} -march=native -mtune=native")
+        SET (CERES_CXX_FLAGS "${CERES_CXX_FLAGS} -march=native -mtune=native -fPIC")
       ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       # Mac OS X
       IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

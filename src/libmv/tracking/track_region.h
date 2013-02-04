@@ -25,7 +25,6 @@
 
 #include "libmv/tracking/esm_region_tracker.h"
 
-#include "libmv/image/image.h"
 #include "libmv/image/sample.h"
 #include "libmv/numeric/numeric.h"
 
@@ -98,7 +97,7 @@ struct TrackRegionOptions {
   // If non-null, this is used as the pattern mask. It should match the size of
   // image1, even though only values inside the image1 quad are examined. The
   // values must be in the range 0.0 to 0.1.
-  FloatImage *image1_mask;
+  cv::Mat_<cv::Vec3f> *image1_mask;
 };
 
 struct TrackRegionResult {
@@ -129,8 +128,8 @@ struct TrackRegionResult {
 };
 
 // Always needs 4 correspondences.
-void TrackRegion(const FloatImage &image1,
-                 const FloatImage &image2,
+void TrackRegion(const cv::Mat_<cv::Vec3f> &image1,
+                 const cv::Mat_<cv::Vec3f> &image2,
                  const double *x1, const double *y1,
                  const TrackRegionOptions &options,
                  double *x2, double *y2,
@@ -145,10 +144,10 @@ void TrackRegion(const FloatImage &image1,
 // the size of image.
 // Warped coordinates of marker's position would be returned in
 // warped_position_x and warped_position_y
-bool SamplePlanarPatch(const FloatImage &image,
+bool SamplePlanarPatch(const cv::Mat_<cv::Vec3f> &image,
                        const double *xs, const double *ys,
                        int num_samples_x, int num_samples_y,
-                       FloatImage *mask, FloatImage *patch,
+                       cv::Mat_<cv::Vec3f> *mask, cv::Mat_<cv::Vec3f> *patch,
                        double *warped_position_x, double *warped_position_y);
 
 }  // namespace libmv

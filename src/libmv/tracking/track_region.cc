@@ -35,9 +35,7 @@
 #include <iostream>
 #include "ceres/ceres.h"
 #include "libmv/logging/logging.h"
-#include "libmv/image/image.h"
 #include "libmv/image/sample.h"
-#include "libmv/image/convolve.h"
 #include "libmv/multiview/homography.h"
 #include "libmv/numeric/numeric.h"
 
@@ -144,14 +142,14 @@ namespace {
 
 // TODO(keir): Consider adding padding.
 template<typename T>
-bool InBounds(const FloatImage &image,
+bool InBounds(const cv::Mat_<cv::Vec3f> &image,
               const T &x,
               const T &y) {
-  return 0.0 <= x && x < image.Width() &&
-         0.0 <= y && y < image.Height();
+  return 0.0 <= x && x < image.cols &&
+         0.0 <= y && y < image.rows;
 }
 
-bool AllInBounds(const FloatImage &image,
+bool AllInBounds(const cv::Mat_<cv::Vec3f> &image,
                  const double *x,
                  const double *y) {
   for (int i = 0; i < 4; ++i) {
@@ -166,7 +164,7 @@ bool AllInBounds(const FloatImage &image,
 // propagate derivatives from x and y. This is needed to integrate the numeric
 // image gradients with Ceres's autodiff framework.
 template<typename T>
-static T SampleWithDerivative(const FloatImage &image_and_gradient,
+static T SampleWithDerivative(const cv::Mat_<cv::Vec3f> &image_and_gradient,
                               const T &x,
                               const T &y) {
   float scalar_x = JetOps<T>::GetScalar(x);
@@ -191,7 +189,7 @@ template<typename Warp>
 class TerminationCheckingCallback : public ceres::IterationCallback {
  public:
   TerminationCheckingCallback(const TrackRegionOptions &options,
-                              const FloatImage& image2,
+                              const cv::Mat_<cv::Vec3f>& image2,
                               const Warp &warp,
                               const double *x1, const double *y1)
       : options_(options), image2_(image2), warp_(warp), x1_(x1), y1_(y1),
@@ -255,7 +253,7 @@ class TerminationCheckingCallback : public ceres::IterationCallback {
 
  private:
   const TrackRegionOptions &options_;
-  const FloatImage &image2_;
+  const cv::Mat_<cv::Vec3f> &image2_;
   const Warp &warp_;
   const double *x1_;
   const double *y1_;
@@ -269,8 +267,8 @@ template<typename Warp>
 class PixelDifferenceCostFunctor {
  public:
   PixelDifferenceCostFunctor(const TrackRegionOptions &options,
-                             const FloatImage &image_and_gradient1,
-                             const FloatImage &image_and_gradient2,
+                             const cv::Mat_<cv::Vec3f> &image_and_gradient1,
+                             const cv::Mat_<cv::Vec3f> &image_and_gradient2,
                              const Mat3 &canonical_to_image1,
                              int num_samples_x,
                              int num_samples_y,
@@ -282,9 +280,9 @@ class PixelDifferenceCostFunctor {
         num_samples_x_(num_samples_x),
         num_samples_y_(num_samples_y),
         warp_(warp),
-        pattern_and_gradient_(num_samples_y_, num_samples_x_, 3),
-        pattern_positions_(num_samples_y_, num_samples_x_, 2),
-        pattern_mask_(num_samples_y_, num_samples_x_, 1) {
+        pattern_and_gradient_(num_samples_y_, num_samples_x_),
+        pattern_positions_(num_samples_y_, num_samples_x_),
+        pattern_mask_(num_samples_y_, num_samples_x_) {
     ComputeCanonicalPatchAndNormalizer();
   }
 
@@ -303,7 +301,7 @@ class PixelDifferenceCostFunctor {
         SampleLinear(image_and_gradient1_,
                      image_position(1),  // SampleLinear is r, c.
                      image_position(0),
-                     &pattern_and_gradient_(r, c, 0));
+                     &pattern_and_gradient_(r, c)[0]);
 
         // Sample sample the mask.
         double mask_value = 1.0;
@@ -311,10 +309,10 @@ class PixelDifferenceCostFunctor {
           SampleLinear(*options_.image1_mask,
                        image_position(1),  // SampleLinear is r, c.
                        image_position(0),
-                       &pattern_mask_(r, c, 0));
+                       &pattern_mask_(r, c));
           mask_value = pattern_mask_(r, c);
         }
-        src_mean_ += pattern_and_gradient_(r, c, 0) * mask_value;
+        src_mean_ += pattern_and_gradient_(r, c)[0] * mask_value;
         num_samples += mask_value;
       }
     }
@@ -340,8 +338,8 @@ class PixelDifferenceCostFunctor {
     for (int r = 0; r < num_samples_y_; ++r) {
       for (int c = 0; c < num_samples_x_; ++c) {
         // Use the pre-computed image1 position.
-        Vec2 image1_position(pattern_positions_(r, c, 0),
-                             pattern_positions_(r, c, 1));
+        Vec2 image1_position(pattern_positions_(r, c)[0],
+                             pattern_positions_(r, c)[1]);
 
         // Sample the mask early; if it's zero, this pixel has no effect. This
         // allows early bailout from the expensive sampling that happens below.
@@ -395,8 +393,8 @@ class PixelDifferenceCostFunctor {
           // image2 position (the ESM hack), chain the image gradients to
           // obtain a sample with the derivative with respect to the warp
           // parameters attached.
-          src_sample = Chain<float, 2, T>::Rule(pattern_and_gradient_(r, c),
-                                                &pattern_and_gradient_(r, c, 1),
+          src_sample = Chain<float, 2, T>::Rule(pattern_and_gradient_(r, c)[0],
+                                                &pattern_and_gradient_(r, c)[1],
                                                 image1_position_jet);
 
           // The jacobians for these should be averaged. Due to the subtraction
@@ -406,7 +404,7 @@ class PixelDifferenceCostFunctor {
           JetOps<T>::ScaleDerivative(0.5, &dst_sample);
         } else {
           // This is the traditional, forward-mode KLT solution.
-          src_sample = T(pattern_and_gradient_(r, c));
+          src_sample = T(pattern_and_gradient_(r, c)[0]);
         }
 
         // Normalize the samples by the mean values of each signal. The typical
@@ -441,8 +439,8 @@ class PixelDifferenceCostFunctor {
     for (int r = 0; r < num_samples_y_; ++r) {
       for (int c = 0; c < num_samples_x_; ++c) {
         // Use the pre-computed image1 position.
-        Vec2 image1_position(pattern_positions_(r, c, 0),
-                             pattern_positions_(r, c, 1));
+        Vec2 image1_position(pattern_positions_(r, c)[0],
+                             pattern_positions_(r, c)[1]);
         
         // Sample the mask early; if it's zero, this pixel has no effect. This
         // allows early bailout from the expensive sampling that happens below.
@@ -503,8 +501,8 @@ class PixelDifferenceCostFunctor {
    for (int r = 0; r < num_samples_y_; ++r) {
      for (int c = 0; c < num_samples_x_; ++c) {
         // Use the pre-computed image1 position.
-        Vec2 image1_position(pattern_positions_(r, c, 0),
-                             pattern_positions_(r, c, 1));
+        Vec2 image1_position(pattern_positions_(r, c)[0],
+                             pattern_positions_(r, c)[1]);
         
         double mask_value = 1.0;
         if (options_.image1_mask != NULL) {
@@ -522,7 +520,7 @@ class PixelDifferenceCostFunctor {
                       &image2_position[0],
                       &image2_position[1]);
 
-        double x = pattern_and_gradient_(r, c);
+        double x = pattern_and_gradient_(r, c)[0];
         double y = SampleLinear(image_and_gradient2_,
                                 image2_position[1],  // SampleLinear is r, c.
                                 image2_position[0]);
@@ -562,21 +560,21 @@ class PixelDifferenceCostFunctor {
 
  private:
   const TrackRegionOptions &options_;
-  const FloatImage &image_and_gradient1_;
-  const FloatImage &image_and_gradient2_;
+  const cv::Mat_<cv::Vec3f> &image_and_gradient1_;
+  const cv::Mat_<cv::Vec3f> &image_and_gradient2_;
   const Mat3 &canonical_to_image1_;
   int num_samples_x_;
   int num_samples_y_;
   const Warp &warp_;
   double src_mean_;
-  FloatImage pattern_and_gradient_;
+  cv::Mat_<cv::Vec2f> pattern_and_gradient_;
 
   // This contains the position from where the cached pattern samples were
   // taken from. This is also used to warp from src to dest without going from
   // canonical pixels to src first.
-  FloatImage pattern_positions_;
+  cv::Mat_<cv::Vec2f> pattern_positions_;
 
-  FloatImage pattern_mask_;
+  cv::Mat_<float> pattern_mask_;
 };
 
 template<typename Warp>
@@ -1071,7 +1069,7 @@ void PickSampling(const double *x1, const double *y1,
      << ", num_samples_y: " << *num_samples_y;
 }
 
-bool SearchAreaTooBigForDescent(const FloatImage &image2,
+bool SearchAreaTooBigForDescent(const cv::Mat_<cv::Vec3f> &image2,
                                 const double *x2, const double *y2) {
   // TODO(keir): Check the bounds and enable only when it makes sense.
   return true;
@@ -1107,19 +1105,15 @@ bool PointInQuad(const double *xs, const double *ys, double x, double y) {
          PointOnRightHalfPlane(a3, a0, x, y);
 }
 
-// This makes it possible to map between Eigen float arrays and FloatImage
-// without using comparisons.
-typedef Eigen::Array<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> FloatArray;
-
 // This creates a pattern in the frame of image2, from the pixel is image1,
 // based on the initial guess represented by the two quads x1, y1, and x2, y2.
 template<typename Warp>
 void CreateBrutePattern(const double *x1, const double *y1,
                         const double *x2, const double *y2,
-                        const FloatImage &image1,
-                        const FloatImage *image1_mask,
-                        FloatArray *pattern,
-                        FloatArray *mask,
+                        const cv::Mat_<cv::Vec3f> &image1,
+                        const cv::Mat_<cv::Vec3f> *image1_mask,
+                        cv::Mat_<float> *pattern,
+                        cv::Mat_<float> *mask,
                         int *origin_x,
                         int *origin_y) {
   // Get integer bounding box of quad2 in image2.
@@ -1185,9 +1179,9 @@ void CreateBrutePattern(const double *x1, const double *y1,
 // totally different warping interface, since access to more than a the source
 // and current destination frame is necessary.
 template<typename Warp>
-bool BruteTranslationOnlyInitialize(const FloatImage &image1,
-                                    const FloatImage *image1_mask,
-                                    const FloatImage &image2,
+bool BruteTranslationOnlyInitialize(const cv::Mat_<cv::Vec3f> &image1,
+                                    const cv::Mat_<cv::Vec3f> *image1_mask,
+                                    const cv::Mat_<cv::Vec3f> &image2,
                                     const int num_extra_points,
                                     const bool use_normalized_intensities,
                                     const double *x1, const double *y1,
@@ -1195,8 +1189,8 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
   // Create the pattern to match in the space of image2, assuming our inital
   // guess isn't too far from the template in image1. If there is no image1
   // mask, then the resulting mask is binary.
-  FloatArray pattern;
-  FloatArray mask;
+  cv::Mat_<float> pattern;
+  cv::Mat_<float> mask;
   int origin_x = -1, origin_y = -1;
   CreateBrutePattern<Warp>(x1, y1, x2, y2,
                            image1, image1_mask,
@@ -1206,13 +1200,10 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
   // For normalization, premultiply the pattern by the inverse pattern mean.
   double mask_sum = 1.0;
   if (use_normalized_intensities) {
-    mask_sum = mask.sum();
-    double inverse_pattern_mean = mask_sum / ((mask * pattern).sum());
+    mask_sum = cv::sum(mask)[0];
+    double inverse_pattern_mean = mask_sum / cv::sum(mask.mul(pattern))[0];
     pattern *= inverse_pattern_mean;
   }
-
-  // Use Eigen on the images via maps for strong vectorization.
-  Map<const FloatArray> search(image2.Data(), image2.Height(), image2.Width());
 
   // Try all possible locations inside the search area. Yes, everywhere.
   //
@@ -1229,25 +1220,26 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
   double best_sad = std::numeric_limits<double>::max();
   int best_r = -1;
   int best_c = -1;
-  int w = pattern.cols();
-  int h = pattern.rows();
+  int w = pattern.cols;
+  int h = pattern.rows;
 
-  for (int r = 0; r < (image2.Height() - h); ++r) {
-    for (int c = 0; c < (image2.Width() - w); ++c) {
+  for (int r = 0; r < (image2.rows - h); ++r) {
+    for (int c = 0; c < (image2.cols - w); ++c) {
       // Compute the weighted sum of absolute differences, Eigen style. Note
       // that the block from the search image is never stored in a variable, to
       // avoid copying overhead and permit inlining.
       double sad;
+      // This is slow but the whole loop should be replaced by a convolution function anyway
+      cv::Mat block = cv::Mat(image2,cv::Rect(c,r,w,h));
       if (use_normalized_intensities) {
         // TODO(keir): It's really dumb to recompute the search mean for every
         // shift. A smarter implementation would use summed area tables
         // instead, reducing the mean calculation to an O(1) operation.
         double inverse_search_mean =
-            mask_sum / ((mask * search.block(r, c, h, w)).sum());
-        sad = (mask * (pattern - (search.block(r, c, h, w) *
-                                  inverse_search_mean))).abs().sum();
+            mask_sum / cv::sum(mask.mul(block))[0];
+        sad = cv::sum(cv::abs(mask.mul(pattern - block * inverse_search_mean)))[0];
       } else {
-        sad = (mask * (pattern - search.block(r, c, h, w))).abs().sum();
+        sad = cv::sum(cv::abs(mask.mul(pattern - block)))[0];
       }
       if (sad < best_sad) {
         best_r = r;
@@ -1268,7 +1260,7 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
      << "origin_x: " << origin_x << ", origin_y: " << origin_y << ", "
      << "dc: " << (best_c - origin_x) << ", "
      << "dr: " << (best_r - origin_y)
-     << ", tried " << ((image2.Height() - h) * (image2.Width() - w))
+     << ", tried " << ((image2.rows - h) * (image2.cols - w))
      << " shifts.";
 
   // Apply the shift.
@@ -1282,8 +1274,8 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
 }  // namespace
 
 template<typename Warp>
-void TemplatedTrackRegion(const FloatImage &image1,
-                          const FloatImage &image2,
+void TemplatedTrackRegion(const cv::Mat_<cv::Vec3f> &image1,
+                          const cv::Mat_<cv::Vec3f> &image2,
                           const double *x1, const double *y1,
                           const TrackRegionOptions &options,
                           double *x2, double *y2,
@@ -1317,12 +1309,10 @@ void TemplatedTrackRegion(const FloatImage &image1,
   }
 
   // Prepare the image and gradient.
-  Array3Df image_and_gradient1;
-  Array3Df image_and_gradient2;
-  BlurredImageAndDerivativesChannels(image1, options.sigma,
-                                     &image_and_gradient1);
-  BlurredImageAndDerivativesChannels(image2, options.sigma,
-                                     &image_and_gradient2);
+  cv::Mat_<cv::Vec3f> image_and_gradient1;
+  cv::Mat_<cv::Vec3f> image_and_gradient2;
+  BlurredImageAndDerivativesChannels(image1, image_and_gradient1);
+  BlurredImageAndDerivativesChannels(image2, image_and_gradient2);
 
   // Possibly do a brute-force translation-only initialization.
   if (SearchAreaTooBigForDescent(image2, x2, y2) &&
@@ -1478,8 +1468,8 @@ void TemplatedTrackRegion(const FloatImage &image1,
 #undef HANDLE_TERMINATION
 };
 
-void TrackRegion(const FloatImage &image1,
-                 const FloatImage &image2,
+void TrackRegion(const cv::Mat_<cv::Vec3f> &image1,
+                 const cv::Mat_<cv::Vec3f> &image2,
                  const double *x1, const double *y1,
                  const TrackRegionOptions &options,
                  double *x2, double *y2,
@@ -1503,10 +1493,10 @@ void TrackRegion(const FloatImage &image1,
 #undef HANDLE_MODE
 }
 
-bool SamplePlanarPatch(const FloatImage &image,
+bool SamplePlanarPatch(const cv::Mat_<cv::Vec3f> &image,
                        const double *xs, const double *ys,
                        int num_samples_x, int num_samples_y,
-                       FloatImage *mask, FloatImage *patch,
+                       cv::Mat_<cv::Vec3f> *mask, cv::Mat_<cv::Vec3f> *patch,
                        double *warped_position_x, double *warped_position_y) {
   // Bail early if the points are outside the image.
   if (!AllInBounds(image, xs, ys)) {
@@ -1515,7 +1505,7 @@ bool SamplePlanarPatch(const FloatImage &image,
   }
 
   // Make the patch have the appropriate size, and match the depth of image.
-  patch->Resize(num_samples_y, num_samples_x, image.Depth());
+  patch->resize(num_samples_y, num_samples_x);
 
   // Compute the warp from rectangular coordinates.
   Mat3 canonical_homography = ComputeCanonicalHomography(xs, ys,
@@ -1530,13 +1520,12 @@ bool SamplePlanarPatch(const FloatImage &image,
       image_position /= image_position(2);
       SampleLinear(image, image_position(1),
                    image_position(0),
-                   &(*patch)(r, c, 0));
+                   &(*patch)(r, c)[0]);
       if (mask) {
         float mask_value = SampleLinear(*mask, image_position(1),
                                         image_position(0), 0);
 
-        for (int d = 0; d < image.Depth(); d++)
-          (*patch)(r, c, d) *= mask_value;
+        (*patch)(r, c) = (*patch)(r, c) * mask_value;
       }
     }
   }

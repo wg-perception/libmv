@@ -84,7 +84,7 @@ libmv_solveReconstruction( const libmv::Tracks &tracks,
 
     libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
     libmv::EuclideanBundle(normalized_tracks, reconstruction);
-    libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
+    libmv::EuclideanCompleteReconstruction(libmv::ReconstructionOptions(), normalized_tracks, reconstruction);
 
     if (refine_intrinsics)
     {
