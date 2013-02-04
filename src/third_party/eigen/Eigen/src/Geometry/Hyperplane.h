@@ -4,27 +4,14 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_HYPERPLANE_H
 #define EIGEN_HYPERPLANE_H
+
+namespace Eigen { 
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -189,7 +176,7 @@ public:
     *
     * \note If \a other is approximately parallel to *this, this method will return any point on *this.
     */
-  VectorType intersection(const Hyperplane& other)
+  VectorType intersection(const Hyperplane& other) const
   {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2)
     Scalar det = coeffs().coeff(0) * other.coeffs().coeff(1) - coeffs().coeff(1) * other.coeffs().coeff(0);
@@ -213,8 +200,8 @@ public:
   /** Applies the transformation matrix \a mat to \c *this and returns a reference to \c *this.
     *
     * \param mat the Dim x Dim transformation matrix
-    * \param traits specifies whether the matrix \a mat represents an Isometry
-    *               or a more generic Affine transformation. The default is Affine.
+    * \param traits specifies whether the matrix \a mat represents an #Isometry
+    *               or a more generic #Affine transformation. The default is #Affine.
     */
   template<typename XprType>
   inline Hyperplane& transform(const MatrixBase<XprType>& mat, TransformTraits traits = Affine)
@@ -225,7 +212,7 @@ public:
       normal() = mat * normal();
     else
     {
-      eigen_assert("invalid traits value in Hyperplane::transform()");
+      eigen_assert(0 && "invalid traits value in Hyperplane::transform()");
     }
     return *this;
   }
@@ -233,8 +220,8 @@ public:
   /** Applies the transformation \a t to \c *this and returns a reference to \c *this.
     *
     * \param t the transformation of dimension Dim
-    * \param traits specifies whether the transformation \a t represents an Isometry
-    *               or a more generic Affine transformation. The default is Affine.
+    * \param traits specifies whether the transformation \a t represents an #Isometry
+    *               or a more generic #Affine transformation. The default is #Affine.
     *               Other kind of transformations are not supported.
     */
   template<int TrOptions>
@@ -276,5 +263,7 @@ protected:
 
   Coefficients m_coeffs;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_HYPERPLANE_H

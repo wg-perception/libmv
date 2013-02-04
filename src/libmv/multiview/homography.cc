@@ -18,18 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <Eigen/NonLinearOptimization>
-#include <Eigen/NumericalDiff>
-
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/homography.h"
-#include "libmv/multiview/homography_error.h"
 #include "libmv/multiview/homography_parameterization.h"
-#include "libmv/multiview/projection.h"
-
-#include <iostream>
-
-using namespace libmv::homography::homography2D;
 
 namespace libmv {
 /** 2D Homography transformation estimation in the case that points are in 
@@ -41,7 +32,7 @@ namespace libmv {
  *
  * | 0 -1  x2|   |a b c|   |y1|    |0|
  * | 1  0 -x1| * |d e f| * |y2| =  |0|
- * |-x2  x1 0|   |g h 1|   |y3|    |0|
+ * |-x2  x1 0|   |g h 1|   |1 |    |0|
  *
  * That gives :
  *
@@ -49,7 +40,7 @@ namespace libmv {
  * (a-x1*g)*y1     + (b-x1*h)*y2  + c-x1         = |0|
  * (-x2*a+x1*d)*y1 + (-x2*b+x1*e)*y2 + -x2*c+x1*f  |0|
  */
-bool Homography2DFromCorrespondencesLinearEuc(
+static bool Homography2DFromCorrespondencesLinearEuc(
     const Mat &x1,
     const Mat &x2,
     Mat3 *H,
@@ -64,35 +55,35 @@ bool Homography2DFromCorrespondencesLinearEuc(
   Mat b = Mat::Zero(n * 3, 1);
   for (int i = 0; i < n; ++i) {
     int j = 3 * i;
-    L(j, 0) = x1(0, i);//a
-    L(j, 1) = x1(1, i);//b
-    L(j, 2) = 1.0;//c
-    L(j, 6) = -x2(0, i) * x1(0, i);//g
-    L(j, 7) = -x2(0, i) * x1(1, i);//h
-    b(j, 0) =  x2(0, i);//i
+    L(j, 0) =  x1(0, i);            // a
+    L(j, 1) =  x1(1, i);            // b
+    L(j, 2) =  1.0;                 // c
+    L(j, 6) = -x2(0, i) * x1(0, i); // g
+    L(j, 7) = -x2(0, i) * x1(1, i); // h
+    b(j, 0) =  x2(0, i);            // i
 
     ++j;
-    L(j, 3) = x1(0, i);//d
-    L(j, 4) = x1(1, i);//e
-    L(j, 5) = 1.0;//f
-    L(j, 6) = -x2(1, i) * x1(0, i);//g
-    L(j, 7) = -x2(1, i) * x1(1, i);//h
-    b(j, 0) =  x2(1, i);//i
+    L(j, 3) =  x1(0, i);            // d
+    L(j, 4) =  x1(1, i);            // e
+    L(j, 5) =  1.0;                 // f
+    L(j, 6) = -x2(1, i) * x1(0, i); // g
+    L(j, 7) = -x2(1, i) * x1(1, i); // h
+    b(j, 0) =  x2(1, i);            // i
     
     // This ensures better stability
     // TODO(julien) make a lite version without this 3rd set
     ++j;
-    L(j, 0) =  x2(1, i) * x1(0, i);//a
-    L(j, 1) =  x2(1, i) * x1(1, i);//b
-    L(j, 2) =  x2(1, i);//c
-    L(j, 3) = -x2(0, i) * x1(0, i);//d
-    L(j, 4) = -x2(0, i) * x1(1, i);//e
-    L(j, 5) = -x2(0, i) ;//f
+    L(j, 0) =  x2(1, i) * x1(0, i); // a
+    L(j, 1) =  x2(1, i) * x1(1, i); // b
+    L(j, 2) =  x2(1, i);            // c
+    L(j, 3) = -x2(0, i) * x1(0, i); // d
+    L(j, 4) = -x2(0, i) * x1(1, i); // e
+    L(j, 5) = -x2(0, i) ;           // f
   }
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
+  Homography2DNormalizedParameterization<double>::To(h, H);
   if ((L * h).isApprox(b, expected_precision))  {
-    Homography2DNormalizedParameterization<double>::To(h, H);
     return true;
   } else {
     return false;
@@ -273,4 +264,19 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
     return false;
   }
 }
+
+double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2) {
+  Vec3 x(x1(0), x1(1), 1.0);
+  Vec3 y(x2(0), x2(1), 1.0);
+
+  Vec3 H_x = H * x;
+  Vec3 Hinv_y = H.inverse() * y;
+
+  H_x /= H_x(2);
+  Hinv_y /= Hinv_y(2);
+
+  return (H_x.head<2>() - y.head<2>()).squaredNorm() +
+         (Hinv_y.head<2>() - x.head<2>()).squaredNorm();
+}
+
 }  // namespace libmv

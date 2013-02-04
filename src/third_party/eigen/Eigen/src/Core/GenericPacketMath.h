@@ -4,27 +4,14 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_GENERIC_PACKET_MATH_H
 #define EIGEN_GENERIC_PACKET_MATH_H
+
+namespace Eigen {
 
 namespace internal {
 
@@ -134,12 +121,12 @@ pdiv(const Packet& a,
 /** \internal \returns the min of \a a and \a b  (coeff-wise) */
 template<typename Packet> inline Packet
 pmin(const Packet& a,
-        const Packet& b) { return std::min(a, b); }
+        const Packet& b) { using std::min; return (min)(a, b); }
 
 /** \internal \returns the max of \a a and \a b  (coeff-wise) */
 template<typename Packet> inline Packet
 pmax(const Packet& a,
-        const Packet& b) { return std::max(a, b); }
+        const Packet& b) { using std::max; return (max)(a, b); }
 
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> inline Packet
@@ -286,7 +273,7 @@ pmadd(const Packet&  a,
 { return padd(pmul(a, b),c); }
 
 /** \internal \returns a packet version of \a *from.
-  * \If LoadMode equals Aligned, \a from must be 16 bytes aligned */
+  * If LoadMode equals #Aligned, \a from must be 16 bytes aligned */
 template<typename Packet, int LoadMode>
 inline Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 {
@@ -297,7 +284,7 @@ inline Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 }
 
 /** \internal copy the packet \a from to \a *to.
-  * If StoreMode equals Aligned, \a to must be 16 bytes aligned */
+  * If StoreMode equals #Aligned, \a to must be 16 bytes aligned */
 template<typename Scalar, typename Packet, int LoadMode>
 inline void pstoret(Scalar* to, const Packet& from)
 {
@@ -312,7 +299,7 @@ template<int Offset,typename PacketType>
 struct palign_impl
 {
   // by default data are aligned, so there is nothing to be done :)
-  inline static void run(PacketType&, const PacketType&) {}
+  static inline void run(PacketType&, const PacketType&) {}
 };
 
 /** \internal update \a first using the concatenation of the \a Offset last elements
@@ -334,6 +321,8 @@ template<> inline std::complex<double> pmul(const std::complex<double>& a, const
 { return std::complex<double>(real(a)*real(b) - imag(a)*imag(b), imag(a)*real(b) + real(a)*imag(b)); }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERIC_PACKET_MATH_H
 

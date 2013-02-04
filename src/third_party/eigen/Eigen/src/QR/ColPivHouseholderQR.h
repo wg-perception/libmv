@@ -4,27 +4,14 @@
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
 #define EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
+
+namespace Eigen { 
 
 /** \ingroup QR_Module
   *
@@ -93,7 +80,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       */
     ColPivHouseholderQR(Index rows, Index cols)
       : m_qr(rows, cols),
-        m_hCoeffs(std::min(rows,cols)),
+        m_hCoeffs((std::min)(rows,cols)),
         m_colsPermutation(cols),
         m_colsTranspositions(cols),
         m_temp(cols),
@@ -103,7 +90,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
 
     ColPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
+        m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
         m_colsPermutation(matrix.cols()),
         m_colsTranspositions(matrix.cols()),
         m_temp(matrix.cols()),
@@ -330,12 +317,12 @@ template<typename _MatrixType> class ColPivHouseholderQR
       */
     inline Index nonzeroPivots() const
     {
-      eigen_assert(m_isInitialized && "LU is not initialized.");
+      eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return m_nonzero_pivots;
     }
 
     /** \returns the absolute value of the biggest pivot, i.e. the biggest
-      *          diagonal coefficient of U.
+      *          diagonal coefficient of R.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
 
@@ -387,7 +374,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   for(Index k = 0; k < cols; ++k)
     m_colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
 
-  RealScalar threshold_helper = m_colSqNorms.maxCoeff() * internal::abs2(NumTraits<Scalar>::epsilon()) / rows;
+  RealScalar threshold_helper = m_colSqNorms.maxCoeff() * internal::abs2(NumTraits<Scalar>::epsilon()) / RealScalar(rows);
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
@@ -413,7 +400,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     // Note that here, if we test instead for "biggest == 0", we get a failure every 1000 (or so)
     // repetitions of the unit test, with the result of solve() filled with large values of the order
     // of 1/(size*epsilon).
-    if(biggest_col_sq_norm < threshold_helper * (rows-k))
+    if(biggest_col_sq_norm < threshold_helper * RealScalar(rows-k))
     {
       m_nonzero_pivots = k;
       m_hCoeffs.tail(size-k).setZero();
@@ -528,5 +515,6 @@ MatrixBase<Derived>::colPivHouseholderQr() const
   return ColPivHouseholderQR<PlainObject>(eval());
 }
 
+} // end namespace Eigen
 
 #endif // EIGEN_COLPIVOTINGHOUSEHOLDERQR_H

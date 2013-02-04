@@ -5,6 +5,7 @@ SET(SIMPLE_PIPELINE_SRC
     bundle.cc
     initialize_reconstruction.cc
     iterative_closest_points.cc
+    keyframe_selection.cc
     modal_solver.cc
     pipeline.cc
     reconstruction.cc
@@ -34,3 +35,4 @@ ENDMACRO (SIMPLE_PIPELINE_TEST)
 SIMPLE_PIPELINE_TEST(camera_intrinsics)
 SIMPLE_PIPELINE_TEST(resect)
 SIMPLE_PIPELINE_TEST(intersect)
+SIMPLE_PIPELINE_TEST(keyframe_selection)
