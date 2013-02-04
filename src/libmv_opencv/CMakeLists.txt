@@ -74,6 +74,7 @@ ADD_DEFINITIONS(-DTEST_DATA_DIR="\\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/cv/sfm/
 #  sfm_samples
 ################
 
-# Todo: Build inside bin/samples directory later
 add_executable(recon2v samples/recon2v.cpp samples/recon2v.hpp)
-target_link_libraries(recon2v  ${OpenCV_LIBRARIES})
+target_link_libraries(recon2v  opencv_sfm ${OpenCV_LIBRARIES})
+set_target_properties(recon2v PROPERTIES
+                      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/samples)
