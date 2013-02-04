@@ -92,11 +92,15 @@ int main(int argc, char** argv) {
 
 	// Print output
 
+	cout << endl;
 	cout << "Projection Matrix of View 1: " << endl;
-	cout << Ps_estimated[0] << endl;
+	cout << "============================ " << endl;
+	cout << Ps_estimated[0] << endl << endl;
 	cout << "Projection Matrix of View 1: " << endl;
-	cout << Ps_estimated[1] << endl;
+	cout << "============================ " << endl;
+	cout << Ps_estimated[1] << endl << endl;
 	cout << "Reconstructed 3D points: " << endl;
+	cout << "======================== " << endl;
 	cout << points3d_estimated << endl;
 
 	return 0;
