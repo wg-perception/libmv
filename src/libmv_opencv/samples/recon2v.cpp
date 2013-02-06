@@ -19,7 +19,7 @@ using namespace std;
 using namespace cv;
 
 static void help() {
-		cout
+	cout
 			<< "\n------------------------------------------------------------------\n"
 			<< " This program shows the two view reconstruction capabilities in the \n"
 			<< " OpenCV Structure From Motion (SFM) module.\n"
@@ -117,7 +117,9 @@ int main(int argc, char** argv) {
 	// Create the structure
 	libmv::vector<libmv::Vec3> struct_coords;
 	for (int i = 0; i < npts; ++i) {
-		libmv::Vec3 point3d(points3d_estimated(0, i),points3d_estimated(1, i),points3d_estimated(2, i));
+		libmv::Vec3 point3d((float) points3d_estimated(0, i),
+				(float) points3d_estimated(1, i),
+				(float) points3d_estimated(2, i));
 		struct_coords.push_back(point3d);
 	}
 
