@@ -30,7 +30,7 @@ GLWidget::GLWidget(QWidget *parent)
  :QGLWidget(QGLFormat(QGL::SampleBuffers), parent) {
   viewer_position_ << 0, 0,  -10;
   viewer_orientation_ << 0, 0, 0;
-  point_size_ = 0.03;
+  point_size_ = 0.3;
 }
 GLWidget::~GLWidget(){
   foreach(GLuint s, structures_list_) {
@@ -123,6 +123,8 @@ inline void GLWidget::DrawPointStructure(libmv::Vec3 &p) {
   glVertex3f(p[0]-point_size_, p[1]+point_size_, p[2]+point_size_);
 }
 void GLWidget::AddNewStructure(vector<Vec3> &struct_coords) {
+  // Make the context current
+  makeCurrent();
   GLuint s_new = glGenLists(1);
   structures_list_ << s_new;
   glNewList(s_new, GL_COMPILE);
