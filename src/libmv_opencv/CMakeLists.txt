@@ -74,7 +74,30 @@ ADD_DEFINITIONS(-DTEST_DATA_DIR="\\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/cv/sfm/
 #  sfm_samples
 ################
 
-add_executable(recon2v samples/recon2v.cpp samples/recon2v.hpp)
-target_link_libraries(recon2v  opencv_sfm ${OpenCV_LIBRARIES})
+# Qt
+FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+SET(QT_USE_QTOPENGL ON)
+INCLUDE(${QT_USE_FILE})
+
+SET(HEADERS samples/recon2v.hpp 
+			../../ui/nvr/glwidget.h
+			../../libmv/base/vector.h
+			../../libmv/numeric/numeric.h
+			)
+SET(SOURCES samples/recon2v.cpp 
+			../../ui/nvr/glwidget.cc)
+
+QT4_WRAP_CPP(SOURCES ${HEADERS})
+add_executable(recon2v ${SOURCES})
+target_link_libraries(recon2v  
+					  opencv_sfm 
+					  ${OpenCV_LIBRARIES}
+                      ${QT_QTCORE_LIBRARY} 
+                      ${QT_QTGUI_LIBRARY}
+                      ${QT_QTOPENGL_LIBRARY}
+                      ${OPENGL_gl_LIBRARY}
+                      ${OPENGL_glu_LIBRARY}
+)
 set_target_properties(recon2v PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/samples)

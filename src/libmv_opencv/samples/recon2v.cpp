@@ -6,11 +6,25 @@
 
 #include "recon2v.hpp"
 
+// Used to display 3D structure using Qt widget
+#include <QApplication>
+#include <QtGui>
+#include <QtOpenGL>
+#include <GL/glu.h>
+
+//#include "../ui/nvr/glwidget.h"
+//#include "../libmv/base/vector.h"
+//#include "../libmv/numeric/numeric.h"
+
+//#include <glwidget.h>
+#include <vector.h>
+//#include <numeric.h>
+
 using namespace std;
 using namespace cv;
 
 static void help() {
-	cout
+		cout
 			<< "\n------------------------------------------------------------------\n"
 			<< " This program shows the two view reconstruction capabilities in the \n"
 			<< " OpenCV Structure From Motion (SFM) module.\n"
@@ -103,5 +117,24 @@ int main(int argc, char** argv) {
 	cout << "======================== " << endl;
 	cout << points3d_estimated << endl;
 
-	return 0;
+	// Display 3D points using Qt widget
+
+	// Create the structure
+	libmv::vector<libmv::Vec3> struct_coords;
+	for (int i = 0; i < npts; ++i) {
+		libmv::Vec3 point3d;
+		point3d.push_back(points3d_estimated(0, i));
+		point3d.push_back(points3d_estimated(1, i));
+		point3d.push_back(points3d_estimated(2, i));
+		struct_coords.push_back(point3d);
+	}
+
+	// Qt stuff
+	QApplication app(argc, argv);
+	GLWidget window;
+	window.AddNewStructure(struct_coords);
+	window.resize(800, 600);
+	window.show();
+	return app.exec();
+
 }
