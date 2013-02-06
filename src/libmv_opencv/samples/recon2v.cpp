@@ -11,14 +11,9 @@
 #include <QtGui>
 #include <QtOpenGL>
 #include <GL/glu.h>
-
-//#include "../ui/nvr/glwidget.h"
-//#include "../libmv/base/vector.h"
-//#include "../libmv/numeric/numeric.h"
-
-//#include <glwidget.h>
-#include <vector.h>
-//#include <numeric.h>
+#include "ui/nvr/glwidget.h"
+#include "libmv/base/vector.h"
+#include "libmv/numeric/numeric.h"
 
 using namespace std;
 using namespace cv;
@@ -122,10 +117,7 @@ int main(int argc, char** argv) {
 	// Create the structure
 	libmv::vector<libmv::Vec3> struct_coords;
 	for (int i = 0; i < npts; ++i) {
-		libmv::Vec3 point3d;
-		point3d.push_back(points3d_estimated(0, i));
-		point3d.push_back(points3d_estimated(1, i));
-		point3d.push_back(points3d_estimated(2, i));
+		libmv::Vec3 point3d(points3d_estimated(0, i),points3d_estimated(1, i),points3d_estimated(2, i));
 		struct_coords.push_back(point3d);
 	}
 
