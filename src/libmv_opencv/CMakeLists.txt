@@ -81,12 +81,12 @@ SET(QT_USE_QTOPENGL ON)
 INCLUDE(${QT_USE_FILE})
 
 SET(HEADERS samples/recon2v.hpp 
-			../../ui/nvr/glwidget.h
-			../../libmv/base/vector.h
-			../../libmv/numeric/numeric.h
+			${LIBMV_SOURCE_DIR}/ui/nvr/glwidget.h
+			${LIBMV_SOURCE_DIR}/libmv/base/vector.h
+			${LIBMV_SOURCE_DIR}/libmv/numeric/numeric.h
 			)
 SET(SOURCES samples/recon2v.cpp 
-			../../ui/nvr/glwidget.cc)
+			${LIBMV_SOURCE_DIR}/ui/nvr/glwidget.cc)
 
 QT4_WRAP_CPP(SOURCES ${HEADERS})
 add_executable(recon2v ${SOURCES})
