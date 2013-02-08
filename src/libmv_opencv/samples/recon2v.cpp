@@ -11,9 +11,8 @@
 #include <QtGui>
 #include <QtOpenGL>
 #include <GL/glu.h>
-#include "ui/nvr/glwidget.h"
-#include "libmv/base/vector.h"
-#include "libmv/numeric/numeric.h"
+#include "glwidget.h"
+
 
 using namespace std;
 using namespace cv;
@@ -115,9 +114,9 @@ int main(int argc, char** argv) {
 	// Display 3D points using Qt widget
 
 	// Create the structure
-	libmv::vector<libmv::Vec3> struct_coords;
+	vector<Vec3f> struct_coords;
 	for (int i = 0; i < npts; ++i) {
-		libmv::Vec3 point3d((float) points3d_estimated(0, i),
+		Vec3f point3d((float) points3d_estimated(0, i),
 				(float) points3d_estimated(1, i),
 				(float) points3d_estimated(2, i));
 		struct_coords.push_back(point3d);
