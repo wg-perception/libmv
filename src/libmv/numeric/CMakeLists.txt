@@ -16,7 +16,6 @@ SET_TARGET_PROPERTIES(numeric PROPERTIES DEBUG_POSTFIX "_d")
 LIBMV_INSTALL_LIB(numeric)
 
 LIBMV_TEST(numeric numeric)
-LIBMV_TEST(tinyvector numeric)
 LIBMV_TEST(poly numeric)
 LIBMV_TEST(function_derivative numeric)
 LIBMV_TEST(levenberg_marquardt numeric)
