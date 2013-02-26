@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,37 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
-//
-// Compute a parameter block ordering for use with the Schur
-// complement based algorithms.
 
-#ifndef CERES_INTERNAL_SCHUR_ORDERING_H_
-#define CERES_INTERNAL_SCHUR_ORDERING_H_
-
-#include <vector>
-#include "ceres/graph.h"
-#include "ceres/types.h"
+#include "ceres/preconditioner.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
 
-class Program;
-class ParameterBlock;
+Preconditioner::~Preconditioner() {
+}
 
-// Uses an approximate independent set ordering to order the parameter
-// blocks of a problem so that it is suitable for use with Schur
-// complement based solvers. The output variable ordering contains an
-// ordering of the parameter blocks and the return value is size of
-// the independent set or the number of e_blocks (see
-// schur_complement_solver.h for an explanation). Constant parameters
-// are added to the end.
-//
-// The ordering vector has the structure
-//
-// ordering = [independent set,
-//             complement of the independent set,
-//             fixed blocks]
-int ComputeSchurOrdering(const Program& program,
-                         vector<ParameterBlock* >* ordering);
+SparseMatrixPreconditionerWrapper::SparseMatrixPreconditionerWrapper(
+    const SparseMatrix* matrix)
+    : matrix_(CHECK_NOTNULL(matrix)) {
+}
 
+SparseMatrixPreconditionerWrapper::~SparseMatrixPreconditionerWrapper() {
+}
 
-// Builds a graph on the parameter blocks of a Problem, whose
-// structure reflects the sparsity structure of the Hessian. Each
-// vertex corresponds to a parameter block in the Problem except for
-// parameter blocks that are marked constant. An edge connects two
-// parameter blocks, if they co-occur in a residual block.
-Graph<ParameterBlock*>* CreateHessianGraph(const Program& program);
+bool SparseMatrixPreconditionerWrapper::Update(const BlockSparseMatrixBase& A,
+                                               const double* D) {
+  return true;
+}
+
+void SparseMatrixPreconditionerWrapper::RightMultiply(const double* x,
+                                                      double* y) const {
+  matrix_->RightMultiply(x, y);
+}
+
+int  SparseMatrixPreconditionerWrapper::num_rows() const {
+  return matrix_->num_rows();
+}
 
 }  // namespace internal
 }  // namespace ceres
-
-#endif  // CERES_INTERNAL_SCHUR_ORDERING_H_

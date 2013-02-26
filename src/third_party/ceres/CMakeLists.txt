@@ -73,8 +73,8 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 #
 # For versions without ABI changes, bump the smallest number in CERES_VERSION,
 # but leave the CERES_ABI_VERSION unchanged.
-SET(CERES_VERSION 1.3.0)
-SET(CERES_ABI_VERSION 1.3.0)
+SET(CERES_VERSION 1.5.0)
+SET(CERES_ABI_VERSION 1.5.0)
 
 ENABLE_TESTING()
 
@@ -613,6 +613,17 @@ IF (MSVC)
   # the warnings.
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4049")
 ENDIF (MSVC)
+
+# GCC is not strict enough by default, so enable most of the warnings.
+IF ("${UNIX}")
+  SET(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter")
+ENDIF ("${UNIX}")
+
+# We can be even stricter when using CLang
+IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type-c-linkage")
+ENDIF()
 
 ADD_SUBDIRECTORY(internal/ceres)
 

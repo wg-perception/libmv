@@ -66,42 +66,52 @@
 #include "snavely_reprojection_error.h"
 
 DEFINE_string(input, "", "Input File name");
+DEFINE_string(trust_region_strategy, "levenberg_marquardt",
+              "Options are: levenberg_marquardt, dogleg.");
+DEFINE_string(dogleg, "traditional_dogleg", "Options are: traditional_dogleg,"
+              "subspace_dogleg.");
+
+DEFINE_bool(inner_iterations, false, "Use inner iterations to non-linearly "
+            "refine each successful trust region step.");
+
+DEFINE_string(blocks_for_inner_iterations, "automatic", "Options are: "
+            "automatic, cameras, points, cameras,points, points,cameras");
+
+DEFINE_string(linear_solver, "sparse_schur", "Options are: "
+              "sparse_schur, dense_schur, iterative_schur, sparse_normal_cholesky, "
+              "dense_qr, dense_normal_cholesky and cgnr.");
+DEFINE_string(preconditioner, "jacobi", "Options are: "
+              "identity, jacobi, schur_jacobi, cluster_jacobi, "
+              "cluster_tridiagonal.");
+DEFINE_string(sparse_linear_algebra_library, "suite_sparse",
+              "Options are: suite_sparse and cx_sparse.");
+DEFINE_string(ordering, "automatic", "Options are: automatic, user.");
+
 DEFINE_bool(use_quaternions, false, "If true, uses quaternions to represent "
-            "rotations. If false, angle axis is used");
+            "rotations. If false, angle axis is used.");
 DEFINE_bool(use_local_parameterization, false, "For quaternions, use a local "
             "parameterization.");
-DEFINE_bool(robustify, false, "Use a robust loss function");
+DEFINE_bool(robustify, false, "Use a robust loss function.");
 
-DEFINE_string(trust_region_strategy, "lm", "Options are: lm, dogleg");
 DEFINE_double(eta, 1e-2, "Default value for eta. Eta determines the "
              "accuracy of each linear solve of the truncated newton step. "
-             "Changing this parameter can affect solve performance ");
-DEFINE_string(solver_type, "sparse_schur", "Options are: "
-              "sparse_schur, dense_schur, iterative_schur, sparse_cholesky, "
-              "dense_qr, dense_cholesky and conjugate_gradients");
-DEFINE_string(preconditioner_type, "jacobi", "Options are: "
-              "identity, jacobi, schur_jacobi, cluster_jacobi, "
-              "cluster_tridiagonal");
-DEFINE_string(sparse_linear_algebra_library, "suitesparse",
-              "Options are: suitesparse and cxsparse");
+             "Changing this parameter can affect solve performance.");
 
-DEFINE_string(ordering_type, "schur", "Options are: schur, user, natural");
-DEFINE_string(dogleg_type, "traditional", "Options are: traditional, subspace");
 DEFINE_bool(use_block_amd, true, "Use a block oriented fill reducing "
             "ordering.");
 
-DEFINE_int32(num_threads, 1, "Number of threads");
-DEFINE_int32(num_iterations, 5, "Number of iterations");
+DEFINE_int32(num_threads, 1, "Number of threads.");
+DEFINE_int32(num_iterations, 5, "Number of iterations.");
 DEFINE_double(max_solver_time, 1e32, "Maximum solve time in seconds.");
 DEFINE_bool(nonmonotonic_steps, false, "Trust region algorithm can use"
-            " nonmonotic steps");
+            " nonmonotic steps.");
 
 DEFINE_double(rotation_sigma, 0.0, "Standard deviation of camera rotation "
               "perturbation.");
 DEFINE_double(translation_sigma, 0.0, "Standard deviation of the camera "
               "translation perturbation.");
 DEFINE_double(point_sigma, 0.0, "Standard deviation of the point "
-              "perturbation");
+              "perturbation.");
 DEFINE_int32(random_seed, 38401, "Random seed used to set the state "
              "of the pseudo random number generator used to generate "
              "the pertubations.");
@@ -111,134 +121,101 @@ namespace ceres {
 namespace examples {
 
 void SetLinearSolver(Solver::Options* options) {
-  if (FLAGS_solver_type == "sparse_schur") {
-    options->linear_solver_type = ceres::SPARSE_SCHUR;
-  } else if (FLAGS_solver_type == "dense_schur") {
-    options->linear_solver_type = ceres::DENSE_SCHUR;
-  } else if (FLAGS_solver_type == "iterative_schur") {
-    options->linear_solver_type = ceres::ITERATIVE_SCHUR;
-  } else if (FLAGS_solver_type == "sparse_cholesky") {
-    options->linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
-  } else if (FLAGS_solver_type == "cgnr") {
-    options->linear_solver_type = ceres::CGNR;
-  } else if (FLAGS_solver_type == "dense_qr") {
-    // DENSE_QR is included here for completeness, but actually using
-    // this option is a bad idea due to the amount of memory needed
-    // to store even the smallest of the bundle adjustment jacobian
-    // arrays
-    options->linear_solver_type = ceres::DENSE_QR;
-  } else if (FLAGS_solver_type == "dense_cholesky") {
-    // DENSE_NORMAL_CHOLESKY is included here for completeness, but
-    // actually using this option is a bad idea due to the amount of
-    // memory needed to store even the smallest of the bundle
-    // adjustment jacobian arrays
-    options->linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
-  } else {
-    LOG(FATAL) << "Unknown ceres solver type: "
-               << FLAGS_solver_type;
-  }
-
-  if (options->linear_solver_type == ceres::CGNR) {
-    options->linear_solver_min_num_iterations = 5;
-    if (FLAGS_preconditioner_type == "identity") {
-      options->preconditioner_type = ceres::IDENTITY;
-    } else if (FLAGS_preconditioner_type == "jacobi") {
-      options->preconditioner_type = ceres::JACOBI;
-    } else {
-      LOG(FATAL) << "For CGNR, only identity and jacobian "
-                 << "preconditioners are supported. Got: "
-                 << FLAGS_preconditioner_type;
-    }
-  }
-
-  if (options->linear_solver_type == ceres::ITERATIVE_SCHUR) {
-    options->linear_solver_min_num_iterations = 5;
-    if (FLAGS_preconditioner_type == "identity") {
-      options->preconditioner_type = ceres::IDENTITY;
-    } else if (FLAGS_preconditioner_type == "jacobi") {
-      options->preconditioner_type = ceres::JACOBI;
-    } else if (FLAGS_preconditioner_type == "schur_jacobi") {
-      options->preconditioner_type = ceres::SCHUR_JACOBI;
-    } else if (FLAGS_preconditioner_type == "cluster_jacobi") {
-      options->preconditioner_type = ceres::CLUSTER_JACOBI;
-    } else if (FLAGS_preconditioner_type == "cluster_tridiagonal") {
-      options->preconditioner_type = ceres::CLUSTER_TRIDIAGONAL;
-    } else {
-      LOG(FATAL) << "Unknown ceres preconditioner type: "
-                 << FLAGS_preconditioner_type;
-    }
-  }
-
-  if (FLAGS_sparse_linear_algebra_library == "suitesparse") {
-    options->sparse_linear_algebra_library = SUITE_SPARSE;
-  } else if (FLAGS_sparse_linear_algebra_library == "cxsparse") {
-    options->sparse_linear_algebra_library = CX_SPARSE;
-  } else {
-    LOG(FATAL) << "Unknown sparse linear algebra library type.";
-  }
-
+  CHECK(StringToLinearSolverType(FLAGS_linear_solver,
+                                 &options->linear_solver_type));
+  CHECK(StringToPreconditionerType(FLAGS_preconditioner,
+                                   &options->preconditioner_type));
+  CHECK(StringToSparseLinearAlgebraLibraryType(
+            FLAGS_sparse_linear_algebra_library,
+            &options->sparse_linear_algebra_library));
   options->num_linear_solver_threads = FLAGS_num_threads;
 }
 
 void SetOrdering(BALProblem* bal_problem, Solver::Options* options) {
+  const int num_points = bal_problem->num_points();
+  const int point_block_size = bal_problem->point_block_size();
+  double* points = bal_problem->mutable_points();
+
+  const int num_cameras = bal_problem->num_cameras();
+  const int camera_block_size = bal_problem->camera_block_size();
+  double* cameras = bal_problem->mutable_cameras();
+
   options->use_block_amd = FLAGS_use_block_amd;
 
-  // Only non-Schur solvers support the natural ordering for this
-  // problem.
-  if (FLAGS_ordering_type == "natural") {
-    if (options->linear_solver_type == SPARSE_SCHUR ||
-        options->linear_solver_type == DENSE_SCHUR ||
-        options->linear_solver_type == ITERATIVE_SCHUR) {
-      LOG(FATAL) << "Natural ordering with Schur type solver does not work.";
+  if (options->use_inner_iterations) {
+    if (FLAGS_blocks_for_inner_iterations == "cameras") {
+      LOG(INFO) << "Camera blocks for inner iterations";
+      options->inner_iteration_ordering = new ParameterBlockOrdering;
+      for (int i = 0; i < num_cameras; ++i) {
+        options->inner_iteration_ordering->AddElementToGroup(cameras + camera_block_size * i, 0);
+      }
+    } else if (FLAGS_blocks_for_inner_iterations == "points") {
+      LOG(INFO) << "Point blocks for inner iterations";
+      options->inner_iteration_ordering = new ParameterBlockOrdering;
+      for (int i = 0; i < num_points; ++i) {
+        options->inner_iteration_ordering->AddElementToGroup(points + point_block_size * i, 0);
+      }
+    } else if (FLAGS_blocks_for_inner_iterations == "cameras,points") {
+      LOG(INFO) << "Camera followed by point blocks for inner iterations";
+      options->inner_iteration_ordering = new ParameterBlockOrdering;
+      for (int i = 0; i < num_cameras; ++i) {
+        options->inner_iteration_ordering->AddElementToGroup(cameras + camera_block_size * i, 0);
+      }
+      for (int i = 0; i < num_points; ++i) {
+        options->inner_iteration_ordering->AddElementToGroup(points + point_block_size * i, 1);
+      }
+    } else if (FLAGS_blocks_for_inner_iterations == "points,cameras") {
+      LOG(INFO) << "Point followed by camera blocks for inner iterations";
+      options->inner_iteration_ordering = new ParameterBlockOrdering;
+      for (int i = 0; i < num_cameras; ++i) {
+        options->inner_iteration_ordering->AddElementToGroup(cameras + camera_block_size * i, 1);
+      }
+      for (int i = 0; i < num_points; ++i) {
+        options->inner_iteration_ordering->AddElementToGroup(points + point_block_size * i, 0);
+      }
+    } else if (FLAGS_blocks_for_inner_iterations == "automatic") {
+      LOG(INFO) << "Choosing automatic blocks for inner iterations";
+    } else {
+      LOG(FATAL) << "Unknown block type for inner iterations: "
+                 << FLAGS_blocks_for_inner_iterations;
     }
-    return;
   }
 
   // Bundle adjustment problems have a sparsity structure that makes
   // them amenable to more specialized and much more efficient
   // solution strategies. The SPARSE_SCHUR, DENSE_SCHUR and
   // ITERATIVE_SCHUR solvers make use of this specialized
-  // structure. Using them however requires that the ParameterBlocks
-  // are in a particular order (points before cameras) and
-  // Solver::Options::num_eliminate_blocks is set to the number of
-  // points.
+  // structure.
   //
   // This can either be done by specifying Options::ordering_type =
   // ceres::SCHUR, in which case Ceres will automatically determine
   // the right ParameterBlock ordering, or by manually specifying a
   // suitable ordering vector and defining
   // Options::num_eliminate_blocks.
-  if (FLAGS_ordering_type == "schur") {
-    options->ordering_type = ceres::SCHUR;
+  if (FLAGS_ordering == "automatic") {
     return;
   }
 
-  options->ordering_type = ceres::USER;
-  const int num_points = bal_problem->num_points();
-  const int point_block_size = bal_problem->point_block_size();
-  double* points = bal_problem->mutable_points();
-  const int num_cameras = bal_problem->num_cameras();
-  const int camera_block_size = bal_problem->camera_block_size();
-  double* cameras = bal_problem->mutable_cameras();
+  ceres::ParameterBlockOrdering* ordering =
+      new ceres::ParameterBlockOrdering;
 
   // The points come before the cameras.
   for (int i = 0; i < num_points; ++i) {
-    options->ordering.push_back(points + point_block_size * i);
+    ordering->AddElementToGroup(points + point_block_size * i, 0);
   }
 
   for (int i = 0; i < num_cameras; ++i) {
     // When using axis-angle, there is a single parameter block for
     // the entire camera.
-    options->ordering.push_back(cameras + camera_block_size * i);
-
+    ordering->AddElementToGroup(cameras + camera_block_size * i, 1);
     // If quaternions are used, there are two blocks, so add the
     // second block to the ordering.
     if (FLAGS_use_quaternions) {
-      options->ordering.push_back(cameras + camera_block_size * i + 4);
+      ordering->AddElementToGroup(cameras + camera_block_size * i + 4, 1);
     }
   }
 
-  options->num_eliminate_blocks = num_points;
+  options->linear_solver_ordering = ordering;
 }
 
 void SetMinimizerOptions(Solver::Options* options) {
@@ -248,22 +225,10 @@ void SetMinimizerOptions(Solver::Options* options) {
   options->eta = FLAGS_eta;
   options->max_solver_time_in_seconds = FLAGS_max_solver_time;
   options->use_nonmonotonic_steps = FLAGS_nonmonotonic_steps;
-  if (FLAGS_trust_region_strategy == "lm") {
-    options->trust_region_strategy_type = LEVENBERG_MARQUARDT;
-  } else if (FLAGS_trust_region_strategy == "dogleg") {
-    options->trust_region_strategy_type = DOGLEG;
-  } else {
-    LOG(FATAL) << "Unknown trust region strategy: "
-               << FLAGS_trust_region_strategy;
-  }
-  if (FLAGS_dogleg_type == "traditional") {
-    options->dogleg_type = TRADITIONAL_DOGLEG;
-  } else if (FLAGS_dogleg_type == "subspace") {
-    options->dogleg_type = SUBSPACE_DOGLEG;
-  } else {
-    LOG(FATAL) << "Unknown dogleg type: "
-               << FLAGS_dogleg_type;
-  }
+  CHECK(StringToTrustRegionStrategyType(FLAGS_trust_region_strategy,
+                                        &options->trust_region_strategy_type));
+  CHECK(StringToDoglegType(FLAGS_dogleg, &options->dogleg_type));
+  options->use_inner_iterations = FLAGS_inner_iterations;
 }
 
 void SetSolverOptionsFromFlags(BALProblem* bal_problem,
@@ -350,8 +315,8 @@ void SolveProblem(const char* filename) {
   Solver::Options options;
   SetSolverOptionsFromFlags(&bal_problem, &options);
   options.solver_log = FLAGS_solver_log;
-  options.gradient_tolerance *= 1e-3;
-
+  options.gradient_tolerance = 1e-16;
+  options.function_tolerance = 1e-16;
   Solver::Summary summary;
   Solve(options, &problem, &summary);
   std::cout << summary.FullReport() << "\n";

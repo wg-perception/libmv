@@ -4,14 +4,18 @@ Upstream version 1.3.0
 
 Local modifications:
 
-- Replaced IF (NOT EXISTS XXX) for GLOG and GLAGS with IF (NOT XXX), so we could
-  specify librareis from our own third_party to be used by Ceres. We don't need
-  full path to this libarries to build Ceres. Actually this should be quite safe
-  for upstream as well.
+- Replaced IF (NOT EXISTS XXX) for GLOG and GLAGS with IF (NOT XXX),
+  so we could specify librareis from our own third_party to be used by
+  Ceres. We don't need full path to this libarries to build Ceres.
+  Actually this should be quite safe for upstream as well.
 
-- Added EXIST check arounf uninstall tagret specification, we don't have such
-  specification in libmv, yet.
+- Added EXIST check around uninstall tagret specification, we don't have
+  such specification in libmv, yet.
 
-- Renamed Ceres's gtest library to gmock_gtest, so there's no conflict in library
-  names. Not sure it'll give issues in the future (didn't check on whether our
-  gtest and Ceres's gtest provides the same symbols), will figure this out later.
+- Renamed Ceres's gtest library to gmock_gtest, so there's no conflict in
+  library names. Not sure it'll give issues in the future (didn't check on
+  whether our gtest and Ceres's gtest provides the same symbols), will figure
+  this out later.
+
+- Added "ceres" prefix to ceres tests, otherwise there was a conflict bewteen
+  libmv's jet test and ceres's jet test.

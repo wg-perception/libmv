@@ -75,20 +75,12 @@ class SchurComplementSolverTest : public ::testing::Test {
 
     // Gold standard solutions using dense QR factorization.
     DenseSparseMatrix dense_A(triplet_A);
-    LinearSolver::Summary summary1 =
-        qr->Solve(&dense_A,
-                  b.get(),
-                  LinearSolver::PerSolveOptions(),
-                  sol.get());
+    qr->Solve(&dense_A, b.get(), LinearSolver::PerSolveOptions(), sol.get());
 
     // Gold standard solution with appended diagonal.
     LinearSolver::PerSolveOptions per_solve_options;
     per_solve_options.D = D.get();
-    LinearSolver::Summary summary2 =
-        qr->Solve(&dense_A,
-                  b.get(),
-                  per_solve_options,
-                  sol_d.get());
+    qr->Solve(&dense_A, b.get(), per_solve_options, sol_d.get());
   }
 
   void ComputeAndCompareSolutions(
@@ -98,7 +90,9 @@ class SchurComplementSolverTest : public ::testing::Test {
       ceres::SparseLinearAlgebraLibraryType sparse_linear_algebra_library) {
     SetUpFromProblemId(problem_id);
     LinearSolver::Options options;
-    options.num_eliminate_blocks = num_eliminate_blocks;
+    options.elimination_groups.push_back(num_eliminate_blocks);
+    options.elimination_groups.push_back(
+        A->block_structure()->cols.size() - num_eliminate_blocks);
     options.type = linear_solver_type;
     options.sparse_linear_algebra_library = sparse_linear_algebra_library;
 

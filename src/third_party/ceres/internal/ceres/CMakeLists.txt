@@ -44,6 +44,7 @@ SET(CERES_INTERNAL_SRC
     compressed_row_sparse_matrix.cc
     conditioned_cost_function.cc
     conjugate_gradients_solver.cc
+    coordinate_descent_minimizer.cc
     corrector.cc
     cxsparse.cc
     dense_normal_cholesky_solver.cc
@@ -57,14 +58,21 @@ SET(CERES_INTERNAL_SRC
     implicit_schur_complement.cc
     iterative_schur_complement_solver.cc
     levenberg_marquardt_strategy.cc
+    line_search.cc
+    line_search_direction.cc
+    line_search_minimizer.cc
     linear_least_squares_problems.cc
     linear_operator.cc
     linear_solver.cc
     local_parameterization.cc
     loss_function.cc
+    low_rank_inverse_hessian.cc
+    minimizer.cc
     normal_prior.cc
+    parameter_block_ordering.cc
     partitioned_matrix_view.cc
-    polynomial_solver.cc
+    polynomial.cc
+    preconditioner.cc
     problem.cc
     problem_impl.cc
     program.cc
@@ -73,7 +81,7 @@ SET(CERES_INTERNAL_SRC
     runtime_numeric_diff_cost_function.cc
     schur_complement_solver.cc
     schur_eliminator.cc
-    schur_ordering.cc
+    schur_jacobi_preconditioner.cc
     scratch_evaluate_preparer.cc
     solver.cc
     solver_impl.cc
@@ -82,13 +90,26 @@ SET(CERES_INTERNAL_SRC
     split.cc
     stringprintf.cc
     suitesparse.cc
+    triplet_sparse_matrix.cc
     trust_region_minimizer.cc
     trust_region_strategy.cc
-    triplet_sparse_matrix.cc
     types.cc
-    visibility_based_preconditioner.cc
     visibility.cc
+    visibility_based_preconditioner.cc
+    wall_time.cc
 )
+
+# Heuristic for determining LIB_SUFFIX. FHS recommends that 64-bit systems
+# install native libraries to lib64 rather than lib. Most distros seem to
+# follow this convention with a couple notable exceptions (Debian-based and
+# Arch-based distros) which we try to detect here.
+IF (NOT DEFINED LIB_SUFFIX AND
+    NOT CMAKE_CROSSCOMPILING AND
+    ${CMAKE_SIZEOF_VOID_P} EQUAL "8" AND
+    NOT EXISTS "/etc/debian_version" AND
+    NOT EXISTS "/etc/arch-release")
+  SET(LIB_SUFFIX "64")
+ENDIF()
 
 If (${PROTOBUF_FOUND})
   PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS matrix.proto)
@@ -116,8 +137,8 @@ IF (${BUILD_ANDROID})
 
   INSTALL(TARGETS miniglog
           RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib)
+          LIBRARY DESTINATION lib${LIB_SUFFIX}
+          ARCHIVE DESTINATION lib${LIB_SUFFIX})
 ENDIF (${BUILD_ANDROID})
 
 SET(CERES_LIBRARY_DEPENDENCIES ${GLOG_LIB})
@@ -173,8 +194,8 @@ TARGET_LINK_LIBRARIES(ceres ${CERES_LIBRARY_DEPENDENCIES})
 
 INSTALL(TARGETS ceres
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib${LIB_SUFFIX}
+        ARCHIVE DESTINATION lib${LIB_SUFFIX})
 
 # Don't build a DLL on MSVC. Supporting Ceres as a DLL on Windows involves
 # nontrivial changes that we haven't made yet.
@@ -187,19 +208,19 @@ IF (NOT MSVC AND NOT ${BUILD_ANDROID})
 
   INSTALL(TARGETS ceres_shared
           RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib)
+          LIBRARY DESTINATION lib${LIB_SUFFIX}
+          ARCHIVE DESTINATION lib${LIB_SUFFIX})
 
 ENDIF (NOT MSVC AND NOT ${BUILD_ANDROID})
 
 IF (${BUILD_TESTING} AND ${GFLAGS})
   ADD_LIBRARY(gmock_gtest gmock_gtest_all.cc gmock_main.cc)
-  ADD_LIBRARY(test_util test_util.cc)
+  ADD_LIBRARY(test_util test_util.cc numeric_diff_test_utils.cc)
   TARGET_LINK_LIBRARIES(gmock_gtest ${GFLAGS_LIB} ${GLOG_LIB})
 
   MACRO (CERES_TEST NAME)
-    ADD_EXECUTABLE(${NAME}_test ${NAME}_test.cc)
-    TARGET_LINK_LIBRARIES(${NAME}_test test_util ceres gmock_gtest)
+    ADD_EXECUTABLE(ceres_${NAME}_test ${NAME}_test.cc)
+    TARGET_LINK_LIBRARIES(ceres_${NAME}_test test_util ceres gmock_gtest)
     ADD_TEST(NAME ${NAME}_test
              COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NAME}_test
              --test_srcdir
@@ -216,8 +237,11 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
   CERES_TEST(compressed_row_sparse_matrix)
   CERES_TEST(conditioned_cost_function)
   CERES_TEST(corrector)
+  CERES_TEST(cost_function_to_functor)
   CERES_TEST(dense_sparse_matrix)
+  CERES_TEST(dynamic_autodiff_cost_function)
   CERES_TEST(evaluator)
+  CERES_TEST(gradient_checker)
   CERES_TEST(gradient_checking_cost_function)
   CERES_TEST(graph)
   CERES_TEST(graph_algorithms)
@@ -231,9 +255,12 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
   CERES_TEST(minimizer)
   CERES_TEST(normal_prior)
   CERES_TEST(numeric_diff_cost_function)
+  CERES_TEST(numeric_diff_functor)
+  CERES_TEST(ordered_groups)
   CERES_TEST(parameter_block)
+  CERES_TEST(parameter_block_ordering)
   CERES_TEST(partitioned_matrix_view)
-  CERES_TEST(polynomial_solver)
+  CERES_TEST(polynomial)
   CERES_TEST(problem)
   CERES_TEST(residual_block)
   CERES_TEST(residual_block_utils)
@@ -241,7 +268,6 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
   CERES_TEST(runtime_numeric_diff_cost_function)
   CERES_TEST(schur_complement_solver)
   CERES_TEST(schur_eliminator)
-  CERES_TEST(schur_ordering)
   CERES_TEST(solver_impl)
 
   IF (${SUITESPARSE_FOUND})

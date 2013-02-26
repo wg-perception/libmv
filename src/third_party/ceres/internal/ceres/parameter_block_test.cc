@@ -36,11 +36,9 @@
 namespace ceres {
 namespace internal {
 
-// TODO(keir): Figure out how to enable the death tests on Windows.
-
 TEST(ParameterBlock, SetLocalParameterization) {
   double x[3] = { 1.0, 2.0, 3.0 };
-  ParameterBlock parameter_block(x, 3);
+  ParameterBlock parameter_block(x, 3, -1);
 
   // The indices to set constant within the parameter block (used later).
   vector<int> indices;
@@ -48,13 +46,12 @@ TEST(ParameterBlock, SetLocalParameterization) {
 
   // Can't set the parameterization if the sizes don't match.
   SubsetParameterization subset_wrong_size(4, indices);
-#ifndef _WIN32
-  ASSERT_DEATH(parameter_block.SetParameterization(&subset_wrong_size),
-               "global");
+  EXPECT_DEATH_IF_SUPPORTED(
+      parameter_block.SetParameterization(&subset_wrong_size), "global");
 
   // Can't set parameterization to NULL from NULL.
-  ASSERT_DEATH(parameter_block.SetParameterization(NULL), "NULL");
-#endif  // _WIN32
+  EXPECT_DEATH_IF_SUPPORTED
+      (parameter_block.SetParameterization(NULL), "NULL");
 
   // Now set the parameterization.
   SubsetParameterization subset(3, indices);
@@ -63,15 +60,13 @@ TEST(ParameterBlock, SetLocalParameterization) {
   // Re-setting the parameterization to the same value is supported.
   parameter_block.SetParameterization(&subset);
 
-#ifndef _WIN32
   // Can't set parameterization to NULL from another parameterization.
-  ASSERT_DEATH(parameter_block.SetParameterization(NULL), "NULL");
+  EXPECT_DEATH_IF_SUPPORTED(parameter_block.SetParameterization(NULL), "NULL");
 
   // Can't set the parameterization more than once.
   SubsetParameterization subset_different(3, indices);
-  ASSERT_DEATH(parameter_block.SetParameterization(&subset_different),
-               "re-set");
-#endif  // _WIN32
+  EXPECT_DEATH_IF_SUPPORTED
+      (parameter_block.SetParameterization(&subset_different), "re-set");
 
   // Ensure the local parameterization jacobian result is correctly computed.
   ConstMatrixRef local_parameterization_jacobian(
@@ -116,7 +111,7 @@ struct TestParameterization : public LocalParameterization {
 TEST(ParameterBlock, SetStateUpdatesLocalParameterizationJacobian) {
   TestParameterization test_parameterization;
   double x[1] = { 1.0 };
-  ParameterBlock parameter_block(x, 1, &test_parameterization);
+  ParameterBlock parameter_block(x, 1, -1, &test_parameterization);
 
   EXPECT_EQ(2.0, *parameter_block.LocalParameterizationJacobian());
 
@@ -127,7 +122,7 @@ TEST(ParameterBlock, SetStateUpdatesLocalParameterizationJacobian) {
 
 TEST(ParameterBlock, PlusWithNoLocalParameterization) {
   double x[2] = { 1.0, 2.0 };
-  ParameterBlock parameter_block(x, 2);
+  ParameterBlock parameter_block(x, 2, -1);
 
   double delta[2] = { 0.2, 0.3 };
   double x_plus_delta[2];
@@ -169,7 +164,7 @@ class BadLocalParameterization : public LocalParameterization {
 TEST(ParameterBlock, DetectBadLocalParameterization) {
   double x = 1;
   BadLocalParameterization bad_parameterization;
-  ParameterBlock parameter_block(&x, 1, &bad_parameterization);
+  ParameterBlock parameter_block(&x, 1, -1, &bad_parameterization);
   double y = 2;
   EXPECT_FALSE(parameter_block.SetState(&y));
 }

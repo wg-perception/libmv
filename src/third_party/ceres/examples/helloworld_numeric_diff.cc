@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
+// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,40 +26,54 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: moll.markus@arcor.de (Markus Moll)
-
-#ifndef CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
-#define CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
-
-#include "ceres/internal/eigen.h"
-
-namespace ceres {
-namespace internal {
-
-// Use the companion matrix eigenvalues to determine the roots of the polynomial
+// Author: keir@google.com (Keir Mierle)
 //
-//   sum_{i=0}^N polynomial(i) x^{N-i}.
-//
-// This function returns true on success, false otherwise.
-// Failure indicates that the polynomial is invalid (of size 0) or
-// that the eigenvalues of the companion matrix could not be computed.
-// On failure, a more detailed message will be written to LOG(ERROR).
-// If real is not NULL, the real parts of the roots will be returned in it.
-// Likewise, if imaginary is not NULL, imaginary parts will be returned in it.
-bool FindPolynomialRoots(const Vector& polynomial,
-                         Vector* real,
-                         Vector* imaginary);
+// Minimize 0.5 (10 - x)^2 using jacobian matrix computed using
+// numeric differentiation.
 
-// Evaluate the polynomial at x using the Horner scheme.
-inline double EvaluatePolynomial(const Vector& polynomial, double x) {
-  double v = 0.0;
-  for (int i = 0; i < polynomial.size(); ++i) {
-    v = v * x + polynomial(i);
+#include "ceres/ceres.h"
+#include "glog/logging.h"
+
+using ceres::NumericDiffCostFunction;
+using ceres::CENTRAL;
+using ceres::CostFunction;
+using ceres::Problem;
+using ceres::Solver;
+using ceres::Solve;
+
+// A cost functor that implements the residual r = 10 - x.
+struct CostFunctor {
+  bool operator()(const double* const x, double* residual) const {
+    residual[0] = 10.0 - x[0];
+    return true;
   }
-  return v;
+};
+
+int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+
+  // The variable to solve for with its initial value. It will be
+  // mutated in place by the solver.
+  double x = 0.5;
+  const double initial_x = x;
+
+  // Build the problem.
+  Problem problem;
+
+  // Set up the only cost function (also known as residual). This uses
+  // numeric differentiation to obtain the derivative (jacobian).
+  CostFunction* cost_function =
+      new NumericDiffCostFunction<CostFunctor, CENTRAL, 1, 1> (new CostFunctor);
+  problem.AddResidualBlock(cost_function, NULL, &x);
+
+  // Run the solver!
+  Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  Solver::Summary summary;
+  Solve(options, &problem, &summary);
+
+  std::cout << summary.BriefReport() << "\n";
+  std::cout << "x : " << initial_x
+            << " -> " << x << "\n";
+  return 0;
 }
-
-}  // namespace internal
-}  // namespace ceres
-
-#endif  // CERES_INTERNAL_POLYNOMIAL_SOLVER_H_

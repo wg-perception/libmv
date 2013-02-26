@@ -37,7 +37,7 @@
 #  include <map>
 #  include <set>
 #else
-#  if defined(_MSC_VER) && _MSC_VER <= 1600
+#  if defined(_MSC_VER)
 #    include <unordered_map>
 #    include <unordered_set>
 #  else
@@ -77,7 +77,7 @@ struct HashMap : std::tr1::unordered_map<K, V> {};
 template<typename K>
 struct HashSet : std::tr1::unordered_set<K> {};
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW64__) && !defined(__MINGW32__)
 #define GG_LONGLONG(x) x##I64
 #define GG_ULONGLONG(x) x##UI64
 #else
