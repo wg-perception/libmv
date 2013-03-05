@@ -242,7 +242,8 @@ TEST(SolverImpl, RemoveFixedBlocksFixedCost) {
   ResidualBlock *expected_removed_block = program.residual_blocks()[0];
   scoped_array<double> scratch(
       new double[expected_removed_block->NumScratchDoublesForEvaluate()]);
-  expected_removed_block->Evaluate(&expected_fixed_cost,
+  expected_removed_block->Evaluate(true,
+                                   &expected_fixed_cost,
                                    NULL,
                                    NULL,
                                    scratch.get());
@@ -560,7 +561,7 @@ TEST(SolverImpl, CreateLinearSolverDenseSchurMultipleThreads) {
       SolverImpl::CreateLinearSolver(&options, &error));
   EXPECT_TRUE(solver != NULL);
   EXPECT_EQ(options.linear_solver_type, DENSE_SCHUR);
-  EXPECT_EQ(options.num_linear_solver_threads, 1);
+  EXPECT_EQ(options.num_linear_solver_threads, 2);
 }
 
 TEST(SolverImpl, CreateIterativeLinearSolverForDogleg) {

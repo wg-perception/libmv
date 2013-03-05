@@ -82,7 +82,8 @@ class PowellEvaluator2 : public Evaluator {
     return dense_jacobian;
   }
 
-  virtual bool Evaluate(const double* state,
+  virtual bool Evaluate(const Evaluator::EvaluateOptions& evaluate_options,
+                        const double* state,
                         double* cost,
                         double* residuals,
                         double* /* gradient */,
@@ -125,7 +126,7 @@ class PowellEvaluator2 : public Evaluator {
       dense_jacobian = down_cast<DenseSparseMatrix*>(jacobian);
       dense_jacobian->SetZero();
 
-      AlignedMatrixRef jacobian_matrix = dense_jacobian->mutable_matrix();
+      ColMajorMatrixRef jacobian_matrix = dense_jacobian->mutable_matrix();
       CHECK_EQ(jacobian_matrix.cols(), num_active_cols_);
 
       int column_index = 0;
@@ -369,7 +370,7 @@ TEST(TrustRegionMinimizer, JacobiScalingTest) {
   EXPECT_LE(summary.final_cost, 1e-10);
 
   for (int i = 0; i < N; i++) {
-    delete y[i];
+    delete []y[i];
   }
 }
 
