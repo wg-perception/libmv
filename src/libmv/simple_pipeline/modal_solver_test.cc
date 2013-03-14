@@ -59,9 +59,10 @@ TEST(ModalSolver, SyntheticCubeSceneMotion) {
   ModalSolver(tracks, &reconstruction);
   EuclideanBundleCommonIntrinsics(tracks,
                                   BUNDLE_NO_INTRINSICS,
+                                  BUNDLE_NO_TRANSLATION,
                                   &reconstruction,
                                   &intrinsics,
-                                  BUNDLE_NO_TRANSLATION);
+                                  NULL);
 
   Mat3 expected_rotation;
   expected_rotation << 0.98215101299251, 0.17798357184544,  0.06083778292258,

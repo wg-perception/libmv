@@ -239,6 +239,29 @@ void UnpackCamerasRotationAndTranslation(
   }
 }
 
+// Converts sparse CRSMatrix to Eigen matrix, so it could be used
+// all over in the pipeline
+//
+// TODO(sergey): currently uses dense Eigen matrices, best would
+//               be to use sparse Eigen matrices
+void CRSMatrixToEigenMatrix(const ceres::CRSMatrix &crs_matrix,
+                            Mat *eigen_matrix) {
+  eigen_matrix->resize(crs_matrix.num_rows, crs_matrix.num_cols);
+  eigen_matrix->setZero();
+
+  for (int row = 0; row < crs_matrix.num_rows; ++row) {
+    int start = crs_matrix.rows[row];
+    int end = crs_matrix.rows[row + 1] - 1;
+
+    for (int i = start; i <= end; i++) {
+      int col = crs_matrix.cols[i];
+      double value = crs_matrix.values[i];
+
+      (*eigen_matrix)(row, col) = value;
+    }
+  }
+}
+
 }  // namespace
 
 void EuclideanBundle(const Tracks &tracks,
@@ -246,15 +269,18 @@ void EuclideanBundle(const Tracks &tracks,
   CameraIntrinsics intrinsics;
   EuclideanBundleCommonIntrinsics(tracks,
                                   BUNDLE_NO_INTRINSICS,
+                                  BUNDLE_NO_CONSTRAINTS,
                                   reconstruction,
-                                  &intrinsics);
+                                  &intrinsics,
+                                  NULL);
 }
 
 void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
                                      int bundle_intrinsics,
+                                     int bundle_constraints,
                                      EuclideanReconstruction *reconstruction,
                                      CameraIntrinsics *intrinsics,
-                                     int bundle_constraints) {
+                                     BundleEvaluation *evaluation) {
   LG << "Original intrinsics: " << *intrinsics;
   vector<Marker> markers = tracks.AllMarkers();
 
@@ -290,6 +316,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
         new ceres::SubsetParameterization(6, constant_motion);
   }
 
+  // Add residual blocks to the problem
   int num_residuals = 0;
   bool have_locked_camera = false;
   for (int i = 0; i < markers.size(); ++i) {
@@ -393,6 +420,61 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     UnpackIntrinsicsFromArray(intrinsics, ceres_intrinsics);
 
   LG << "Final intrinsics: " << *intrinsics;
+
+  if (evaluation) {
+    int max_track = tracks.MaxTrack();
+    // Number of camera rotations equals to number of translation,
+    int num_cameras = cameras_R_t.size();
+    int num_points = 0;
+
+    for (int i = 0; i <= max_track; i++) {
+      EuclideanPoint *point = reconstruction->PointForTrack(i);
+      if (point)
+        num_points++;
+    }
+
+    LG << "Number of cameras " << num_cameras;
+    LG << "Number of points " << num_points;
+
+    // which is for sure equals to number of cameras
+    evaluation->num_cameras = num_cameras;
+    evaluation->num_points = num_points;
+
+    if (evaluation->evaluate_jacobian) {
+      // Evaluate jacobian matrix
+      ceres::CRSMatrix evaluated_jacobian;
+      ceres::Problem::EvaluateOptions eval_options;
+
+      // Cameras goes first in the ordering.
+      int max_image = tracks.MaxImage();
+      bool is_first_camera = true;
+      for (int i = 0; i <= max_image; i++) {
+        EuclideanCamera *camera = reconstruction->CameraForImage(i);
+        if (camera) {
+          // All cameras are variable now.
+          if (is_first_camera) {
+            problem.SetParameterBlockVariable(&cameras_R_t[i](0));
+            is_first_camera = false;
+          }
+
+          eval_options.parameter_blocks.push_back(&cameras_R_t[i](0));
+        }
+      }
+
+      // Points goes at the end of ordering,
+      for (int i = 0; i <= max_track; i++) {
+        EuclideanPoint *point = reconstruction->PointForTrack(i);
+        if (point)
+          eval_options.parameter_blocks.push_back(&point->X(0));
+      }
+
+      problem.Evaluate(eval_options,
+                       NULL, NULL, NULL,
+                       &evaluated_jacobian);
+
+      CRSMatrixToEigenMatrix(evaluated_jacobian, &evaluation->jacobian);
+    }
+  }
 }
 
 void ProjectiveBundle(const Tracks & /*tracks*/,
