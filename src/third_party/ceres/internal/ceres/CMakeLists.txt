@@ -220,15 +220,25 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
               numeric_diff_test_utils.cc
               test_util.cc)
 
-  TARGET_LINK_LIBRARIES(gmock_gtest ${GFLAGS_LIB} ${GLOG_LIB})
 
   MACRO (CERES_TEST NAME)
+    TARGET_LINK_LIBRARIES(gmock_gtest ${GFLAGS_LIB} ${GLOG_LIB})
+
+    get_filename_component(CERES_TESTS_DATA
+                           "${CMAKE_CURRENT_SOURCE_DIR}/../../data"
+                           ABSOLUTE)
+
     ADD_EXECUTABLE(ceres_${NAME}_test ${NAME}_test.cc)
     TARGET_LINK_LIBRARIES(ceres_${NAME}_test test_util ceres gmock_gtest)
+    SET_TARGET_PROPERTIES(ceres_${NAME}_test PROPERTIES
+       RUNTIME_OUTPUT_DIRECTORY         ${LIBMV_TESTS_OUTPUT_DIR}/ceres
+       RUNTIME_OUTPUT_DIRECTORY_RELEASE ${LIBMV_TESTS_OUTPUT_DIR}/ceres
+       RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${LIBMV_TESTS_OUTPUT_DIR}/ceres
+       OUTPUT_NAME ${NAME}_test)
     ADD_TEST(NAME ${NAME}_test
-             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NAME}_test
+             COMMAND ${LIBMV_TESTS_OUTPUT_DIR}/ceres/${NAME}_test
              --test_srcdir
-             ${CMAKE_SOURCE_DIR}/data)
+             ${CERES_TESTS_DATA})
   ENDMACRO (CERES_TEST)
 
   CERES_TEST(array_utils)

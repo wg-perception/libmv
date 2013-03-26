@@ -14,8 +14,10 @@ Local modifications:
 
 - Renamed Ceres's gtest library to gmock_gtest, so there's no conflict in
   library names. Not sure it'll give issues in the future (didn't check on
-  whether our gtest and Ceres's gtest provides the same symbols), will figure
-  this out later.
+  whether our gtest and Ceres's gtest provides the same symbols), will
+  figure this out later.
 
-- Added "ceres" prefix to ceres tests, otherwise there was a conflict bewteen
-  libmv's jet test and ceres's jet test.
+- Added "ceres" prefix to ceres tests targets, otherwise there was a
+  conflict bewteen libmv's jet test and ceres's jet test. Change their
+  path to ${LIBMV_TESTS_OUTPUT_DIR}/ceres. Alsotweaked path to data
+  files.
