@@ -177,7 +177,7 @@ void MainWindow::open(QStringList files) {
 #else
     if(av_open_input_file(&file, path.toUtf8(), 0, 0, 0)) return;
 #endif
-    av_find_stream_info(file);
+    avformat_find_stream_info(file, NULL);
     int video_stream = 0;
     AVCodecContext* video = 0;
     for (int i = 0; i < (int)file->nb_streams; i++ ) {
@@ -185,7 +185,7 @@ void MainWindow::open(QStringList files) {
           video_stream = i;
           video = file->streams[i]->codec;
           AVCodec* codec = avcodec_find_decoder(video->codec_id);
-          if( codec ) avcodec_open(video, codec);
+          if( codec ) avcodec_open2(video, codec, NULL);
           break;
         }
     }
@@ -227,7 +227,7 @@ void MainWindow::open(QStringList files) {
       if(!play) break;
     }
     avcodec_close(video);
-    av_close_input_file(file);
+    avformat_close_input(&file);
     hbox.removeWidget(&done);
     source.setIcon(QIcon(":/open"));
     source.setText("Reset");
