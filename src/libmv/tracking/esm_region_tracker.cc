@@ -179,8 +179,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
     }
   }
 
-  double tau = 1e-4, eps1, eps2, eps3;
-  eps1 = eps2 = eps3 = 1e-15;
+  double tau = 1e-4;
 
   double mu = tau * std::max(H_image1(0, 0), H_image1(1, 1));
   double nu = M_E;

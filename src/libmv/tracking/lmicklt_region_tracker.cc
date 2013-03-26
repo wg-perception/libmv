@@ -152,8 +152,7 @@ bool LmickltRegionTracker::Track(const FloatImage &image1,
     }
   }
 
-  double tau = 1e-3, eps1, eps2, eps3;
-  eps1 = eps2 = eps3 = 1e-15;
+  double tau = 1e-3;
 
   double mu = tau * std::max(H(0, 0), H(1, 1));
   double nu = 2.0;

@@ -92,6 +92,9 @@ struct ProjectivePipelineRoutines {
   static bool Resect(const ReconstructionOptions &options,
                      const vector<Marker> &markers,
                      ProjectiveReconstruction *reconstruction, bool final_pass) {
+    (void) options;  // Ignored.
+    (void) final_pass;  // Ignored.
+
     return ProjectiveResect(markers, reconstruction);
   }
 

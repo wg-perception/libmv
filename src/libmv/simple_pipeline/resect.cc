@@ -172,7 +172,7 @@ bool EuclideanResect(const ReconstructionOptions &options,
   Solver solver(resect_cost);
 
   Solver::SolverParameters params;
-  Solver::Results results = solver.minimize(params, &dRt);
+  /* Solver::Results results = */ solver.minimize(params, &dRt);
   LG << "LM found incremental rotation: " << dRt.head<3>().transpose();
   // TODO(keir): Check results to ensure clean termination.
 
@@ -264,7 +264,7 @@ bool ProjectiveResect(const vector<Marker> &markers,
   Solver solver(resect_cost);
 
   Solver::SolverParameters params;
-  Solver::Results results = solver.minimize(params, &vector_P);
+  /* Solver::Results results = */ solver.minimize(params, &vector_P);
   // TODO(keir): Check results to ensure clean termination.
 
   // Unpack the projection matrix.

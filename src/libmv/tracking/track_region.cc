@@ -60,6 +60,8 @@ struct JetOps {
   }
   static void ScaleDerivative(double scale_by, T *value) {
     // For double, there is no derivative to scale.
+    (void) scale_by; // Ignored.
+    (void) value;  // Ignored.
   }
 };
 
@@ -86,6 +88,8 @@ struct Chain {
                            const ArgumentType x[kNumArgs]) {
     // In the default case of scalars, there's nothing to do since there are no
     // derivatives to propagate. 
+    (void) dfdx;  // Ignored.
+    (void) x;  // Ignored.
     return f;
   }
 };
@@ -1039,6 +1043,9 @@ struct HomographyWarp {
 void PickSampling(const double *x1, const double *y1,
                   const double *x2, const double *y2,
                   int *num_samples_x, int *num_samples_y) {
+  (void) x2;  // Ignored.
+  (void) y2;  // Ignored.
+
   Vec2 a0(x1[0], y1[0]);
   Vec2 a1(x1[1], y1[1]);
   Vec2 a2(x1[2], y1[2]);
@@ -1074,6 +1081,10 @@ void PickSampling(const double *x1, const double *y1,
 bool SearchAreaTooBigForDescent(const FloatImage &image2,
                                 const double *x2, const double *y2) {
   // TODO(keir): Check the bounds and enable only when it makes sense.
+  (void) image2;  // Ignored.
+  (void) x2;  // Ignored.
+  (void) y2;  // Ignored.
+
   return true;
 }
 

@@ -46,7 +46,8 @@ TEST(Dogleg, SimpleCase) {
   F f;
   Dogleg<F>::SolverParameters params;
   Dogleg<F> lm(f);
-  Dogleg<F>::Results results = lm.minimize(params, &x);
+  /* TODO(sergey): Better error handling. */
+  /* Dogleg<F>::Results results = */ lm.minimize(params, &x);
   Vec3 expected_min_x; expected_min_x << 2, 5, 0;
 
   EXPECT_MATRIX_NEAR(expected_min_x, x, 1e-5);
