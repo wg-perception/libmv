@@ -13,8 +13,7 @@ SET(SIMPLE_PIPELINE_SRC
     tracks.cc
     uncalibrated_reconstructor.cc
     autocalibrate.cc
-    rigid_registration.cc
-    callbacks.cc)
+    rigid_registration.cc)
 
 # Define the header files so that they appear in IDEs.
 FILE(GLOB SIMPLE_PIPELINE_HDRS *.h)
