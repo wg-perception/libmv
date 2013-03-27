@@ -4,7 +4,8 @@ SET(MULTIVIEW_SRC projection.cc
                   triangulation.cc
                   euclidean_resection.cc
                   conditioning.cc
-                  homography.cc)
+                  homography.cc
+                  panography.cc)
 
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB MULTIVIEW_HDRS *.h)
