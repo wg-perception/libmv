@@ -194,8 +194,9 @@ void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height, doub
   double h = (double)height / (1 + overscan);
   double aspx = (double)w / image_width_;
   double aspy = (double)h / image_height_;
-
+#if defined(_OPENMP)
   #pragma omp parallel for schedule(dynamic) num_threads(threads_) if (threads_ > 1 && height > 100)
+#endif
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       double src_x = (x - 0.5 * overscan * w) / aspx, src_y = (y - 0.5 * overscan * h) / aspy;
@@ -223,7 +224,10 @@ void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height, doub
 template<typename T,int N>
 static void Warp(const Grid* grid, const T* src, T* dst,
                  int width, int height, int threads) {
+  (void) threads;  // Ignored if OpenMP is disabled
+#if defined(_OPENMP)
   #pragma omp parallel for schedule(dynamic) num_threads(threads) if (threads > 1 && height > 100)
+#endif
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       Offset offset = grid->offset[y*width+x];
