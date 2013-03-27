@@ -73,7 +73,11 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 #
 # For versions without ABI changes, bump the smallest number in CERES_VERSION,
 # but leave the CERES_ABI_VERSION unchanged.
-SET(CERES_VERSION 1.5.0)
+SET(CERES_VERSION_MAJOR 1)
+SET(CERES_VERSION_MINOR 5)
+SET(CERES_VERSION_PATCH 0)
+SET(CERES_VERSION
+    ${CERES_VERSION_MAJOR}.${CERES_VERSION_MINOR}.${CERES_VERSION_PATCH})
 SET(CERES_ABI_VERSION 1.5.0)
 
 ENABLE_TESTING()
@@ -122,6 +126,7 @@ SET(CXSPARSE_SEARCH_LIBS ${SEARCH_LIBS})
 SET(CXSPARSE_SEARCH_HEADERS ${SEARCH_HEADERS})
 LIST(APPEND CXSPARSE_SEARCH_HEADERS /usr/include/suitesparse) # Ubuntu
 
+IF ((NOT DEFINED SUITESPARSE) OR (DEFINED SUITESPARSE AND SUITESPARSE))
 # Check for SuiteSparse dependencies
 MESSAGE("-- Check for AMD")
 SET(AMD_FOUND TRUE)
@@ -300,6 +305,7 @@ SET(SUITESPARSE_FOUND
     (${SUITESPARSE_CONFIG_FOUND} OR ${UFCONFIG_FOUND}) AND
     ${BLAS_AND_LAPACK_FOUND})
 
+ENDIF ((NOT DEFINED SUITESPARSE) OR (DEFINED SUITESPARSE AND SUITESPARSE))
 # By default, if all of SuiteSparse's dependencies are found, Ceres is
 # built with SuiteSparse support. -DSUITESPARSE=ON/OFF can be used to
 # enable/disable SuiteSparse explicitly.
@@ -325,6 +331,7 @@ ENDIF (DEFINED SUITESPARSE)
 # By default, if all of CXSparse's dependencies are found, Ceres is
 # built with CXSparse support. -DCXSPARSE=ON/OFF can be used to
 # enable/disable CXSparse explicitly.
+IF ((NOT DEFINED CXSPARSE) OR (DEFINED CXSPARSE AND CXSPARSE))
 MESSAGE("-- Check for CXSparse")
 SET(CXSPARSE_FOUND ON)
 
@@ -343,6 +350,7 @@ ELSE (EXISTS ${CXSPARSE_INCLUDE})
   MESSAGE("-- Did not find CXSparse header")
   SET(CXSPARSE_FOUND FALSE)
 ENDIF (EXISTS ${CXSPARSE_INCLUDE})
+ENDIF ((NOT DEFINED CXSPARSE) OR (DEFINED CXSPARSE AND CXSPARSE))
 
 IF (DEFINED CXSPARSE)
   IF (${CXSPARSE})
@@ -415,12 +423,12 @@ ELSE (NOT ${BUILD_ANDROID})
 ENDIF (NOT ${BUILD_ANDROID})
 
 # Eigen
-MESSAGE("-- Check for Eigen 3.0")
+MESSAGE("-- Check for Eigen 3.x")
 FIND_PATH(EIGEN_INCLUDE NAMES Eigen/Core PATHS ${EIGEN_SEARCH_HEADERS})
 IF (NOT EXISTS ${EIGEN_INCLUDE})
   MESSAGE(FATAL_ERROR "Can't find Eigen. Try passing -DEIGEN_INCLUDE=...")
 ENDIF (NOT EXISTS ${EIGEN_INCLUDE})
-MESSAGE("-- Found Eigen 3.0: ${EIGEN_INCLUDE}")
+MESSAGE("-- Found Eigen 3.x: ${EIGEN_INCLUDE}")
 
 # Template specializations for the Schur complement based solvers. If
 # compile time, binary size or compiler performance is an issue, you
@@ -433,6 +441,19 @@ IF (NOT ${SCHUR_SPECIALIZATIONS})
   ADD_DEFINITIONS(-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
   MESSAGE("-- Disabling Schur specializations (faster compiles)")
 ENDIF (NOT ${SCHUR_SPECIALIZATIONS})
+
+# Line search minimizer is useful for large scale problems or when
+# sparse linear algebra libraries are not available. If compile time,
+# binary size or compiler performance is an issue, consider disabling
+# this.
+OPTION(LINE_SEARCH_MINIMIZER
+       "Enable the line search minimizer."
+       ON)
+
+IF (NOT ${LINE_SEARCH_MINIMIZER})
+ ADD_DEFINITIONS(-DCERES_NO_LINE_SEARCH_MINIMIZER)
+ MESSAGE("-- Disabling line search minimizer")
+ENDIF (NOT ${LINE_SEARCH_MINIMIZER})
 
 # Multithreading using OpenMP
 OPTION(OPENMP
@@ -629,13 +650,16 @@ ENDIF()
 ADD_SUBDIRECTORY(internal/ceres)
 
 OPTION(BUILD_DOCUMENTATION
-       "Build User's Guide (pdf)"
+       "Build User's Guide (html)"
        OFF)
 
 IF (${BUILD_DOCUMENTATION})
   MESSAGE("-- Documentation building is enabled")
 
-  # Generate the User's Guide (pdf).
+  # Make CMake aware of the cmake folder, in order to find 'FindSphinx.cmake'
+  SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+  # Generate the User's Guide (html).
   # The corresponding target is UserGuide, but is included in ALL.
   ADD_SUBDIRECTORY(docs)
 ENDIF (${BUILD_DOCUMENTATION})
@@ -649,12 +673,56 @@ ELSE (${BUILD_EXAMPLES})
   MESSAGE("-- Do not build any example.")
 ENDIF (${BUILD_EXAMPLES})
 
-# Add an uninstall target to remove all installed files.
 IF (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
+  # Add an uninstall target to remove all installed files.
   CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake.in"
                  "${CMAKE_BINARY_DIR}/cmake/uninstall.cmake"
                  IMMEDIATE @ONLY)
 
   ADD_CUSTOM_TARGET(uninstall
                     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/cmake/uninstall.cmake)
+
+  # Set up install directories. INCLUDE_INSTALL_DIR and LIB_INSTALL_DIR
+  # must not be absolute paths.
+  SET(LIB_INSTALL_DIR_SUFFIX "" CACHE
+      STRING "The directories where to install libraries to")
+  SET(LIB_INSTALL_DIR lib${LIB_INSTALL_DIR_SUFFIX} )
+  SET(CMAKECONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/Ceres)
+  SET(INCLUDE_INSTALL_DIR include)
+
+  # This "exports" all targets which have been put into the export set
+  # "CeresExport". This means that CMake generates a file with the given
+  # filename, which can later on be loaded by projects using this package.
+  # This file contains ADD_LIBRARY(bar IMPORTED) statements for each target
+  # in the export set, so when loaded later on CMake will create "imported"
+  # library targets from these, which can be used in many ways in the same way
+  # as a normal library target created via a normal ADD_LIBRARY().
+  INSTALL(EXPORT CeresExport
+          DESTINATION ${CMAKECONFIG_INSTALL_DIR} FILE CeresTargets.cmake)
+
+  # Figure out the relative path from the installed Config.cmake file to the
+  # install prefix (which may be at runtime different from the chosen
+  # CMAKE_INSTALL_PREFIX if under Windows the package was installed anywhere)
+  # This relative path will be configured into the CeresConfig.cmake.
+  FILE(RELATIVE_PATH relInstallDir
+       ${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR} ${CMAKE_INSTALL_PREFIX})
+
+  # Create a CeresConfig.cmake file. <name>Config.cmake files are searched by
+  # FIND_PACKAGE() automatically. We configure that file so that we can put any
+  # information we want in it, e.g. version numbers, include directories, etc.
+  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/cmake/CeresConfig.cmake.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/CeresConfig.cmake" @ONLY)
+
+  # Additionally, when CMake has found a CeresConfig.cmake, it can check for a
+  # CeresConfigVersion.cmake in the same directory when figuring out the version
+  # of the package when a version has been specified in the FIND_PACKAGE() call,
+  # e.g. FIND_PACKAGE(Ceres [1.4.2] REQUIRED). The version argument is optional.
+  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/cmake/CeresConfigVersion.cmake.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/CeresConfigVersion.cmake" @ONLY)
+
+  # Install these two files into the same directory as the generated exports-file.
+  INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/CeresConfig.cmake"
+                "${CMAKE_CURRENT_BINARY_DIR}/CeresConfigVersion.cmake"
+                "${CMAKE_SOURCE_DIR}/cmake/depend.cmake"
+          DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 ENDIF(EXISTS "${CMAKE_SOURCE_DIR}/cmake")

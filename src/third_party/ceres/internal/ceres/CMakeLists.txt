@@ -103,7 +103,8 @@ SET(CERES_INTERNAL_SRC
 # install native libraries to lib64 rather than lib. Most distros seem to
 # follow this convention with a couple notable exceptions (Debian-based and
 # Arch-based distros) which we try to detect here.
-IF (NOT DEFINED LIB_SUFFIX AND
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND
+    NOT DEFINED LIB_SUFFIX AND
     NOT CMAKE_CROSSCOMPILING AND
     ${CMAKE_SIZEOF_VOID_P} EQUAL "8" AND
     NOT EXISTS "/etc/debian_version" AND
@@ -136,6 +137,7 @@ IF (${BUILD_ANDROID})
   TARGET_LINK_LIBRARIES(miniglog log)
 
   INSTALL(TARGETS miniglog
+          EXPORT  CeresExport
           RUNTIME DESTINATION bin
           LIBRARY DESTINATION lib${LIB_SUFFIX}
           ARCHIVE DESTINATION lib${LIB_SUFFIX})
@@ -193,6 +195,7 @@ ADD_LIBRARY(ceres STATIC ${CERES_LIBRARY_SOURCE})
 TARGET_LINK_LIBRARIES(ceres ${CERES_LIBRARY_DEPENDENCIES})
 
 INSTALL(TARGETS ceres
+        EXPORT  CeresExport
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib${LIB_SUFFIX}
         ARCHIVE DESTINATION lib${LIB_SUFFIX})
@@ -207,6 +210,7 @@ IF (NOT MSVC AND NOT ${BUILD_ANDROID})
                         SOVERSION ${CERES_ABI_VERSION})
 
   INSTALL(TARGETS ceres_shared
+          EXPORT  CeresExport
           RUNTIME DESTINATION bin
           LIBRARY DESTINATION lib${LIB_SUFFIX}
           ARCHIVE DESTINATION lib${LIB_SUFFIX})
@@ -220,10 +224,9 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
               numeric_diff_test_utils.cc
               test_util.cc)
 
+  TARGET_LINK_LIBRARIES(gmock_gtest ${GFLAGS_LIB} ${GLOG_LIB})
 
   MACRO (CERES_TEST NAME)
-    TARGET_LINK_LIBRARIES(gmock_gtest ${GFLAGS_LIB} ${GLOG_LIB})
-
     get_filename_component(CERES_TESTS_DATA
                            "${CMAKE_CURRENT_SOURCE_DIR}/../../data"
                            ABSOLUTE)
