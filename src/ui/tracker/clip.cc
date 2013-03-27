@@ -140,7 +140,7 @@ void Clip::DecodeVideo(QString path) {
 #else
   if(av_open_input_file(&file, path.toUtf8(), 0, 0, 0)) return;
 #endif
-  av_find_stream_info(file);
+  avformat_find_stream_info(file, NULL);
   int video_stream = 0;
   AVCodecContext* video = 0;
   for (int i = 0; i < (int)file->nb_streams; i++ ) {
@@ -148,7 +148,7 @@ void Clip::DecodeVideo(QString path) {
       video_stream = i;
       video = file->streams[i]->codec;
       AVCodec* codec = avcodec_find_decoder(video->codec_id);
-      if( codec ) avcodec_open(video, codec);
+      if( codec ) avcodec_open2(video, codec, NULL);
       break;
     }
   }
@@ -182,7 +182,7 @@ void Clip::DecodeVideo(QString path) {
     }
   }
   avcodec_close(video);
-  av_close_input_file(file);
+  avformat_close_input(&file);
 #endif
 }
 
