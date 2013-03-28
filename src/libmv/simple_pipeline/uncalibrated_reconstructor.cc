@@ -55,8 +55,8 @@ void TransformTracks(Mat3 transform, const Tracks &tracks,
   for (int i = 0; i < markers.size(); ++i) {
     Vec3 a = Vec3(markers[i].x, markers[i].y, 1.0);
     Vec3 b = transform * a;
-    markers[i].x = b(0) / b(2);
-    markers[i].y = b(1) / b(2);
+    markers[i].x = a(0) / a(2);
+    markers[i].y = a(1) / a(2);
   }
   *normalized_tracks = Tracks(markers);
 }
