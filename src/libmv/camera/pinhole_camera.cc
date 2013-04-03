@@ -109,7 +109,7 @@ PinholeCameraDistortion::PinholeCameraDistortion(
     const Mat3 &R,
     const Vec3 &t,
     LensDistortion *lens_distortion) :
-    PinholeCamera(K,R,t) {
+    PinholeCamera(K, R, t) {
   lens_distortion_ = lens_distortion;
 }
 
@@ -117,16 +117,15 @@ PinholeCameraDistortion::PinholeCameraDistortion(
     const Mat3 &R,
     const Vec3 &t,
     LensDistortion *lens_distortion) :
-    PinholeCamera(R,t) {
+    PinholeCamera(R, t) {
   lens_distortion_ = lens_distortion;
 }
 
 // The function copy the camera parameters from the camera provided
 PinholeCameraDistortion::PinholeCameraDistortion(
-    const PinholeCameraDistortion &camera) : PinholeCamera(camera){
+    const PinholeCameraDistortion &camera) : PinholeCamera(camera) {
   (*this) = camera;
-  this->lens_distortion_ = camera.lens_distortion_ ;
-
+  this->lens_distortion_ = camera.lens_distortion_;
 }
 
 // The function computes the projection of a 3D point

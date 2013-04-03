@@ -35,13 +35,13 @@ TEST(IntegralImage, SimpleCase) {
   IntegralImage(image, &integral_image);
   LOG(INFO) << integral_image;
   Mat resid;
-  resid = integral_image.block<5,10>(0, 0);
+  resid = integral_image.block<5, 10>(0, 0);
   EXPECT_MATRIX_NEAR_ZERO(resid, 1e-15);
-  resid = integral_image.block<5,10>(5, 0);
+  resid = integral_image.block<5, 10>(5, 0);
   EXPECT_MATRIX_NEAR_ZERO(resid, 1e-15);
-  resid = integral_image.block<5,10>(0, 10);
+  resid = integral_image.block<5, 10>(0, 10);
   EXPECT_MATRIX_NEAR_ZERO(resid, 1e-15);
-  resid = integral_image.block<5,10>(5, 10).array() - 1.0;
+  resid = integral_image.block<5, 10>(5, 10).array() - 1.0;
   EXPECT_MATRIX_NEAR_ZERO(resid, 1e-15);
 }
 
@@ -49,7 +49,7 @@ TEST(BoxIntegral, ThreeByThree) {
   Mat image(9, 9);
   Mat integral_image;
   image.setZero();
-  image.block<5,5>(2, 2).setConstant(1.0);
+  image.block<5, 5>(2, 2).setConstant(1.0);
   IntegralImage(image, &integral_image);
   LOG(INFO) << "\n" << image;
   LOG(INFO) << "\n" << integral_image;

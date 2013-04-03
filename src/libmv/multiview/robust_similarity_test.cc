@@ -35,7 +35,7 @@ TEST(RobustSimilarity, Similarity2DFromCorrespondences2PointRobust) {
   Mat3 H_gt[num_h];
 
   H_gt[0] = Mat3::Identity();
-  
+
   double angle = 0.3;
   double scale = 2.1;
   H_gt[1] << scale*cos(angle), -scale*sin(angle), -4,
@@ -43,10 +43,9 @@ TEST(RobustSimilarity, Similarity2DFromCorrespondences2PointRobust) {
              0,  0,  1;
   angle = 2.3;
   scale = 0.2;
-  H_gt[2] << scale*cos(angle), -scale*sin(angle), 3,
-             scale*sin(angle),  scale*cos(angle),-6,
+  H_gt[2] << scale*cos(angle), -scale*sin(angle),  3,
+             scale*sin(angle),  scale*cos(angle), -6,
              0,  0,  1;
-  
 
   // Define a set of points.
   int n = 20;
@@ -64,14 +63,14 @@ TEST(RobustSimilarity, Similarity2DFromCorrespondences2PointRobust) {
 
     // Introduce outliers.
     for (int j = 0; j < 8; j++) {
-      x(0,j) = x(0,j) + j * 5.5;
-      x(1,j) = x(1,j) + 7.8;
+      x(0, j) = x(0, j) + j * 5.5;
+      x(1, j) = x(1, j) + 7.8;
     }
 
     // Estimate similarity from points.
     vector<int> inliers;
     Similarity2DFromCorrespondences2PointRobust(x, y, 0.1, &H[i], &inliers);
-    H[i] /= H[i](2,2);
+    H[i] /= H[i](2, 2);
   }
 
   EXPECT_MATRIX_NEAR(H_gt[0], H[0], 1e-8);

@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,15 +43,15 @@ struct TestData {
 
 TestData SomeTestData() {
   TestData d;
-  d.X = Mat3X::Random(3,5);
+  d.X = Mat3X::Random(3, 5);
   d.X.row(0).array() -= .5;
   d.X.row(1).array() -= .5;
   d.X.row(2).array() += 3;
   d.R = RotationAroundZ(0.3) * RotationAroundX(0.1) * RotationAroundY(0.2);
   d.t = Vec3::Random();
-  
+
   EssentialFromRt(Mat3::Identity(), Vec3::Zero(), d.R, d.t, &d.E);
-  
+
   P_From_KRt(Mat3::Identity(), Mat3::Identity(), Vec3::Zero(), &d.P1);
   P_From_KRt(Mat3::Identity(), d.R, d.t, &d.P2);
   Project(d.P1, d.X, &d.x1);
@@ -73,8 +73,8 @@ TEST(FivePointsNullspaceBasis, SatisfyEpipolarConstraint) {
       }
     }
     for (int i = 0; i < d.x1.cols(); ++i) {
-      Vec3 x1(d.x1(0,i), d.x1(1,i), 1);
-      Vec3 x2(d.x2(0,i), d.x2(1,i), 1);
+      Vec3 x1(d.x1(0, i), d.x1(1, i), 1);
+      Vec3 x2(d.x2(0, i), d.x2(1, i), 1);
       EXPECT_NEAR(0, x2.dot(E * x1), 1e-6);
     }
   }
@@ -161,7 +161,7 @@ TEST(FivePointsGaussJordan, RandomMatrix) {
   Mat M = Mat::Random(10, 20);
   FivePointsGaussJordan(&M);
   Mat I = Mat::Identity(10, 10);
-  Mat M1 = M.block<10,10>(0,0);
+  Mat M1 = M.block<10, 10>(0, 0);
   EXPECT_MATRIX_NEAR(I, M1, 1e-8);
 }
 
@@ -207,14 +207,16 @@ TEST(FivePointsRelativePose, Random) {
 TEST(FivePointsRelativePose, test_data_sets) {
   // Setup a circular camera rig and assert that 5PT relative pose works.
   const int num_views = 5;
+
+  // Suppose a camera with Unit matrix as K
   NViewDataSet d = NRealisticCamerasFull(num_views, 5,
-    nViewDatasetConfigator(1,1,0,0,5,0)); // Suppose a camera with Unit matrix as K
+    nViewDatasetConfigator(1, 1, 0, 0, 5, 0));
 
   for (int i = 0; i < num_views; ++i) {
     vector<Mat3> Es, Rs;  // Essential, Rotation matrix.
     vector<Vec3> ts;      // Translation matrix.
     FivePointsRelativePose(d.x[0], d.x[1], &Es);
-    
+
     // Recover rotation and translation from E.
     Rs.resize(Es.size());
     ts.resize(Es.size());
@@ -246,7 +248,7 @@ TEST(FivePointsRelativePose, test_data_sets) {
       EXPECT_NEAR(0, E.determinant(), 1e-8);
       Mat3 O = 2 * E * E.transpose() * E - (E * E.transpose()).trace() * E;
       EXPECT_MATRIX_NEAR(Mat3::Zero(), O, 1e-8);
-      
+
       // Check that we find the correct relative orientation.
       if (FrobeniusDistance(R, Rs[j]) < 1e-3
         && (t / t.norm() - ts[j] / ts[j].norm()).norm() < 1e-3 ) {
@@ -257,6 +259,6 @@ TEST(FivePointsRelativePose, test_data_sets) {
     CHECK(bsolution_found);
   }
 }
- 
-} // namespace
-} // namespace libmv
+
+}  // namespace
+}  // namespace libmv

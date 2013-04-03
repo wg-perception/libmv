@@ -63,7 +63,7 @@ TEST(FeatureSet, Insert) {
 
 TEST(FeatureSet, All) {
   FeatureSet features;
-  
+
   // Insert some features of different types.
   features.Insert<MyPoint>(MyPoint(1));
   features.New<SiblingTestFeature>();
@@ -86,7 +86,7 @@ TEST(FeatureSet, All) {
 
 TEST(FeatureSet, Delete) {
   FeatureSet features;
-  
+
   // Insert some features of different types.
   FeatureSet::Iterator<MyPoint> it = features.Insert<MyPoint>(MyPoint(1));
   features.New<SiblingTestFeature>();
@@ -95,7 +95,7 @@ TEST(FeatureSet, Delete) {
   features.Insert<MyPoint>(MyPoint(3));
 
   features.Delete(&it);
-  
+
   // Scan my points.
   std::vector<int> tags;
   for (FeatureSet::Iterator<MyPoint> it = features.All<MyPoint>();
@@ -110,7 +110,7 @@ TEST(FeatureSet, Delete) {
 
 TEST(FeatureSet, Find) {
   FeatureSet features;
-  
+
   // Insert some features of different types.
   FeatureSet::Iterator<MyPoint> it = features.Insert<MyPoint>(MyPoint(1));
   features.New<SiblingTestFeature>();

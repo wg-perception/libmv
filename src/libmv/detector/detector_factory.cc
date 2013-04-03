@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/detector/detector.h"
 #include "libmv/detector/detector_factory.h"
+#include "libmv/detector/detector.h"
 #include "libmv/detector/fast_detector.h"
 #include "libmv/detector/star_detector.h"
 #include "libmv/detector/surf_detector.h"
@@ -29,9 +29,7 @@ namespace libmv {
 namespace detector {
 
 Detector *detectorFactory(eDetector edetector)  {
-
-  switch (edetector)
-  {
+  switch (edetector) {
   case FAST_DETECTOR:
     return detector::CreateFastDetector();
     break;

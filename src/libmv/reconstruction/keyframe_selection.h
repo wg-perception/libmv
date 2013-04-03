@@ -33,7 +33,7 @@ namespace libmv {
 // current image and the previous keyframe. If the number of shared tracks drops
 // below min_matches_pc *100% of the keyframe total number of tracks or is less
 // than min_num_matches, then the previous image is selected as a keyframe.
-void SelectKeyframesBasedOnMatchesNumber(const Matches &matches, 
+void SelectKeyframesBasedOnMatchesNumber(const Matches &matches,
                                          vector<Matches::ImageID> *keyframes,
                                          float min_matches_pc = 0.15,
                                          int min_num_matches = 50);

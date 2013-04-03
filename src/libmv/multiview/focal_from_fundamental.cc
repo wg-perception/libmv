@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,15 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //
-// 
+//
 // http://axiom.anu.edu.au/~hartley/Papers/focal-lengths/focal.pdf
+
+#include "libmv/multiview/focal_from_fundamental.h"
 
 #include "libmv/base/vector.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/nviewtriangulation.h"
-#include "libmv/multiview/focal_from_fundamental.h"
 
 namespace libmv {
 
@@ -56,7 +57,7 @@ void RotationToEliminateY(const Vec3 &x, Mat3 *T) {
 
 // Rotate each image to cause the y component of both epipoles to become zero.
 // When this happens, the fundamental matrix takes on a special form.
-// 
+//
 // In the original image, the fundamental property is x2'Fx1 = 0 for all x1 and
 // x2 that are corresponding scene points. Transforming the image we have
 //
@@ -120,10 +121,10 @@ void FocalFromFundamental(const Mat3 &F,
 
   Mat3 A = T2 * F_rotated * T1;
 
-  double a = A(0,0);
-  double b = A(0,1);
-  double c = A(1,0);
-  double d = A(1,1);
+  double a = A(0, 0);
+  double b = A(0, 1);
+  double c = A(1, 0);
+  double d = A(1, 1);
 
   // TODO(pau) Should check we are not dividing by 0.
   double f1_square = - (a * c * Square(e1(0)))
@@ -140,7 +141,7 @@ void FocalFromFundamental(const Mat3 &F,
 
 
 
-//TODO(pau) Move this libmv/numeric and add tests.
+// TODO(pau) Move this libmv/numeric and add tests.
 template<class Tf, typename T>
 T GoldenRatioSearch(const Tf &f, T a, T b, T tol, int max_it) {
   // Golden ration search.
@@ -169,32 +170,32 @@ class FocalReprojectionError {
   FocalReprojectionError(const Mat3 &F,
                          const Vec2 &principal_point,
                          const Mat2X &x1,
-                         const Mat2X &x2) 
+                         const Mat2X &x2)
       : F_(F), principal_point_(principal_point), x1_(x1), x2_(x2) {
   }
-  
+
   double operator()(double focal) const {
     Mat3 K;
     K << focal,      0, principal_point_(0),
               0, focal, principal_point_(1),
               0,     0,                  1;
-          
+
     Mat3 E;
     EssentialFromFundamental(F_, K, K, &E);
-    
+
     Mat3 R;
     Vec3 t;
     MotionFromEssentialAndCorrespondence(E, K, x1_.col(0), K, x2_.col(0),
                                          &R, &t);
-    
+
     vector<Mat34> Ps(2);
     P_From_KRt(K, Mat3::Identity(), Vec3::Zero(), &Ps[0]);
     P_From_KRt(K, R, t, &Ps[1]);
-    
+
     double error = 0;
     for (int j = 0; j < x1_.cols(); ++j) {
       Vec4 X;
-      Mat2X x(2,2);
+      Mat2X x(2, 2);
       x.col(0) = x1_.col(j);
       x.col(1) = x2_.col(j);
       NViewTriangulate(x, Ps, &X);
@@ -214,7 +215,7 @@ class FocalReprojectionError {
     }
     return error;
   }
-  
+
  private:
   const Mat3 &F_;
   const Vec2 &principal_point_;
@@ -223,7 +224,7 @@ class FocalReprojectionError {
 };
 
 
-//TODO(pau) Move this to libmv/numeric and add tests.
+// TODO(pau) Move this to libmv/numeric and add tests.
 static double Lerp(double x, double x0, double y0, double x1, double y1) {
   return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
 }
@@ -237,22 +238,22 @@ void FocalFromFundamentalExhaustive(const Mat3 &F,
                                     int n_samples,
                                     double *focal) {
   FocalReprojectionError error(F, principal_point, x1, x2);
-  
+
   // Exhaustive search.
   int best_focal = 0;
   double best_error = std::numeric_limits<double>::max();
-  
+
   for (int i = 0; i < n_samples; ++i) {
     double f = Lerp(i, 0, min_focal, n_samples - 1, max_focal);
     double e = error(f);
-    
+
     if (e < best_error) {
       best_error = e;
       best_focal = i;
     }
     VLOG(3) << "focal: " << f << "  error: " << e << "\n";
-  }  
-  
+  }
+
   // Golden ration search.
   double a = Lerp(best_focal - 1, 0, min_focal, n_samples - 1, max_focal);
   double b = Lerp(best_focal + 1, 0, min_focal, n_samples - 1, max_focal);

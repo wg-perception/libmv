@@ -54,7 +54,7 @@ Mat3 Hessian3D(const TArray &f, int x, int y, int z) {
   dyy = ( f( x,     y + 1, z     ) +
           f( x,     y - 1, z     ) -
       2 * f( x,     y,     z     ) );
-  dzz = ( f( x,     y,     z + 1 ) + 
+  dzz = ( f( x,     y,     z + 1 ) +
           f( x,     y,     z - 1 ) -
       2 * f( x,     y,     z     ) );
   dxy = ( f( x + 1, y + 1, z     ) -

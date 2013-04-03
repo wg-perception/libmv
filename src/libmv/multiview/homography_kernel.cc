@@ -30,7 +30,7 @@ namespace kernel {
 
 void FourPointSolver::Solve(const Mat &x, const Mat &y, vector<Mat3> *Hs) {
   Mat3 M;
-  if (Homography2DFromCorrespondencesLinear(x,y, &M)) {
+  if (Homography2DFromCorrespondencesLinear(x, y, &M)) {
     Hs->push_back(M);
   }
 }

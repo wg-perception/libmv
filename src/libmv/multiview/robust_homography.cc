@@ -18,8 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/numeric/numeric.h"
 #include "libmv/multiview/robust_homography.h"
+
+#include "libmv/numeric/numeric.h"
 #include "libmv/multiview/homography_kernel.h"
 #include "libmv/multiview/panography_kernel.h"
 #include "libmv/multiview/robust_estimation.h"
@@ -38,12 +39,12 @@ double Homography2DFromCorrespondences4PointRobust(const Mat &x1,
   double best_score = HUGE_VAL;
   typedef homography::homography2D::kernel::Kernel KernelH;
   KernelH kernel(x1, x2);
-  *H = Estimate(kernel, MLEScorer<KernelH>(threshold), inliers, 
+  *H = Estimate(kernel, MLEScorer<KernelH>(threshold), inliers,
                 &best_score, outliers_probability);
   if (best_score == HUGE_VAL)
     return HUGE_VAL;
   else
-    return std::sqrt(best_score / 2.0);  
+    return std::sqrt(best_score / 2.0);
 }
 
 }  // namespace libmv

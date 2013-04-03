@@ -36,7 +36,7 @@ void ComputeBoundingBox(const Vec2u &image_size,
   q_bounds << 0,             0, image_size(0), image_size(0),
               0, image_size(1), image_size(1),             0,
               1,             1,             1,             1;
-  
+
   (*bbox) << image_size(0), 0, image_size(1), 0;
   Vec3 q;
   for (int i = 0; i < 4; ++i) {
@@ -68,11 +68,11 @@ void ResizeImage(const Vec2u &image_size,
   Vec4i *bbox_ptr = bbox;
   if (bbox_ptr == NULL)
     bbox_ptr = &bbox_loc;
-  
+
   ComputeBoundingBox(image_size, H, bbox_ptr);
   assert((*bbox_ptr)(1) < (*bbox_ptr)(0));
   assert((*bbox_ptr)(3) < (*bbox_ptr)(2));
-  
+
   const unsigned int w = (*bbox_ptr)(1) - (*bbox_ptr)(0);
   const unsigned int h = (*bbox_ptr)(3) - (*bbox_ptr)(2);
   image_out->Resize(h, w, image_out->Depth());
@@ -147,8 +147,8 @@ void WarpImage(const FloatImage &image_in,
     ComputeBoundingBox(image_size, H, &bbox);
   }
   const Mat3 Hinv = Hbis.inverse();
-  //-- (Backward mapping. For the destination pixel search which pixel
-  //    contribute ?).
+  // -- (Backward mapping. For the destination pixel search which pixel
+  //     contribute ?).
   Vec3 qi, qm;
   for (int j = bbox(2); j <= bbox(3); ++j)
     for (int i = bbox(0); i <= bbox(1); ++i)
@@ -159,7 +159,7 @@ void WarpImage(const FloatImage &image_in,
         const int xImage = static_cast<int>(qi(0));
         const int yImage = static_cast<int>(qi(1));
         if (image_in.Contains(yImage, xImage)) {
-          for (int d = 0; d < image_out->Depth(); ++d) 
+          for (int d = 0; d < image_out->Depth(); ++d)
             (*image_out)(j, i, d) = SampleLinear(image_in, qi(1), qi(0), d);
         }
       }
@@ -179,20 +179,20 @@ void WarpImageBlend(const FloatImage &image_in,
   Vec2u image_size;
   image_size << image_in.Width(), image_in.Height();
   ComputeBoundingBox(image_size, H, &bbox);
-  
-  //-- Fill destination image
-  //-- (Backward mapping. For the destination pixel search which pixel
-  //    contribute ?).
+
+  // -- Fill destination image
+  // -- (Backward mapping. For the destination pixel search which pixel
+  //     contribute ?).
   Vec3 qi, qm;
-  bool bOutContrib=false;
+  bool bOutContrib = false;
   for (int j = bbox(2); j <= bbox(3); ++j)
     for (int i = bbox(0); i <= bbox(1); ++i)
       if (image_out->Contains(j, i)) {
-        //- Algo :
-        // For the destination pixel (i,j) search which pixel from image_in
-        //  and image_out contribute.
-        // Perform a mean blending in the overlap zone, transfert original
-        //  value in the other part.
+        // - Algo :
+        //  For the destination pixel (i,j) search which pixel from image_in
+        //   and image_out contribute.
+        //  Perform a mean blending in the overlap zone, transfert original
+        //   value in the other part.
         qm << i, j, 1.0;
         qi = Hinv * qm;
         qi /= qi(2);
@@ -200,25 +200,25 @@ void WarpImageBlend(const FloatImage &image_in,
         const int yImage = static_cast<int>(qi(1));
         if (image_in.Contains(yImage, xImage)) {
           bOutContrib = false;
-          for (int d = 0; d < image_out->Depth(); ++d) 
+          for (int d = 0; d < image_out->Depth(); ++d)
             if ((*image_out)(j, i, d) > 0) {
               bOutContrib = true;
               break;
             }
-          if(bOutContrib) { //mean blending between image_out and image_in
+          if (bOutContrib) {  // mean blending between image_out and image_in
             for (int d = 0; d < image_out->Depth(); ++d) {
               // Let's fade the previous frames
-              (*image_out)(j, i, d) = 
+              (*image_out)(j, i, d) =
                  (1 - blending_ratio) * (*image_out)(j, i, d) +
                  blending_ratio * SampleLinear(image_in, qi(1), qi(0), d);
             }
             continue;
-          } else { //only image_in contrib
-            for (int d = 0; d < image_out->Depth(); ++d) 
+          } else {  // only image_in contrib
+            for (int d = 0; d < image_out->Depth(); ++d)
               (*image_out)(j, i, d) = SampleLinear(image_in, qi(1), qi(0), d);
             continue;
           }
         }
       }
 }
-} // namespace libmv 
+}  // namespace libmv

@@ -18,9 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <list>
-
 #include "libmv/scene_graph/scene_graph.h"
+
+#include <list>
 
 using std::list;
 
@@ -28,4 +28,4 @@ namespace libmv {
 
 
 
-} // namespace libmv
+}  // namespace libmv

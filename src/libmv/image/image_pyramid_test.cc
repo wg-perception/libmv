@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,13 +29,13 @@ using libmv::MakeImagePyramid;
 namespace {
 
 TEST(ImagePyramid, Init) {
-  Array3Df image(32,32);
+  Array3Df image(32, 32);
   image.Fill(1);
   ImagePyramid *ip = MakeImagePyramid(image, 2, 0.9);
 
   EXPECT_EQ(ip->NumLevels(), 2);
-  EXPECT_NEAR(ip->Level(0)(16,16), 1, 1e-7);
-  EXPECT_NEAR(ip->Level(1)(8,8), 1, 1e-7);
+  EXPECT_NEAR(ip->Level(0)(16, 16), 1, 1e-7);
+  EXPECT_NEAR(ip->Level(1)(8, 8), 1, 1e-7);
   delete ip;
 }
 

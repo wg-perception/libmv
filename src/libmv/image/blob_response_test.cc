@@ -68,9 +68,9 @@ TEST(SimpleCase, OnePeakScaledDown) {
   Array3Df integral_image;
   Array3Df response;
   peak.Fill(0.0);
-  peak(9, 8)  = 1.0; // Making a single spike doesn't work 
-  peak(9, 9)  = 1.0; // well in the scaled down case, so make
-  peak(10, 8) = 1.0; // the blob a 2x2 block.
+  peak(9, 8)  = 1.0;  // Making a single spike doesn't work
+  peak(9, 9)  = 1.0;  // well in the scaled down case, so make
+  peak(10, 8) = 1.0;  // the blob a 2x2 block.
   peak(10, 9) = 1.0;
   response.resize(7, 7);
   response.Fill(0.0);

@@ -18,9 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/robust_fundamental.h"
+
 #include "libmv/multiview/fundamental_kernel.h"
 #include "libmv/multiview/robust_estimation.h"
-#include "libmv/multiview/robust_fundamental.h"
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
@@ -38,12 +39,12 @@ double FundamentalFromCorrespondences8PointRobust(const Mat &x1,
   double best_score = HUGE_VAL;
   typedef fundamental::kernel::NormalizedEightPointKernel Kernel;
   Kernel kernel(x1, x2);
-  *F = Estimate(kernel, MLEScorer<Kernel>(threshold), inliers, 
+  *F = Estimate(kernel, MLEScorer<Kernel>(threshold), inliers,
                 &best_score, outliers_probability);
   if (best_score == HUGE_VAL)
     return HUGE_VAL;
   else
-    return std::sqrt(best_score / 2.0);  
+    return std::sqrt(best_score / 2.0);
 }
 
 double FundamentalFromCorrespondences7PointRobust(const Mat &x1,
@@ -58,12 +59,12 @@ double FundamentalFromCorrespondences7PointRobust(const Mat &x1,
   double best_score = HUGE_VAL;
   typedef fundamental::kernel::NormalizedSevenPointKernel Kernel;
   Kernel kernel(x1, x2);
-  *F = Estimate(kernel, MLEScorer<Kernel>(threshold), inliers, 
+  *F = Estimate(kernel, MLEScorer<Kernel>(threshold), inliers,
                 &best_score, outliers_probability);
   if (best_score == HUGE_VAL)
     return HUGE_VAL;
   else
-    return std::sqrt(best_score / 2.0);  
+    return std::sqrt(best_score / 2.0);
 }
 
 }  // namespace libmv

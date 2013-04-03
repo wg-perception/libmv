@@ -25,7 +25,7 @@
 
 namespace libmv {
 // Exports the matches in a TXT format file
-// Each line corresponds to a correspondence. 
+// Each line corresponds to a correspondence.
 // The output format of point features is:
 // <ImageID> <TrackID> <x> <y>
 void ExportMatchesToTxt(const Matches &matches, std::string out_file_name);

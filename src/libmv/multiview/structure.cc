@@ -21,7 +21,7 @@
 #include "libmv/multiview/structure.h"
 
 namespace libmv {
- 
+
 Structure::Structure() {
 }
 

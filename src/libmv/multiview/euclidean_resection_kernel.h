@@ -1,15 +1,15 @@
 // Copyright (c) 2009 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,7 +40,7 @@ class Kernel {
   }
   Kernel(const Mat2X &x_image, const Mat3X &X, const Mat3 &K) : X_(X) {
     CHECK(x_image.cols() == X.cols());
-    // Conversion from image coordinates to normalized camera coordinates 
+    // Conversion from image coordinates to normalized camera coordinates
     EuclideanToNormalizedCamera(x_image, K, &x_camera_);
   }
   void Fit(const vector<int> &samples, vector<Model> *models) const {
@@ -63,7 +63,7 @@ class Kernel {
     return x_camera_.cols();
   }
  private:
-  // x_camera_ contains the normalized camera coordinates 
+  // x_camera_ contains the normalized camera coordinates
         Mat2X  x_camera_;
   const Mat3X &X_;
 };

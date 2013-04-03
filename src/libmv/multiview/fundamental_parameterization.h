@@ -104,6 +104,6 @@ class FundamentalRank2Parameterization {
   }
 };
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_FUNDAMENTAL_PARAMETERIZATION_H_

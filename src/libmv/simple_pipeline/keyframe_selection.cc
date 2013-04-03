@@ -18,11 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/keyframe_selection.h"
+
 #include "ceres/ceres.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/homography.h"
 #include "libmv/multiview/fundamental.h"
-#include "libmv/simple_pipeline/keyframe_selection.h"
 
 namespace libmv {
 

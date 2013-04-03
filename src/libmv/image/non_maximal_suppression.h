@@ -80,7 +80,6 @@ inline void FindLocalMaxima3D(const TArray &f,
   for (int x = 0; x < f.Shape(0); x += blocksize) {
     for (int y = 0; y < f.Shape(1); y += blocksize) {
       for (int z = 0; z < f.Shape(2); z += blocksize) {
-
         // Scan the pixels in this block to find the extremum.
         int x_max = -1, y_max = -1, z_max = -1;
         Scalar max_val = Scalar(-HUGE_VAL);
@@ -96,7 +95,7 @@ inline void FindLocalMaxima3D(const TArray &f,
             }
           }
         }
-          
+
         // Check if the found extremum is an extremum across block boundaries.
         if (x_max != -1 && IsLocalMax3D(f, width, x_max, y_max, z_max)) {
           Vec3i xyz; xyz << x_max, y_max, z_max;

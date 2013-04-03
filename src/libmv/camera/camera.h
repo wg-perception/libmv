@@ -37,7 +37,7 @@ class PointStructure;
 class Camera {
  public:
   virtual ~Camera() {}
-  
+
   // Return the ray direction of a pixel
   virtual Vec3 Ray(const Vec2f &pixel) = 0;
 };

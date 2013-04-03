@@ -96,4 +96,4 @@ void GetR_FixedCameraCenter(const Mat &x1, const Mat &x2,
 
 }  // namespace libmv
 
-#endif // LIBMV_MULTIVIEW_PANOGRAPHY_H
+#endif  // LIBMV_MULTIVIEW_PANOGRAPHY_H

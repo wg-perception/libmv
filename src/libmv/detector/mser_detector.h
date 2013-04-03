@@ -35,7 +35,7 @@ class Detector;
  */
 Detector *CreateMserDetector(bool bRotationInvariant = true);
 
-} // namespace detector
-} // namespace libmv
+}  // namespace detector
+}  // namespace libmv
 
-#endif //LIBMV_DETECTOR_STAR_DETECTOR_H
+#endif  // LIBMV_DETECTOR_STAR_DETECTOR_H

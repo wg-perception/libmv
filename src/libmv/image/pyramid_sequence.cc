@@ -18,12 +18,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/image/pyramid_sequence.h"
+
 #include <vector>
 
 #include "libmv/image/image_pyramid.h"
 #include "libmv/image/image_sequence.h"
 #include "libmv/image/image_sequence_filters.h"
-#include "libmv/image/pyramid_sequence.h"
 #include "libmv/image/lru_cache.h"
 
 namespace libmv {
@@ -60,7 +61,7 @@ class ImageSequenceBackedImagePyramid : public ImagePyramid {
   }
 
   virtual int MemorySizeInBytes() const {
-    //TODO(pau) this is ugly!
+    // TODO(pau) this is ugly!
     return -1;
   }
 

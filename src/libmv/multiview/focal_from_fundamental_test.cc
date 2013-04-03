@@ -84,7 +84,7 @@ TEST(FocalFromFundamental, RotationToEliminateY) {
 TEST(FocalFromFundamental, FundamentalAlignEpipolesToXAxis) {
   Mat3 F, F_rotated;
   OrthogonalViewsFundamental(&F);
-  FundamentalAlignEpipolesToXAxis(F,&F_rotated);
+  FundamentalAlignEpipolesToXAxis(F, &F_rotated);
   Vec3 e1, e2;
   EpipolesFromFundamental(F_rotated, &e1, &e2);
   e1 /= e1(2);
@@ -148,15 +148,15 @@ TEST(FocalFromFundamental, FundamentalShiftPrincipalPoints) {
 
   // TODO(pau) The matrices should be scaled before comparing since they have
   // to be equal only up to scale.
-  EXPECT_NEAR(F_new(0,0), F_new_computed(0,0), 1e-8);
-  EXPECT_NEAR(F_new(0,1), F_new_computed(0,1), 1e-8);
-  EXPECT_NEAR(F_new(0,2), F_new_computed(0,2), 1e-8);
-  EXPECT_NEAR(F_new(1,0), F_new_computed(1,0), 1e-8);
-  EXPECT_NEAR(F_new(1,1), F_new_computed(1,1), 1e-8);
-  EXPECT_NEAR(F_new(1,2), F_new_computed(1,2), 1e-8);
-  EXPECT_NEAR(F_new(2,0), F_new_computed(2,0), 1e-8);
-  EXPECT_NEAR(F_new(2,1), F_new_computed(2,1), 1e-8);
-  EXPECT_NEAR(F_new(2,2), F_new_computed(2,2), 1e-8);
+  EXPECT_NEAR(F_new(0, 0), F_new_computed(0, 0), 1e-8);
+  EXPECT_NEAR(F_new(0, 1), F_new_computed(0, 1), 1e-8);
+  EXPECT_NEAR(F_new(0, 2), F_new_computed(0, 2), 1e-8);
+  EXPECT_NEAR(F_new(1, 0), F_new_computed(1, 0), 1e-8);
+  EXPECT_NEAR(F_new(1, 1), F_new_computed(1, 1), 1e-8);
+  EXPECT_NEAR(F_new(1, 2), F_new_computed(1, 2), 1e-8);
+  EXPECT_NEAR(F_new(2, 0), F_new_computed(2, 0), 1e-8);
+  EXPECT_NEAR(F_new(2, 1), F_new_computed(2, 1), 1e-8);
+  EXPECT_NEAR(F_new(2, 2), F_new_computed(2, 2), 1e-8);
 }
 
 TEST(FocalFromFundamental, FocalFromFundamental) {
@@ -174,11 +174,11 @@ TEST(FocalFromFundamental, TwoViewReconstruction) {
   // Two cameras at (0,0,-10) and (2,1,-10) looking towards z+.
   TwoViewDataSet d = TwoRealisticCameras();
   Vec2 p1, p2;
-  p1 << d.K1(0,2), d.K1(1,2);
-  p2 << d.K2(0,2), d.K2(1,2);
+  p1 << d.K1(0, 2), d.K1(1, 2);
+  p2 << d.K2(0, 2), d.K2(1, 2);
   double f1, f2;
-  f1 = d.K1(0,0);
-  f2 = d.K2(0,0);
+  f1 = d.K1(0, 0);
+  f2 = d.K2(0, 0);
 
   // Compute fundamental matrix from correspondences.
   Mat3 F_estimated;
@@ -235,7 +235,7 @@ TEST(FocalFromFundamentalExhaustive, TwoViewReconstruction) {
   // Two cameras at (0,0,-10) and (2,1,-10) looking towards z+.
   TwoViewDataSet d = TwoRealisticCameras(true);
   Vec2 pp;
-  pp << d.K1(0,2), d.K1(1,2);
+  pp << d.K1(0, 2), d.K1(1, 2);
 
   // Compute fundamental matrix from correspondences.
   Mat3 F_estimated;

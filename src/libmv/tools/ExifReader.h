@@ -29,8 +29,7 @@ namespace libmv {
 namespace tools {
 
 /// Help class to read JPEG EXIF specific value (focal, image resolution)
-class ExifToolHelper
-{
+class ExifToolHelper {
   public:
   /// Get the focal in mm from Exif data. Return false, and -1 if not found.
   static bool GetFocalmm(const string & sFilename, float * focalmm);
@@ -55,8 +54,7 @@ class ExifToolHelper
                                      unsigned int * height);
 };
 
-class ExifReader
-{
+class ExifReader {
   public:
 
   virtual ~ExifReader();
@@ -85,15 +83,15 @@ class ExifReader
   private:
 
   ExifImageFile inImageFile_;       // Exif High Level class managment
-  //-- Exif info
-  ExifPathsTags app1PathsTags_;     // App Seg 1 "Exif tags"
-  ExifPathsTags app3PathsTags_;     // App Seg 3 "Meta tags"
-  vector<ExifAppSegment*> appSegs_; // App segments.
-  ExifComMarkerList * comList_;     // COM marker data
-  ExifImageInfo info_;              // SOF info
+  // -- Exif info
+  ExifPathsTags app1PathsTags_;      // App Seg 1 "Exif tags"
+  ExifPathsTags app3PathsTags_;      // App Seg 3 "Meta tags"
+  vector<ExifAppSegment*> appSegs_;  // App segments.
+  ExifComMarkerList * comList_;      // COM marker data
+  ExifImageInfo info_;               // SOF info
 };
 
-} // namespace tools
-} // namespace libmv
+}  // namespace tools
+}  // namespace libmv
 
-#endif // LIBMV_TOOLS_EXIF_READER_H_
+#endif  // LIBMV_TOOLS_EXIF_READER_H_

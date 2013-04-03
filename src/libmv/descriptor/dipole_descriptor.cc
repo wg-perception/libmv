@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/descriptor/dipole_descriptor.h"
+
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/descriptor/descriptor.h"
@@ -35,10 +37,9 @@ namespace descriptor {
 // Note :
 // - Angle is in radian.
 // - data the output array (must be allocated to 20 values).
-template <typename TImage,typename T>
+template <typename TImage, typename T>
 void PickDipole(const TImage & image, float x, float y, float scale,
                 double angle, T * data) {
-
   // Setup the rotation center.
   float & cx = x, & cy = y;
 
@@ -51,21 +52,21 @@ void PickDipole(const TImage & image, float x, float y, float scale,
     float xi = cx + lambda1 * cos(angle + i * angleSubdiv);
     float yi = cy + lambda1 * sin(angle + i * angleSubdiv);
     float s1 = 0.0f;
-    if (image.Contains(yi,xi) ) {
+    if (image.Contains(yi, xi)) {
       // Bilinear interpolation
       s1 = SampleLinear(image, yi, xi);
     }
     dipoleF1(i) = s1;
   }
-  Matf A(8,12);
-  A <<  0, 0, 0, 1, 0, 0, 0, 0, 0,-1, 0, 0,
-        0,-1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 1,
-        0, 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 1, 0, 0,-1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,-1,
-        0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-        1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0;
+  Matf A(8, 12);
+  A << 0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0,  0,
+       0, -1,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,
+       0,  0,  0,  0,  0, -1,  0,  0,  0,  0,  0,  1,
+       0,  0,  0,  0,  1,  0,  0, -1,  0,  0,  0,  0,
+       0,  0,  0,  0,  0,  0,  1,  0,  0, -1,  0,  0,
+       0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0, -1,
+       0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,
+       1,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0;
 
   // Add the second order F2 dipole
   Vecf dipoleF2(12);
@@ -78,15 +79,15 @@ void PickDipole(const TImage & image, float x, float y, float scale,
     float yii = cy + (lambda1 - lambda2) * sin(angle + angleSample);
 
     float s1 = 0.0f;
-    if (image.Contains(yi,xi) && image.Contains(yii,xii)) {
+    if (image.Contains(yi, xi) && image.Contains(yii, xii)) {
       // Bilinear interpolation
       s1 = SampleLinear(image, yi, xi) - SampleLinear(image, yii, xii);
     }
     dipoleF2(i) = s1;
   }
 
-  (*data).template block<8,1>(0,0) = (A * dipoleF1).normalized();
-  (*data).template block<12,1>(8,0) = dipoleF2.normalized();
+  (*data).template block<8, 1>(0, 0) = (A * dipoleF1).normalized();
+  (*data).template block<12, 1>(8, 0) = dipoleF2.normalized();
   // Normalize to be affine luminance invariant (a*I(x,y)+b).
 }
 
@@ -96,7 +97,7 @@ class DipoleDescriber : public Describer {
                         const Image &image,
                         const detector::DetectorData *detector_data,
                         vector<Descriptor *> *descriptors) {
-    (void) detector_data; // There is no matching detector for DipoleDescriptor.
+    (void) detector_data;  // There is no matching detector for DipoleDescriptor.
 
     const int DIPOLE_DESC_SIZE = 20;
     descriptors->resize(features.size());
@@ -105,7 +106,7 @@ class DipoleDescriber : public Describer {
       VecfDescriptor *descriptor = NULL;
       if (point) {
         descriptor = new VecfDescriptor(DIPOLE_DESC_SIZE);
-        PickDipole( *(image.AsArray3Du()),
+        PickDipole(*(image.AsArray3Du()),
                   point->x(),
                   point->y(),
                   point->scale,

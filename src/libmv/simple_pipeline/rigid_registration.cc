@@ -113,7 +113,8 @@ double RigidRegistration(const vector<Vec3> &reference_points,
                          Vec3 &t) {
   typedef LevenbergMarquardt<RigidRegistrationCostFunction <Vec9> > Solver;
 
-  RigidRegistrationCostFunction<Vec9> rigidregistration_cost(reference_points, points);
+  RigidRegistrationCostFunction<Vec9>
+      rigidregistration_cost(reference_points, points);
   Solver solver(rigidregistration_cost);
 
   Vec9 RSt = Vec9::Zero();
@@ -142,7 +143,8 @@ double RigidRegistration(const vector<Vec3> &reference_points,
                          Vec3 &t) {
   typedef LevenbergMarquardt<RigidRegistrationCostFunction <Vec6> > Solver;
 
-  RigidRegistrationCostFunction<Vec6> rigidregistration_cost(reference_points, points);
+  RigidRegistrationCostFunction<Vec6>
+      rigidregistration_cost(reference_points, points);
   Solver solver(rigidregistration_cost);
 
   Vec6 Rt = Vec6::Zero();
@@ -156,7 +158,8 @@ double RigidRegistration(const vector<Vec3> &reference_points,
   R = RotationFromEulerVector(Rt.head<3>());
   t = Rt.tail<3>();
 
-  return RigidRegistrationError(reference_points, points, R, Vec3(1.0, 1.0, 1.0), t);
+  return RigidRegistrationError(reference_points, points, R,
+                                Vec3(1.0, 1.0, 1.0), t);
 }
 
 double RigidRegistration(const vector<Vec3> &reference_points,
@@ -164,7 +167,8 @@ double RigidRegistration(const vector<Vec3> &reference_points,
                          Mat3 &R) {
   typedef LevenbergMarquardt<RigidRegistrationCostFunction <Vec3> > Solver;
 
-  RigidRegistrationCostFunction<Vec3> rigidregistration_cost(reference_points, points);
+  RigidRegistrationCostFunction<Vec3>
+      rigidregistration_cost(reference_points, points);
   Solver solver(rigidregistration_cost);
 
   Vec3 euler = Vec3::Zero();
@@ -176,7 +180,8 @@ double RigidRegistration(const vector<Vec3> &reference_points,
 
   R = RotationFromEulerVector(euler);
 
-  return RigidRegistrationError(reference_points, points, R, Vec3(1.0, 1.0, 1.0), Vec3::Zero());
+  return RigidRegistrationError(reference_points, points, R,
+                                Vec3(1.0, 1.0, 1.0), Vec3::Zero());
 }
 
 }  // namespace libmv

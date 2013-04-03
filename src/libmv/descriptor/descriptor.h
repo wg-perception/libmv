@@ -37,8 +37,8 @@ class DetectorData;
 namespace descriptor {
 
 class Descriptor {
-public:
-  virtual ~Descriptor() {};
+ public:
+  virtual ~Descriptor() {}
 };
 
 /**
@@ -46,7 +46,7 @@ public:
  */
 class Describer {
  public:
-  virtual ~Describer() {};
+  virtual ~Describer() {}
   /**
    * Describes features in an image, in preparation for matching.
    *

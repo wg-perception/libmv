@@ -61,25 +61,23 @@ Vec4 GetRandomPoint() {
 }
 
 TEST(Projection, isInFrontOfCamera) {
-
   Mat34 P;
   P << 1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0;
+       0, 1, 0, 0,
+       0, 0, 1, 0;
 
   Vec4 X_front = GetRandomPoint();
   Vec4 X_back = GetRandomPoint();
-  X_front(2) = 10; // Any point in the positive Z direction
-                   // where Z > 1 is infront of the camera.
-  X_back(2) = -10; // Any point int he negative Z dirstaion
-                   // is behind the camera.
+  X_front(2) = 10;  // Any point in the positive Z direction
+                    // where Z > 1 is infront of the camera.
+  X_back(2) = -10;  // Any point int he negative Z dirstaion
+                    // is behind the camera.
 
   bool res_front = isInFrontOfCamera(P, X_front);
   bool res_back = isInFrontOfCamera(P, X_back);
 
   EXPECT_EQ(true, res_front);
   EXPECT_EQ(false, res_back);
-
 }
 
 TEST(AutoCalibration, ProjectionShiftPrincipalPoint) {
@@ -114,4 +112,4 @@ TEST(AutoCalibration, ProjectionChangeAspectRatio) {
   EXPECT_MATRIX_EQ(P2, P2_computed);
 }
 
-} // namespace
+}  // namespace

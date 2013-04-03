@@ -144,7 +144,7 @@ TEST(BipartiteGraph, LeftRightEdgeIterators) {
     }
   }
   EXPECT_EQ(i, 15);
-  
+
   // Over right nodes, then incoming edges.
   i = 0;
   for (BipartiteGraph<int, int, int>::RightIterator it = x.RightBegin();

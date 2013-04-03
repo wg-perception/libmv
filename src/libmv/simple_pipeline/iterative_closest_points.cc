@@ -18,8 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/logging/logging.h"
 #include "libmv/simple_pipeline/iterative_closest_points.h"
+
+#include "libmv/logging/logging.h"
 #include "libmv/simple_pipeline/rigid_registration.h"
 
 namespace libmv {
@@ -81,7 +82,10 @@ void IterativeClosestPoints(const vector<Vec3> &reference_points,
   t.setZero();
   SMat.setIdentity();
 
-  LG << "iteractive closest points on maximum iterations " << max_iterations << ", threshold " << threshold;
+  LG << "iteractive closest points on maximum iterations "
+     << max_iterations
+     << ", threshold "
+     << threshold;
 
   double previous_error = 0;
 
@@ -132,7 +136,8 @@ void IterativeClosestPoints(const vector<Vec3> &reference_points,
 
     // Step 3: check threshold
     if (fabs(previous_error - error) < threshold) {
-      LG << "iterative closest points: average error is below threshold, finishing";
+      LG << "iterative closest points: "
+             "average error is below threshold, finishing";
       break;
     }
 

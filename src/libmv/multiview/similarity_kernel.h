@@ -37,8 +37,8 @@ struct TwoPointSolver {
 };
 
 typedef two_view::kernel::Kernel<
-    similarity2D::kernel::TwoPointSolver, 
-	  homography::homography2D::AsymmetricError, Mat3>
+    similarity2D::kernel::TwoPointSolver,
+      homography::homography2D::AsymmetricError, Mat3>
   UnnormalizedKernel;
 
 typedef two_view::kernel::Kernel<

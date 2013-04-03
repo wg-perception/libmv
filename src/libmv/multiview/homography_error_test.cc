@@ -50,11 +50,11 @@ TEST(Homography2D, AsymmetricError) {
   HomogeneousToEuclidean(x2h, &x2);
 
   Mat2X dx1, dx2, dx3, dx4;
-  AsymmetricError::Residuals(H, x, x2h, &dx1);
-  AsymmetricError::Residuals(H, x, x2,  &dx2);
-  AsymmetricError::Residuals(H, xh, x2h,&dx3);
-  AsymmetricError::Residuals(H, xh, x2, &dx4);
-  double norm1,norm2,norm3,norm4;
+  AsymmetricError::Residuals(H, x, x2h,  &dx1);
+  AsymmetricError::Residuals(H, x, x2,   &dx2);
+  AsymmetricError::Residuals(H, xh, x2h, &dx3);
+  AsymmetricError::Residuals(H, xh, x2,  &dx4);
+  double norm1, norm2, norm3, norm4;
   norm1 = AsymmetricError::Error(H, x, x2h);
   norm2 = AsymmetricError::Error(H, x, x2);
   norm3 = AsymmetricError::Error(H, xh, x2h);
@@ -67,7 +67,7 @@ TEST(Homography2D, AsymmetricError) {
     EXPECT_MATRIX_NEAR(dx2.col(i), err, 1e-8);
     EXPECT_MATRIX_NEAR(dx3.col(i), err, 1e-8);
     EXPECT_MATRIX_NEAR(dx4.col(i), err, 1e-8);
-    
+
     EXPECT_NEAR(norm1, cst_diff2, 1e-8);
     EXPECT_NEAR(norm2, cst_diff2, 1e-8);
     EXPECT_NEAR(norm3, cst_diff2, 1e-8);
@@ -96,24 +96,24 @@ TEST(Homography2D, AlgebraicError) {
   HomogeneousToEuclidean(x2h, &x2);
 
   Mat3X dx1, dx2, dx3, dx4;
-  AlgebraicError::Residuals(H, x, x2h, &dx1);
-  AlgebraicError::Residuals(H, x, x2,  &dx2);
-  AlgebraicError::Residuals(H, xh, x2h,&dx3);
-  AlgebraicError::Residuals(H, xh, x2, &dx4);
-  double norm1,norm2,norm3,norm4;
+  AlgebraicError::Residuals(H, x, x2h,  &dx1);
+  AlgebraicError::Residuals(H, x, x2,   &dx2);
+  AlgebraicError::Residuals(H, xh, x2h, &dx3);
+  AlgebraicError::Residuals(H, xh, x2,  &dx4);
+  double norm1, norm2, norm3, norm4;
   norm1 = AlgebraicError::Error(H, x, x2h);
   norm2 = AlgebraicError::Error(H, x, x2);
   norm3 = AlgebraicError::Error(H, xh, x2h);
   norm4 = AlgebraicError::Error(H, xh, x2);
-  
+
   double norm_err = 1707.75;
   for (int i = 0; i < x.cols(); i++) {
     EXPECT_MATRIX_NEAR(dx1.col(i), dx2.col(i), 1e-8);
     EXPECT_MATRIX_NEAR(dx2.col(i), dx3.col(i), 1e-8);
     EXPECT_MATRIX_NEAR(dx3.col(i), dx4.col(i), 1e-8);
-    
+
     // TODO(julien) Also check the dx values.
-    
+
     EXPECT_NEAR(norm1, norm_err, 1e-8);
     EXPECT_NEAR(norm2, norm_err, 1e-8);
     EXPECT_NEAR(norm3, norm_err, 1e-8);

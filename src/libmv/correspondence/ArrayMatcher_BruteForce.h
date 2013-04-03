@@ -31,9 +31,8 @@ namespace correspondence  {
 // http://www.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
 // David G. Lowe and Marius Muja
 template < typename Scalar >
-class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
-{
-  public:
+class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar> {
+ public:
   ArrayMatcher_BruteForce():_index_id(NULL) {}
 
   ~ArrayMatcher_BruteForce()  {
@@ -50,8 +49,7 @@ class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
    *
    * \return True if success.
    */
-  bool build( const Scalar * dataset, int nbRows, int dimension)  {
-
+  bool build(const Scalar * dataset, int nbRows, int dimension) {
     _p.log_destination = NULL;
     _p.log_level = LOG_INFO;
 
@@ -59,9 +57,9 @@ class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
     _p.algorithm = LINEAR;
     _p.target_precision = -1.0f;
 
-    //-- Build FLANN index
+    // -- Build FLANN index
     float fspeedUp;
-    _index_id = flann_build_index( (float*)dataset, nbRows, dimension,
+    _index_id = flann_build_index((float*)dataset, nbRows, dimension,
       &fspeedUp, &_p);
     return (_index_id != NULL);
   }
@@ -76,14 +74,12 @@ class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
    *
    * \return True if success.
    */
-  bool searchNeighbour( const Scalar * query, int * indice, Scalar * distance)
-  {
+  bool searchNeighbour(const Scalar * query, int * indice, Scalar * distance) {
     if (_index_id != NULL) {
       int iRet = flann_find_nearest_neighbors_index(_index_id, (Scalar*)query,
         1, indice, distance, 1, _p.checks, &_p);
         return (iRet == 0);
-    }
-    else  {
+    } else {
       return false;
     }
   }
@@ -100,11 +96,10 @@ class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
    *
    * \return True if success.
    */
-  bool searchNeighbours( const Scalar * query, int nbQuery,
-    vector<int> * indice, vector<Scalar> * distance, int NN)
-  {
+  bool searchNeighbours(const Scalar * query, int nbQuery,
+    vector<int> * indice, vector<Scalar> * distance, int NN) {
     if (_index_id != NULL)  {
-      //-- Check if resultIndices is allocated
+      // -- Check if resultIndices is allocated
       indice->resize(nbQuery * NN);
       distance->resize(nbQuery * NN);
 
@@ -113,8 +108,7 @@ class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
       int iRet = flann_find_nearest_neighbors_index(_index_id, (Scalar*)query,
           nbQuery, indicePTR, distancePTR, NN, _p.checks, &_p);
         return (iRet == 0);
-    }
-    else  {
+    } else {
       return false;
     }
   }
@@ -124,7 +118,7 @@ class ArrayMatcher_BruteForce : public ArrayMatcher<Scalar>
   FLANNParameters _p;
 };
 
-} // namespace correspondence
-} // namespace libmv
+}  // namespace correspondence
+}  // namespace libmv
 
-#endif // LIBMV_CORRESPONDENCE_ARRAYMATCHER_BRUTE_FORCE_H_
+#endif  // LIBMV_CORRESPONDENCE_ARRAYMATCHER_BRUTE_FORCE_H_

@@ -135,7 +135,7 @@ typename Kernel::Model Estimate(const Kernel &kernel,
                 << total_samples << " total samples.";
       }
       if (best_inlier_ratio) {
-        max_iterations = IterationsRequired(min_samples, 
+        max_iterations = IterationsRequired(min_samples,
                                             outliers_probability,
                                             best_inlier_ratio);
       }
@@ -149,6 +149,6 @@ typename Kernel::Model Estimate(const Kernel &kernel,
   return best_model;
 }
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_ROBUST_ESTIMATION_H_

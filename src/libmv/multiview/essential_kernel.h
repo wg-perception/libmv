@@ -1,15 +1,15 @@
 // Copyright (c) 2010 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,20 +41,19 @@ struct EightPointRelativePoseSolver {
   static void Solve(const Mat &x1, const Mat &x2, vector<Mat3> *E);
 };
 
-//-- Generic Solver for the 5pt Essential Matrix Estimation.
-//-- Need a new Class that inherit of two_view::kernel::kernel.
-//    Error must be overwrite in order to compute F from E and K's.
-//-- Fitting must normalize image values to camera values.
+// -- Generic Solver for the 5pt Essential Matrix Estimation.
+// -- Need a new Class that inherit of two_view::kernel::kernel.
+//     Error must be overwrite in order to compute F from E and K's.
+// -- Fitting must normalize image values to camera values.
 template<typename SolverArg,
   typename ErrorArg,
   typename ModelArg = Mat3>
 class EssentialKernel :
-   public two_view::kernel::Kernel<SolverArg,ErrorArg, ModelArg>
-{
-public:
+  public two_view::kernel::Kernel<SolverArg, ErrorArg, ModelArg> {
+ public:
   EssentialKernel(const Mat &x1, const Mat &x2,
                   const Mat3 &K1, const Mat3 &K2):
-  two_view::kernel::Kernel<SolverArg,ErrorArg, ModelArg>(x1,x2),
+  two_view::kernel::Kernel<SolverArg, ErrorArg, ModelArg>(x1, x2),
                                                          K1_(K1), K2_(K2) {}
   void Fit(const vector<int> &samples, vector<ModelArg> *models) const {
     Mat x1 = ExtractColumns(this->x1_, samples);
@@ -80,7 +79,7 @@ public:
     FundamentalFromEssential(model, K1_, K2_, &F);
     return ErrorArg::Error(F, this->x1_.col(sample), this->x2_.col(sample));
   }
-protected:
+ protected:
   const Mat3 K1_;
   const Mat3 K2_;
 };

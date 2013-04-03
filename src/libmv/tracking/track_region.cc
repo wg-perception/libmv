@@ -60,7 +60,7 @@ struct JetOps {
   }
   static void ScaleDerivative(double scale_by, T *value) {
     // For double, there is no derivative to scale.
-    (void) scale_by; // Ignored.
+    (void) scale_by;  // Ignored.
     (void) value;  // Ignored.
   }
 };
@@ -87,7 +87,7 @@ struct Chain {
                            const FunctionType dfdx[kNumArgs],
                            const ArgumentType x[kNumArgs]) {
     // In the default case of scalars, there's nothing to do since there are no
-    // derivatives to propagate. 
+    // derivatives to propagate.
     (void) dfdx;  // Ignored.
     (void) x;  // Ignored.
     return f;
@@ -280,8 +280,8 @@ class PixelDifferenceCostFunctor {
                              int num_samples_y,
                              const Warp &warp)
       : options_(options),
-        image_and_gradient1_(image_and_gradient1),       
-        image_and_gradient2_(image_and_gradient2),       
+        image_and_gradient1_(image_and_gradient1),
+        image_and_gradient2_(image_and_gradient2),
         canonical_to_image1_(canonical_to_image1),
         num_samples_x_(num_samples_x),
         num_samples_y_(num_samples_y),
@@ -352,7 +352,7 @@ class PixelDifferenceCostFunctor {
         //
         // Note that partial masks are not short circuited. To see why short
         // circuiting produces bitwise-exact same results, consider that the
-        // residual for each pixel is 
+        // residual for each pixel is
         //
         //    residual = mask * (src - dst)  ,
         //
@@ -435,11 +435,10 @@ class PixelDifferenceCostFunctor {
     return true;
   }
 
-  // For normalized matching, the average and 
+  // For normalized matching, the average and
   template<typename T>
   void ComputeNormalizingCoefficient(const T *warp_parameters,
                                      T *dst_mean) const {
-
     *dst_mean = T(0.0);
     double num_samples = 0.0;
     for (int r = 0; r < num_samples_y_; ++r) {
@@ -447,7 +446,7 @@ class PixelDifferenceCostFunctor {
         // Use the pre-computed image1 position.
         Vec2 image1_position(pattern_positions_(r, c, 0),
                              pattern_positions_(r, c, 1));
-        
+
         // Sample the mask early; if it's zero, this pixel has no effect. This
         // allows early bailout from the expensive sampling that happens below.
         double mask_value = 1.0;
@@ -488,28 +487,28 @@ class PixelDifferenceCostFunctor {
     LG << "Normalization for dst:" << *dst_mean;
   }
 
- // TODO(keir): Consider also computing the cost here.
- double PearsonProductMomentCorrelationCoefficient(
-     const double *warp_parameters) const {
-   for (int i = 0; i < Warp::NUM_PARAMETERS; ++i) {
-     VLOG(2) << "Correlation warp_parameters[" << i << "]: "
-             << warp_parameters[i];
-   }
+  // TODO(keir): Consider also computing the cost here.
+  double PearsonProductMomentCorrelationCoefficient(
+          const double *warp_parameters) const {
+    for (int i = 0; i < Warp::NUM_PARAMETERS; ++i) {
+      VLOG(2) << "Correlation warp_parameters[" << i << "]: "
+              << warp_parameters[i];
+    }
 
-   // The single-pass PMCC computation is somewhat numerically unstable, but
-   // it's sufficient for the tracker.
-   double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
+    // The single-pass PMCC computation is somewhat numerically unstable, but
+    // it's sufficient for the tracker.
+    double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
 
-   // Due to masking, it's important to account for fractional samples.
-   // For example, samples with a 50% mask are counted as a half sample.
-   double num_samples = 0;
+    // Due to masking, it's important to account for fractional samples.
+    // For example, samples with a 50% mask are counted as a half sample.
+    double num_samples = 0;
 
-   for (int r = 0; r < num_samples_y_; ++r) {
-     for (int c = 0; c < num_samples_x_; ++c) {
+    for (int r = 0; r < num_samples_y_; ++r) {
+      for (int c = 0; c < num_samples_x_; ++c) {
         // Use the pre-computed image1 position.
         Vec2 image1_position(pattern_positions_(r, c, 0),
                              pattern_positions_(r, c, 1));
-        
+
         double mask_value = 1.0;
         if (options_.image1_mask != NULL) {
           mask_value = pattern_mask_(r, c);
@@ -799,7 +798,7 @@ struct TranslationRotationWarp {
     // Obtain the rotation via orthorgonal procrustes.
     Mat2 correlation_matrix;
     for (int i = 0; i < 4; ++i) {
-      correlation_matrix += q1.CornerRelativeToCentroid(i) * 
+      correlation_matrix += q1.CornerRelativeToCentroid(i) *
                             q2.CornerRelativeToCentroid(i).transpose();
     }
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
@@ -867,7 +866,7 @@ struct TranslationRotationScaleWarp {
     // Obtain the rotation via orthorgonal procrustes.
     Mat2 correlation_matrix;
     for (int i = 0; i < 4; ++i) {
-      correlation_matrix += q1.CornerRelativeToCentroid(i) * 
+      correlation_matrix += q1.CornerRelativeToCentroid(i) *
                             q2.CornerRelativeToCentroid(i).transpose();
     }
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
@@ -942,7 +941,7 @@ struct AffineWarp {
       Vec2 v1 = q1.CornerRelativeToCentroid(i);
       Vec2 v2 = q2.CornerRelativeToCentroid(i);
 
-      Q1.row(2 * i + 0) << v1[0], v1[1],   0,     0  ;
+      Q1.row(2 * i + 0) << v1[0], v1[1],   0,     0;
       Q1.row(2 * i + 1) <<   0,     0,   v1[0], v1[1];
 
       Q2(2 * i + 0) = v2[0];
@@ -1161,12 +1160,12 @@ void CreateBrutePattern(const double *x1, const double *y1,
       inverse_warp.Forward(inverse_warp.parameters,
                            dst_x, dst_y,
                            &src_x, &src_y);
-      
+
       if (PointInQuad(x1, y1, src_x, src_y)) {
         (*pattern)(i, j) = SampleLinear(image1, src_y, src_x);
         (*mask)(i, j) = 1.0;
         if (image1_mask) {
-          (*mask)(i, j) = SampleLinear(*image1_mask, src_y, src_x);;
+          (*mask)(i, j) = SampleLinear(*image1_mask, src_y, src_x);
         }
       } else {
         (*pattern)(i, j) = 0.0;
@@ -1229,7 +1228,7 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
   //
   // TODO(keir): There are a number of possible optimizations here. One choice
   // is to make a grid and only try one out of every N possible samples.
-  // 
+  //
   // Another, slightly more clever idea, is to compute some sort of spatial
   // frequency distribution of the pattern patch. If the spatial resolution is
   // high (e.g. a grating pattern or fine lines) then checking every possible
@@ -1386,7 +1385,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
                                            num_samples_x,
                                            num_samples_y,
                                            warp);
-   problem.AddResidualBlock(
+  problem.AddResidualBlock(
        new ceres::AutoDiffCostFunction<
            PixelDifferenceCostFunctor<Warp>,
            ceres::DYNAMIC,

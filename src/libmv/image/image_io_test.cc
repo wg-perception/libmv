@@ -69,19 +69,20 @@ TEST(ReadPnm, Pgm) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), (unsigned char)255);
-  EXPECT_EQ(image(0,1), (unsigned char)0);
+  EXPECT_EQ(image(0, 0), (unsigned char)255);
+  EXPECT_EQ(image(0, 1), (unsigned char)0);
 }
 
 TEST(ReadPnm, PgmComments) {
   Array3Du image;
-  string pgm_filename = string(THIS_SOURCE_DIR) + "/image_test/two_pixels_gray.pgm";
+  string pgm_filename = string(THIS_SOURCE_DIR) +
+      "/image_test/two_pixels_gray.pgm";
   EXPECT_TRUE(ReadPnm(pgm_filename.c_str(), &image));
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), (unsigned char)255);
-  EXPECT_EQ(image(0,1), (unsigned char)0);
+  EXPECT_EQ(image(0, 0), (unsigned char)255);
+  EXPECT_EQ(image(0, 1), (unsigned char)0);
 }
 
 TEST(ReadPnm, PgmFloat) {
@@ -91,14 +92,14 @@ TEST(ReadPnm, PgmFloat) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), 1);
-  EXPECT_EQ(image(0,1), 0);
+  EXPECT_EQ(image(0, 0), 1);
+  EXPECT_EQ(image(0, 1), 0);
 }
 
 TEST_F(ImageIOTest, Pgm) {
-  Array3Du image(1,2);
-  image(0,0) = 255;
-  image(0,1) = 0;
+  Array3Du image(1, 2);
+  image(0, 0) = 255;
+  image(0, 1) = 0;
   string out_filename = TmpFile("test_write_pnm.pgm");
   EXPECT_TRUE(WritePnm(image, out_filename.c_str()));
 
@@ -114,22 +115,22 @@ TEST(ReadPnm, Ppm) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(3, image.Depth());
-  EXPECT_EQ(image(0,0,0), (unsigned char)255);
-  EXPECT_EQ(image(0,0,1), (unsigned char)255);
-  EXPECT_EQ(image(0,0,2), (unsigned char)255);
-  EXPECT_EQ(image(0,1,0), (unsigned char)0);
-  EXPECT_EQ(image(0,1,1), (unsigned char)0);
-  EXPECT_EQ(image(0,1,2), (unsigned char)0);
+  EXPECT_EQ(image(0, 0, 0), (unsigned char)255);
+  EXPECT_EQ(image(0, 0, 1), (unsigned char)255);
+  EXPECT_EQ(image(0, 0, 2), (unsigned char)255);
+  EXPECT_EQ(image(0, 1, 0), (unsigned char)0);
+  EXPECT_EQ(image(0, 1, 1), (unsigned char)0);
+  EXPECT_EQ(image(0, 1, 2), (unsigned char)0);
 }
 
 TEST_F(ImageIOTest, Ppm) {
-  Array3Du image(1,2,3);
-  image(0,0,0) = 255;
-  image(0,0,1) = 255;
-  image(0,0,2) = 255;
-  image(0,1,0) = 0;
-  image(0,1,1) = 0;
-  image(0,1,2) = 0;
+  Array3Du image(1, 2, 3);
+  image(0, 0, 0) = 255;
+  image(0, 0, 1) = 255;
+  image(0, 0, 2) = 255;
+  image(0, 1, 0) = 0;
+  image(0, 1, 1) = 0;
+  image(0, 1, 2) = 0;
   string out_filename = TmpFile("test_write_pnm.ppm");
   EXPECT_TRUE(WritePnm(image, out_filename.c_str()));
 
@@ -155,8 +156,8 @@ TEST(ReadPng, Png) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), (unsigned char)255);
-  EXPECT_EQ(image(0,1), (unsigned char)0);
+  EXPECT_EQ(image(0, 0), (unsigned char)255);
+  EXPECT_EQ(image(0, 1), (unsigned char)0);
 }
 
 TEST(ReadPng, PngFloat) {
@@ -166,14 +167,14 @@ TEST(ReadPng, PngFloat) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), 1);
-  EXPECT_EQ(image(0,1), 0);
+  EXPECT_EQ(image(0, 0), 1);
+  EXPECT_EQ(image(0, 1), 0);
 }
 
 TEST_F(ImageIOTest, Png) {
-  Array3Du image(1,2);
-  image(0,0) = 255;
-  image(0,1) = 0;
+  Array3Du image(1, 2);
+  image(0, 0) = 255;
+  image(0, 1) = 0;
   string out_filename = TmpFile("test_write_png.png");
   EXPECT_TRUE(WritePng(image, out_filename.c_str()));
 
@@ -199,8 +200,8 @@ TEST(ReadJpg, Jpg) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), (unsigned char)255);
-  EXPECT_EQ(image(0,1), (unsigned char)0);
+  EXPECT_EQ(image(0, 0), (unsigned char)255);
+  EXPECT_EQ(image(0, 1), (unsigned char)0);
 }
 
 TEST(ReadJpg, JpgFloat) {
@@ -210,14 +211,14 @@ TEST(ReadJpg, JpgFloat) {
   EXPECT_EQ(2, image.Width());
   EXPECT_EQ(1, image.Height());
   EXPECT_EQ(1, image.Depth());
-  EXPECT_EQ(image(0,0), 1);
-  EXPECT_EQ(image(0,1), 0);
+  EXPECT_EQ(image(0, 0), 1);
+  EXPECT_EQ(image(0, 1), 0);
 }
 
 TEST_F(ImageIOTest, Jpg) {
-  Array3Du image(1,2);
-  image(0,0) = 255;
-  image(0,1) = 0;
+  Array3Du image(1, 2);
+  image(0, 0) = 255;
+  image(0, 1) = 0;
   string out_filename = TmpFile("test_write_jpg.jpg");
   EXPECT_TRUE(WriteJpg(image, out_filename.c_str(), 100));
 

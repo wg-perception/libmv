@@ -49,13 +49,11 @@ typedef Types< ArrayMatcher_Kdtree<float>,
 
 TYPED_TEST_CASE(MatchingKernelTest, MatchingKernelImpl);
 
-TYPED_TEST(MatchingKernelTest, MatcherInterfaceSymmetry)
-{
+TYPED_TEST(MatchingKernelTest, MatcherInterfaceSymmetry) {
   int descriptorSize = 2;
   // Build one feature set.
   FeatureSet featureSet;
-  for (int i=0; i < 4; ++i)
-  {
+  for (int i = 0; i < 4; ++i) {
     KeypointFeature feat;
     Vecf desc(descriptorSize);
     desc << i+1, i+1;
@@ -76,10 +74,10 @@ TYPED_TEST(MatchingKernelTest, MatcherInterfaceSymmetry)
 
   bool breturn = false;
   int nbFeatures = featureSet.features.size();
-  if (pArrayMatcher->build(data,nbFeatures,descriptorSize)) {
+  if (pArrayMatcher->build(data, nbFeatures, descriptorSize)) {
       const int NN = 1;
       breturn =
-        pArrayMatcher->searchNeighbours(data,nbFeatures,
+        pArrayMatcher->searchNeighbours(data, nbFeatures,
           &indices, &distances, NN);
   }
   delete pArrayMatcher;
@@ -96,13 +94,11 @@ TYPED_TEST(MatchingKernelTest, MatcherInterfaceSymmetry)
   }
 }
 
-TYPED_TEST(MatchingKernelTest, MatcherInterface)
-{
+TYPED_TEST(MatchingKernelTest, MatcherInterface) {
   int descriptorSize = 2;
   // Build two feature set.
   FeatureSet featureSetA;
-  for (int i=0; i < 4; ++i)
-  {
+  for (int i = 0; i < 4; ++i) {
     KeypointFeature feat;
     Vecf desc(descriptorSize);
     desc << i*2, i*2;
@@ -112,8 +108,7 @@ TYPED_TEST(MatchingKernelTest, MatcherInterface)
 
   // Build two feature set.
   FeatureSet featureSetB;
-  for (int i=0; i < 5; ++i)
-  {
+  for (int i = 0; i < 5; ++i) {
     KeypointFeature feat;
     Vecf desc(descriptorSize);
     desc << i*2, i*2;
@@ -137,16 +132,15 @@ TYPED_TEST(MatchingKernelTest, MatcherInterface)
   libmv::vector<float> distances, distancesReverse;
 
   bool breturn = false;
-  if (pArrayMatcherA->build(dataA,featureSetA.features.size(),descriptorSize) &&
-      pArrayMatcherB->build(dataB,featureSetB.features.size(),descriptorSize) )
-    {
-      const int NN = 1;
-      breturn =
-        pArrayMatcherB->searchNeighbours(dataA,featureSetA.features.size(),
+  if (pArrayMatcherA->build(dataA, featureSetA.features.size(), descriptorSize) &&
+      pArrayMatcherB->build(dataB, featureSetB.features.size(), descriptorSize)) {
+    const int NN = 1;
+    breturn =
+        pArrayMatcherB->searchNeighbours(dataA, featureSetA.features.size(),
           &indices, &distances, NN) &&
-        pArrayMatcherA->searchNeighbours(dataB,featureSetB.features.size(),
+        pArrayMatcherA->searchNeighbours(dataB, featureSetB.features.size(),
           &indicesReverse, &distancesReverse, NN);
-    }
+  }
   delete pArrayMatcherA;
   delete pArrayMatcherB;
 
@@ -159,28 +153,25 @@ TYPED_TEST(MatchingKernelTest, MatcherInterface)
   EXPECT_EQ(distancesReverse.size(), 5);
 
   // Check distances and indexes.
-  for (size_t i=0; i < indices.size(); ++i)
-  {
+  for (size_t i = 0; i < indices.size(); ++i) {
     EXPECT_EQ(i, indices[i]);
     EXPECT_NEAR(0.0, distances[i], 1e-8);
   }
 
   // Check distances and indexes.
-  int gtIndices[]={0,1,2,3,3};
-  float gtDistances[]={0.0f,0.0f,0.0f,0.0f,8.0f};
-  for (size_t i=0; i < indicesReverse.size(); ++i)
-  {
+  int gtIndices[] = {0, 1, 2, 3, 3};
+  float gtDistances[] = {0.0f, 0.0f, 0.0f, 0.0f, 8.0f};
+  for (size_t i = 0; i < indicesReverse.size(); ++i) {
     EXPECT_NEAR(gtDistances[i], distancesReverse[i], 1e-8);
     EXPECT_EQ(gtIndices[i], indicesReverse[i]);
   }
 
   // Check that matches are symmetric.
-  if (breturn)  {
+  if (breturn) {
     for (size_t i = 0; i < indices.size(); ++i) {
       EXPECT_EQ(i , indicesReverse[indices[i]]);
-      }
+    }
   }
 }
-
 
 }  // namespace

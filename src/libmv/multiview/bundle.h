@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,9 +26,8 @@
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
-  
-enum eLibmvBundleType
-{
+
+enum eLibmvBundleType {
   eBUNDLE_METRIC = 0,
   eBUNDLE_FOCAL_LENGTH = 1,      // f
   eBUNDLE_FOCAL_LENGTH_PP = 2,   // f, cx, cy
@@ -36,8 +35,6 @@ enum eLibmvBundleType
   eBUNDLE_RADIAL_TANGENTIAL = 4  // f, cx, cy, k1, k2, p1, p2
 };
 
-      
-      
 /**
  * \brief Euclidean bundle adjustment given a full observation.
  *
@@ -88,7 +85,7 @@ double EuclideanBA(const vector<Mat2X> &x,
                    vector<Vec3> *ts,
                    Mat3X *X,
                    eLibmvBundleType type = eBUNDLE_FOCAL_LENGTH);
-                                                  
-} // namespace libmv
+
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_BUNDLE_H_

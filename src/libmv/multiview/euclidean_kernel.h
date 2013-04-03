@@ -37,8 +37,8 @@ struct TwoPointSolver {
 };
 
 typedef two_view::kernel::Kernel<
-    euclidean2D::kernel::TwoPointSolver, 
-	  homography::homography2D::AsymmetricError, Mat3>
+    euclidean2D::kernel::TwoPointSolver,
+    homography::homography2D::AsymmetricError, Mat3>
   Kernel;
 
 // TODO(julien) make an isotropic but without the scale kernel

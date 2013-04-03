@@ -25,8 +25,7 @@ namespace libmv {
 
 static bool Build_Minimal2Point_PolynomialFactor(
                                           const Mat & x1, const Mat & x2,
-                                          double * P) //P must be a double[4]
-{
+                                          double * P) {  // P must be a double[4]
   assert(2 == x1.rows());
   assert(2 == x1.cols());
   assert(x1.rows() == x2.rows());
@@ -70,7 +69,6 @@ static bool Build_Minimal2Point_PolynomialFactor(
 //       Stitching. CVPR07.
 void F_FromCorrespondance_2points(const Mat &x1, const Mat &x2,
                                   vector<double> *fs) {
-
   // Build Polynomial factor to get squared focal value.
   double P[4];
   Build_Minimal2Point_PolynomialFactor(x1, x2, &P[0]);
@@ -103,12 +101,12 @@ void GetR_FixedCameraCenter(const Mat &x1, const Mat &x2,
   assert(x1.cols() == x2.cols());
 
   // Build simplified K matrix
-  Mat3 K( Mat3::Identity() * 1.0/focal );
-  K(2,2)= 1.0;
+  Mat3 K(Mat3::Identity() * 1.0/focal);
+  K(2, 2)= 1.0;
 
   // Build the correlation matrix; equation (22) in [1].
   Mat3 C = Mat3::Zero();
-  for(int i = 0; i < x1.cols(); ++i) {
+  for (int i = 0; i < x1.cols(); ++i) {
     Mat r1i = (K * x1.col(i)).normalized();
     Mat r2i = (K * x2.col(i)).normalized();
     C += r2i * r1i.transpose();
@@ -117,7 +115,7 @@ void GetR_FixedCameraCenter(const Mat &x1, const Mat &x2,
   // Solve for rotation. Equations (24) and (25) in [1].
   Eigen::JacobiSVD<Mat> svd(C, Eigen::ComputeThinU | Eigen::ComputeThinV);
   Mat3 scale = Mat3::Identity();
-  scale(2,2) = ((svd.matrixU() * svd.matrixV().transpose()).determinant() > 0.0)
+  scale(2, 2) = ((svd.matrixU() * svd.matrixV().transpose()).determinant() > 0.0)
              ?  1.0
              : -1.0;
 

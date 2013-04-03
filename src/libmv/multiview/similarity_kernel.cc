@@ -28,7 +28,7 @@ namespace kernel {
 
 void TwoPointSolver::Solve(const Mat &x1, const Mat &x2, vector<Mat3> *Hs) {
   Mat3 M;
-  if (Similarity2DFromCorrespondencesLinear(x1,x2, &M)) {
+  if (Similarity2DFromCorrespondencesLinear(x1, x2, &M)) {
     Hs->push_back(M);
   }
 }

@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008, 2009 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -59,13 +59,13 @@ inline void IntegralImage(const TImage &image, TIntegralImage *integral_image) {
 //     |            |          |     |
 //     |     A      |    B     |     |  The coordinate (r2, c2) is equal to
 //     |            |          |     |  A + B + C + D in the integral image.
-// r1  +------------+----------+-----+  In other words, II(r2, c2) is the 
+// r1  +------------+----------+-----+  In other words, II(r2, c2) is the
 //     |            |  target  |     |  integral of the areas A, B, C, D.
-//     |     C      | integral |     |  By using the property that each point  
-//     |            |   (D)    |     |  is the sum of all the pixels up and to 
-// r2  +------------+----------+-----+  left of this one (including this one), 
+//     |     C      | integral |     |  By using the property that each point
+//     |            |   (D)    |     |  is the sum of all the pixels up and to
+// r2  +------------+----------+-----+  left of this one (including this one),
 //     |            |          |     |  then the integral of area D is:
-//     |            |          |     |                                         
+//     |            |          |     |
 //     |            |          |     |    sum(D) =   II(r2,     c2)
 //     |            |          |     |             - II(r2,     c1 - 1)
 //     |            |          |     |             - II(r1 - 1, c2)
@@ -109,7 +109,7 @@ inline typename TImage::Scalar UnsafeBoxIntegral(const TImage &integral_image,
   int r2 = row + rows - 1;
   int c2 = col + cols - 1;
   assert(r1 >= 0); assert(c1 >= 0); assert(r2 >= 0); assert(c2 >= 0);
-  
+
   typedef typename TImage::Scalar T;
   T A = integral_image(r1, c1);
   T B = integral_image(r1, c2);

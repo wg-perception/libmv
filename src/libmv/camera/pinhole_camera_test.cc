@@ -30,11 +30,11 @@ namespace libmv {
 TEST(CameraModel, PinholeCameraProjection) {
   const int nviews = 8;
   const int npoints = 20;
-  
+
   NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
- 
+
   vector<PinholeCamera> cameras(nviews);
-  
+
   for (size_t i = 0; i < nviews; ++i) {
     if (i < nviews/3.) {
       cameras[i].SetFocal(d.K[i](0, 0), d.K[i](1, 1));
@@ -54,7 +54,7 @@ TEST(CameraModel, PinholeCameraProjection) {
     EXPECT_MATRIX_NEAR(d.R[i], cameras[i].orientation_matrix(), 1e-8);
     EXPECT_MATRIX_NEAR(d.t[i], cameras[i].position(), 1e-8);
   }
-  
+
   PointStructure point_3d;
   Vec3           point_3d_coords;
   PointFeature   point_2d;
@@ -64,18 +64,18 @@ TEST(CameraModel, PinholeCameraProjection) {
     for (size_t j = 0; j < d.X.cols(); ++j) {
       MatrixColumn(d.x[i], j, &point_2d_gt);
       MatrixColumn(d.X, j, &point_3d_coords);
-      
+
       point_3d.set_coords_affine(point_3d_coords);
       cameras[i].ProjectPointStructure(point_3d, &point_2d);
       point_2d_coords << point_2d.coords.cast<double>();
-      
-      EXPECT_NEAR(0, DistanceLInfinity(point_2d_gt, 
+
+      EXPECT_NEAR(0, DistanceLInfinity(point_2d_gt,
                                        point_2d_coords),
                                        1e-4);
-      
+
       cameras[i].ProjectPointStructure(point_3d, &point_2d_coords);
-      
-      EXPECT_NEAR(0, DistanceLInfinity(point_2d_gt, 
+
+      EXPECT_NEAR(0, DistanceLInfinity(point_2d_gt,
                                        point_2d_coords),
                                        1e-4);
     }

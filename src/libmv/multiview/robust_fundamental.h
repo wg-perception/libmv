@@ -48,6 +48,6 @@ double FundamentalFromCorrespondences7PointRobust(
     vector<int> *inliers = NULL,
     double outliers_probability = 1e-2);
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_ROBUST_FUNDAMENTAL_H_

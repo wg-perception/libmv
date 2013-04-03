@@ -41,7 +41,7 @@ TEST(RefineMaxima3D, SimpleRefinement) {
       }
     }
   }
-  
+
   // Check that all neighbours in a 9x9 block refine to the true minimum.
   for (int dx = -1; dx <= 1; ++dx) {
     for (int dy = -1; dy <= 1; ++dy) {

@@ -19,8 +19,8 @@
 // IN THE SOFTWARE.
 
 
-#include "libmv/descriptor/descriptor.h"
 #include "libmv/descriptor/descriptor_factory.h"
+#include "libmv/descriptor/descriptor.h"
 #include "libmv/descriptor/simpliest_descriptor.h"
 #include "libmv/descriptor/dipole_descriptor.h"
 #include "libmv/descriptor/surf_descriptor.h"
@@ -31,9 +31,7 @@ namespace libmv {
 namespace descriptor {
 
 Describer *describerFactory(eDescriber edescriber)  {
-
-  switch (edescriber)
-  {
+  switch (edescriber) {
   case SIMPLEST_DESCRIBER:
     return descriptor::CreateSimpliestDescriber();
     break;

@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
+#include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/image/image.h"
 #include "testing/testing.h"
 

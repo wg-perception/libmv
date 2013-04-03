@@ -26,8 +26,7 @@ namespace descriptor {
 
 class Describer;
 
-enum eDescriber
-{
+enum eDescriber {
   SIMPLEST_DESCRIBER,
   DIPOLE_DESCRIBER,
   SURF_DESCRIBER,
@@ -40,7 +39,7 @@ enum eDescriber
  */
 Describer *describerFactory(eDescriber edescriber = SIMPLEST_DESCRIBER);
 
-} // namespace descriptor
-} // namespace libmv
+}  // namespace descriptor
+}  // namespace libmv
 
-#endif //LIBMV_DESCRIPTOR_DESCRIBER_FACTORY_H
+#endif  // LIBMV_DESCRIPTOR_DESCRIBER_FACTORY_H

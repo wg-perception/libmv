@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/reconstruction/euclidean_reconstruction.h"
+
 #include "libmv/base/vector_utils.h"
 #include "libmv/camera/pinhole_camera.h"
 #include "libmv/correspondence/matches.h"
@@ -26,7 +28,6 @@
 #include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/robust_euclidean_resection.h"
 #include "libmv/multiview/robust_fundamental.h"
-#include "libmv/reconstruction/euclidean_reconstruction.h"
 #include "libmv/reconstruction/export_blender.h"
 #include "libmv/reconstruction/export_ply.h"
 #include "libmv/reconstruction/image_selection.h"
@@ -40,30 +41,30 @@ namespace libmv {
 
 // Function that set the given image size to an image
 inline bool SetImageSize(Reconstruction &recons,
-                         Matches::ImageID image_id, 
+                         Matches::ImageID image_id,
                          const Vec2u &image_size) {
   PinholeCamera *camera = dynamic_cast<PinholeCamera*>(
     recons.GetCamera(image_id));
   if (camera) {
-    camera->set_image_size(image_size); 
+    camera->set_image_size(image_size);
     return true;
   }
   return false;
 }
 
-bool CalibratedCameraResection(const Matches &matches, 
-                               Matches::ImageID image_id, 
-                               const Mat3 &K, 
+bool CalibratedCameraResection(const Matches &matches,
+                               Matches::ImageID image_id,
+                               const Mat3 &K,
                                Matches *matches_inliers,
                                Reconstruction *reconstruction) {
-  double rms_inliers_threshold = 1;// in pixels
+  double rms_inliers_threshold = 1;  // in pixels
   vector<StructureID> structures_ids;
   Mat2X x_image;
   Mat4X X_world;
   // Selects only the reconstructed tracks observed in the image
   SelectExistingPointStructures(matches, image_id, *reconstruction,
                                 &structures_ids, &x_image);
- 
+
   // TODO(julien) Also remove structures that are on the same location
   if (structures_ids.size() < 5) {
     LOG(ERROR) << "Error: there are not enough points to estimate the pose ("
@@ -73,18 +74,18 @@ bool CalibratedCameraResection(const Matches &matches,
   }
   MatrixOfPointStructureCoordinates(structures_ids, *reconstruction, &X_world);
   CHECK(x_image.cols() == X_world.cols());
- 
+
   Mat3X X;
   HomogeneousToEuclidean(X_world, &X);
   Mat3 R;
   Vec3 t;
   vector<int> inliers;
-  
+
   EuclideanResectionEPnPRobust(x_image, X, K, rms_inliers_threshold,
                                &R, &t, &inliers, 1e-3);
 
   // TODO(julien) Performs non-linear optimization of the pose.
-  
+
   // Create a new camera and add it to the reconstruction
   PinholeCamera * camera = new PinholeCamera(K, R, t);
   reconstruction->InsertCamera(image_id, camera);
@@ -93,7 +94,7 @@ bool CalibratedCameraResection(const Matches &matches,
             << R << std::endl <<"t= "
             << t.transpose()
             << std::endl;
-  //Add only inliers matches into 
+  // Add only inliers matches into
   const Feature * feature = NULL;
   for (size_t s = 0; s < structures_ids.size(); ++s) {
     feature = matches.Get(image_id, structures_ids[s]);
@@ -115,10 +116,10 @@ bool InitialReconstructionTwoViews(const Matches &matches,
   bool is_good = true;
   uint num_new_points = 0;
   Matches matches_inliers;
-  
+
   VLOG(2) << " -- Initial Motion Estimation --  " << std::endl;
-  double epipolar_threshold = 1;// epipolar error in pixels
-  double outliers_probability = 1e-3;// epipolar error in pixels
+  double epipolar_threshold = 1;  // epipolar error in pixels
+  double outliers_probability = 1e-3;  // epipolar error in pixels
   vector<Mat> xs(2);
   vector<Matches::TrackID> tracks;
   vector<Matches::ImageID> images;
@@ -131,7 +132,7 @@ bool InitialReconstructionTwoViews(const Matches &matches,
                << xs[0].cols()<< "<7).";
     return false;
   }
-  
+
   Mat &x0 = xs[0];
   Mat &x1 = xs[1];
   vector<int> feature_inliers;
@@ -139,7 +140,7 @@ bool InitialReconstructionTwoViews(const Matches &matches,
   // Computes fundamental matrix
   // TODO(julien) For the calibrated case, we can squeeze the fundamental using
   // directly the 5 points algorithm
-  FundamentalFromCorrespondences7PointRobust(x0,x1,
+  FundamentalFromCorrespondences7PointRobust(x0, x1,
                                              epipolar_threshold,
                                              &F, &feature_inliers,
                                              outliers_probability);
@@ -151,27 +152,27 @@ bool InitialReconstructionTwoViews(const Matches &matches,
     index_inlier = feature_inliers[c];
     v0.col(c) = x0.col(index_inlier);
     v1.col(c) = x1.col(index_inlier);
-  }  
+  }
   Mat3 E;
   // Computes essential matrix
   EssentialFromFundamental(F, K1, K2, &E);
-  
+
   Mat3 dR;
   Vec3 dt;
   // Recover motion between the two images
-  bool is_motion_ok = MotionFromEssentialAndCorrespondence(E, K1, v0.col(0), 
-                                                           K2, v1.col(0),       
+  bool is_motion_ok = MotionFromEssentialAndCorrespondence(E, K1, v0.col(0),
+                                                           K2, v1.col(0),
                                                            &dR, &dt);
   if (!is_motion_ok) {
     LOG(ERROR) << "Error: the motion cannot be estimated.";
     return false;
   }
-  
+
   Mat3 R;
   Vec3 t;
   PinholeCamera * pcamera = NULL;
   pcamera = dynamic_cast<PinholeCamera *>(recons->GetCamera(image1));
-  // If the first image has no associated camera, we choose the center of the 
+  // If the first image has no associated camera, we choose the center of the
   // coordinate frame
   if (!pcamera) {
     R.setIdentity();
@@ -187,7 +188,7 @@ bool InitialReconstructionTwoViews(const Matches &matches,
   // Recover the asolute pose: R2 = R1 * dR, t2 = R1 * dt + t1
   R = pcamera->orientation_matrix() * dR;
   t = pcamera->orientation_matrix() * dt + pcamera->position();
-  
+
   // Creates and adds the second camera
   pcamera = new PinholeCamera(K2, R, t);
   recons->InsertCamera(image2, pcamera);
@@ -196,8 +197,8 @@ bool InitialReconstructionTwoViews(const Matches &matches,
             << R << std::endl <<"t= "
             << t.transpose()
             << std::endl;
-           
-  //Adds only inliers matches into 
+
+  // Adds only inliers matches into
   const Feature * feature = NULL;
   for (size_t s = 0; s < feature_inliers.size(); ++s) {
     feature = matches.Get(image1, tracks[feature_inliers[s]]);
@@ -207,21 +208,21 @@ bool InitialReconstructionTwoViews(const Matches &matches,
   }
   // TODO(julien) remove outliers from matches using matches_inliers.
   if (!is_good) {
-    return false;                        
+    return false;
   }
-  
+
   SetImageSize(*recons, image1, image_size1);
   SetImageSize(*recons, image2, image_size2);
-  
+
   VLOG(2) << " -- Initial Intersection --  " << std::endl;
-  num_new_points = PointStructureTriangulationCalibrated(matches_inliers, 
+  num_new_points = PointStructureTriangulationCalibrated(matches_inliers,
                                                          image1,
                                                          2,
                                                          recons);
   VLOG(2) << num_new_points << " points reconstructed." << std::endl;
-  
+
   ExportToBlenderScript(*recons, "init.py");
-  
+
   // Performs projective bundle adjustment
   if (num_new_points > 0) {
     VLOG(2) << " -- Bundle adjustment --  " << std::endl;
@@ -247,32 +248,32 @@ bool IncrementalReconstructionKeyframes(const Matches &matches,
   // Estimates the pose every other images by resection-intersection
   for (; keyframe_index < kframes.size(); ++keyframe_index) {
     *keyframe_stopped_index = keyframe_index;
-    Matches matches_inliers; 
+    Matches matches_inliers;
     image_id = kframes[keyframe_index];
     VLOG(2) << " -- Incremental Resection --  " << std::endl;
-    is_good = CalibratedCameraResection(matches, 
+    is_good = CalibratedCameraResection(matches,
                                         image_id, K,
-                                        &matches_inliers, 
-                                        reconstruction);   
+                                        &matches_inliers,
+                                        reconstruction);
     if (!is_good) {
       VLOG(1) << "[Warning] Tracking lost!" << std::endl;
-      // The resection has returned an error: 
-      // we cannot estimate the camera pose by resection so we create 
+      // The resection has returned an error:
+      // we cannot estimate the camera pose by resection so we create
       // a new reconstruction (since the new one will not share the same
       // scale and coordinate frame.
       return false;
     }
     SetImageSize(*reconstruction, image_id, image_size);
     // TODO(julien) remove outliers from matches using matches_inliers.
-  
+
     VLOG(2) << " -- Incremental Intersection --  " << std::endl;
     num_new_points = PointStructureTriangulationCalibrated(
-                     matches, 
+                     matches,
                      image_id,
-                     min_num_views_for_triangulation, 
-                     reconstruction);    
+                     min_num_views_for_triangulation,
+                     reconstruction);
     VLOG(2) << num_new_points << " points reconstructed." << std::endl;
-    
+
     // Performs a bundle adjustment
     if (num_new_points > 0) {
       VLOG(2) << " -- Bundle adjustment --  " << std::endl;
@@ -290,11 +291,11 @@ bool ReconstructionNonKeyframes(const Matches &matches,
                                 std::list<Reconstruction *> *reconstructions) {
   bool is_recons_ok = true;
   // Perform a bundle adjustment every X new cameras
-  int num_new_cameras_to_proceed_ba = 10; 
+  int num_new_cameras_to_proceed_ba = 10;
   bool do_bundle_adjustment = false;
   bool is_frame_in_current_recons = false;
   bool is_frame_in_next_recons = false;
-  std::set<Matches::ImageID>::const_iterator img_iter = 
+  std::set<Matches::ImageID>::const_iterator img_iter =
     matches.get_images().begin();
   std::list<Reconstruction *>::iterator recons_iter = reconstructions->begin();
   std::list<Reconstruction *>::iterator recons_iter_next = recons_iter;
@@ -308,21 +309,21 @@ bool ReconstructionNonKeyframes(const Matches &matches,
       do_bundle_adjustment = true;
       cpt_image_for_ba = 0;
     }
-    // If the image is not a keyframe, it should belong to the same 
+    // If the image is not a keyframe, it should belong to the same
     // reconstruction than the previous image.
-    // We try to find if the image has an already reconstructed camera for 
+    // We try to find if the image has an already reconstructed camera for
     // the current reconstruction and the next one
     is_frame_in_current_recons = (*recons_iter)->ImageHasCamera(*img_iter);
-    is_frame_in_next_recons = recons_iter_next != reconstructions->end() && 
+    is_frame_in_next_recons = recons_iter_next != reconstructions->end() &&
                                  (*recons_iter_next)->ImageHasCamera(*img_iter);
     if (!is_frame_in_current_recons && !is_frame_in_next_recons) {
         VLOG(2) << " -- Incremental Resection --  " << std::endl;
-        Matches matches_inliers; 
-        is_recons_ok = CalibratedCameraResection(matches, 
+        Matches matches_inliers;
+        is_recons_ok = CalibratedCameraResection(matches,
                                                  *img_iter, K,
-                                                 &matches_inliers, 
-                                                 *recons_iter);   
-        if (is_recons_ok) {        
+                                                 &matches_inliers,
+                                                 *recons_iter);
+        if (is_recons_ok) {
           // TODO(julien) remove outliers from matches using matches_inliers.
           // Performs a bundle adjustment
           if (do_bundle_adjustment) {
@@ -340,8 +341,8 @@ bool ReconstructionNonKeyframes(const Matches &matches,
                   << " cannot be localized!" << std::endl;
         }
         cpt_i++;
-    } else if(is_frame_in_next_recons) {
-      // In this case, the current image is the first keyframe of the next 
+    } else if (is_frame_in_next_recons) {
+      // In this case, the current image is the first keyframe of the next
       // reconstruction so we increment the iterators.
       recons_iter++;
       recons_iter_next++;
@@ -351,8 +352,8 @@ bool ReconstructionNonKeyframes(const Matches &matches,
 }
 
 bool EuclideanReconstructionFromVideo(
-    const Matches &matches, 
-    int image_width, 
+    const Matches &matches,
+    int image_width,
     int image_height,
     double focal,
     std::list<Reconstruction *> *reconstructions) {
@@ -362,23 +363,23 @@ bool EuclideanReconstructionFromVideo(
   image_size << image_width, image_height;
   double cu = image_width/2 - 0.5,  cv = image_height/2 - 0.5;
   Mat3 K;  K << focal, 0, cu, 0, focal, cv, 0,   0,   1;
-  
+
   VLOG(2) << "Selecting keyframes." << std::endl;
   libmv::vector<Matches::ImageID> keyframes;
   SelectKeyframesBasedOnMatchesNumber(matches, &keyframes);
-  
+
   VLOG(2) << "Keyframe list: ";
   for (int i = 0; i < keyframes.size(); ++i)
     VLOG(2) << keyframes[i] << " ";
   VLOG(2) << std::endl;
-  
+
   if (keyframes.size() < 2) {
     VLOG(1) << "Not enough keyframes! " << std::endl;
     return false;
   }
-   
-  bool recons_ok = true;  
-  bool all_keyframes_reconstructed = false;  
+
+  bool recons_ok = true;
+  bool all_keyframes_reconstructed = false;
   int keyframe_index = 0;
   do {
     Reconstruction *cur_recons = new Reconstruction();
@@ -387,16 +388,16 @@ bool EuclideanReconstructionFromVideo(
     recons_ok = InitialReconstructionTwoViews(matches,
                                               keyframes[keyframe_index],
                                               keyframes[keyframe_index + 1],
-                                              K,K,
+                                              K, K,
                                               image_size, image_size,
-                                              cur_recons);    
+                                              cur_recons);
     keyframe_index++;
-    if (recons_ok) {    
+    if (recons_ok) {
       keyframe_index++;
       // If an initial reconstruction has been done, we keep it and
       // compute the next poses by intersection-resection
       reconstructions->push_back(cur_recons);
-      all_keyframes_reconstructed = 
+      all_keyframes_reconstructed =
        IncrementalReconstructionKeyframes(matches,
                                           keyframes,
                                           keyframe_index,
@@ -407,12 +408,12 @@ bool EuclideanReconstructionFromVideo(
         s << "out-" << keyframe_index << ".py";
       ExportToBlenderScript(*cur_recons, s.str());
     } else {
-      // If the initial reconstruction can be estimated between the 
+      // If the initial reconstruction can be estimated between the
       // 2 first views, we try with the second image and the third (etc.)
     }
-  }  while (!all_keyframes_reconstructed && 
+  }  while (!all_keyframes_reconstructed &&
             (keyframe_index < keyframes.size() - 1));
-  
+
   // Reconstructs non-keyframes by resection
   // NOTE(julien) are we sure that matches->images is ordered? it's a std:set?
   // if not the following non-keyframes reconstruction should be changed.
@@ -422,4 +423,4 @@ bool EuclideanReconstructionFromVideo(
                              reconstructions);
   return true;
 }
-} // namespace libmv
+}  // namespace libmv

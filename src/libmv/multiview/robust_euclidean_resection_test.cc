@@ -1,15 +1,15 @@
 // Copyright (c) 2010 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,19 +37,19 @@ TEST(EuclideanResectionRobustKernel, TestSynthetic6FullViews) {
   NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
   for (int i = 0; i < nviews; ++i) {
     Mat2X x = d.x[i];
-    
+
     // Now make 40% of the points in x totally wrong.
     x.block(0, 0, 2, noutliers).setRandom();
-    
+
     Mat3 R;
     Vec3 t;
     vector<int> inliers;
-    EuclideanResectionEPnPRobust(x, d.X, d.K[i], threshold_inlier, 
+    EuclideanResectionEPnPRobust(x, d.X, d.K[i], threshold_inlier,
                                  &R, &t, &inliers);
-    
+
     EXPECT_MATRIX_PROP(R, d.R[i], 3e-8);
     EXPECT_MATRIX_PROP(t, d.t[i], 3e-8);
-    
+
     // Make sure inliers were classified properly.
     for (int i = 0; i < inliers.size(); ++i) {
       LOG(INFO) << inliers[i];

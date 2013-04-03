@@ -50,7 +50,7 @@ TEST(SceneGraph, Paths) {
   char *path = node->GetPath();
   EXPECT_FALSE(strcmp(path, "/child"));
   delete [] path;
-  
+
   TestStruct *t1 = new TestStruct;
   SGNode<TestStruct> *child = MakeSGNode(t1, "childb");
   node = node->AddChild(child);
@@ -82,7 +82,7 @@ TEST(SceneGraph, BigGraph) {
   name[0] = 'a';
   int i;
   TestStruct data;
-  for (i=0; i<20; i++) {
+  for (i = 0; i < 20; i++) {
     scene_graph.AddChild(MakeSGNode(new TestStruct(data), name));
     name[0]++;
   }

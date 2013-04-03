@@ -18,11 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/correspondence/nRobustViewMatching.h"
+
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector_utils.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/correspondence/feature_matching.h"
-#include "libmv/correspondence/nRobustViewMatching.h"
 #include "libmv/descriptor/descriptor.h"
 #include "libmv/descriptor/vector_descriptor.h"
 #include "libmv/detector/detector.h"
@@ -35,14 +36,14 @@ using namespace libmv;
 using namespace correspondence;
 using namespace std;
 
-nRobustViewMatching::nRobustViewMatching(){
-   m_pDetector = NULL;
+nRobustViewMatching::nRobustViewMatching() {
+  m_pDetector = NULL;
   m_pDescriber = NULL;
 }
 
 nRobustViewMatching::nRobustViewMatching(
   detector::Detector * pDetector,
-  descriptor::Describer * pDescriber){
+  descriptor::Describer * pDescriber) {
   m_pDetector = pDetector;
   m_pDescriber = pDescriber;
 }
@@ -54,37 +55,33 @@ nRobustViewMatching::nRobustViewMatching(
  *
  * \return True if success.
  */
-bool nRobustViewMatching::computeData(const string & filename)
-{
+bool nRobustViewMatching::computeData(const string & filename) {
   Array3Du imageA;
   if (!ReadImage(filename.c_str(), &imageA)) {
     LOG(FATAL) << "Failed loading image: " << filename;
     return false;
-  }
-  else
-  {
+  } else {
     Array3Du *img_array = NULL;
     if (imageA.Depth() == 1) {
       img_array = new Array3Du(imageA);
     } else {
       Array3Du imageTemp;
-      Rgb2Gray( imageA, &imageTemp);
-      img_array = new Array3Du(imageTemp);      
+      Rgb2Gray(imageA, &imageTemp);
+      img_array = new Array3Du(imageTemp);
     }
     Image im(img_array);
 
     libmv::vector<libmv::Feature *> features;
-    m_pDetector->Detect( im, &features, NULL);
+    m_pDetector->Detect(im, &features, NULL);
 
     libmv::vector<descriptor::Descriptor *> descriptors;
     m_pDescriber->Describe(features, im, NULL, &descriptors);
 
     // Copy data.
-    m_ViewData.insert( make_pair(filename,FeatureSet()) );
+    m_ViewData.insert(make_pair(filename, FeatureSet()));
     FeatureSet & KeypointData = m_ViewData[filename];
     KeypointData.features.resize(descriptors.size());
-    for(int i = 0;i < descriptors.size(); ++i)
-    {
+    for (int i = 0; i < descriptors.size(); ++i) {
       KeypointFeature & feat = KeypointData.features[i];
       feat.descriptor = *(descriptor::VecfDescriptor*)descriptors[i];
       *(PointFeature*)(&feat) = *(PointFeature*)features[i];
@@ -107,21 +104,18 @@ bool nRobustViewMatching::computeData(const string & filename)
 *
 * \return True if success.
 */
-bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB)
-{
+bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB) {
   // Check input data
   if ( find(m_vec_InputNames.begin(), m_vec_InputNames.end(), dataA)
           == m_vec_InputNames.end() ||
          find(m_vec_InputNames.begin(), m_vec_InputNames.end(), dataB)
-          == m_vec_InputNames.end())
-  {
+          == m_vec_InputNames.end()) {
     LOG(INFO) << "[nViewMatching::MatchData] "
               << "Could not identify one of the input name.";
     return false;
   }
   if (m_ViewData.find(dataA) == m_ViewData.end() ||
-      m_ViewData.find(dataB) == m_ViewData.end())
-  {
+      m_ViewData.find(dataB) == m_ViewData.end()) {
     LOG(INFO) << "[nViewMatching::MatchData] "
               << "Could not identify data for one of the input name.";
     return false;
@@ -134,7 +128,7 @@ bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB)
                 - m_vec_InputNames.begin();
 
   Matches matches;
-  //TODO(pmoulon) make FindCandidatesMatches a parameter.
+  // TODO(pmoulon) make FindCandidatesMatches a parameter.
   FindCandidateMatches(m_ViewData[dataA],
                        m_ViewData[dataB],
                        &matches);
@@ -142,17 +136,14 @@ bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB)
                        m_ViewData[dataB],
                        &matches,eMATCH_KDTREE_FLANN , 0.6f);*/
   Matches consistent_matches;
-  if (computeConstrainMatches(matches,iDataA,iDataB,&consistent_matches))
-  {
+  if (computeConstrainMatches(matches, iDataA, iDataB, &consistent_matches)) {
     matches = consistent_matches;
   }
-  if (matches.NumTracks() > 0)
-  {
+  if (matches.NumTracks() > 0) {
     m_sharedData.insert(
       make_pair(
-        make_pair(m_vec_InputNames[iDataA],m_vec_InputNames[iDataB]),
-        matches)
-      );
+        make_pair(m_vec_InputNames[iDataA], m_vec_InputNames[iDataB]),
+        matches));
   }
 
   return true;
@@ -165,8 +156,8 @@ bool nRobustViewMatching::MatchData(const string & dataA, const string & dataB)
 *
 * \return True if success (and any matches was found).
 */
-bool nRobustViewMatching::computeCrossMatch( const libmv::vector<string> & vec_data)
-{
+bool nRobustViewMatching::computeCrossMatch
+    (const libmv::vector<string> & vec_data) {
   if (m_pDetector == NULL || m_pDescriber == NULL)  {
     LOG(FATAL) << "Invalid Detector or Describer.";
     return false;
@@ -174,18 +165,16 @@ bool nRobustViewMatching::computeCrossMatch( const libmv::vector<string> & vec_d
 
   m_vec_InputNames = vec_data;
   bool bRes = true;
-  for (int i=0; i < vec_data.size(); ++i) {
+  for (int i = 0; i < vec_data.size(); ++i) {
     bRes &= computeData(vec_data[i]);
   }
 
   bool bRes2 = true;
-  for (int i=0; i < vec_data.size(); ++i) {
-    for (int j=0; j < i; ++j)
-    {
+  for (int i = 0; i < vec_data.size(); ++i) {
+    for (int j = 0; j < i; ++j) {
       if (m_ViewData.find(vec_data[i]) != m_ViewData.end() &&
-        m_ViewData.find(vec_data[j]) != m_ViewData.end())
-      {
-        bRes2 &= this->MatchData( vec_data[i], vec_data[j]);
+        m_ViewData.find(vec_data[j]) != m_ViewData.end()) {
+        bRes2 &= this->MatchData(vec_data[i], vec_data[j]);
       }
     }
   }
@@ -194,22 +183,21 @@ bool nRobustViewMatching::computeCrossMatch( const libmv::vector<string> & vec_d
 
 bool nRobustViewMatching::computeRelativeMatch(
     const libmv::vector<string>& vec_data) {
-  if (m_pDetector == NULL || m_pDescriber == NULL)  {
+  if (m_pDetector == NULL || m_pDescriber == NULL) {
     LOG(FATAL) << "Invalid Detector or Describer.";
     return false;
   }
 
   m_vec_InputNames = vec_data;
   bool bRes = true;
-  for (int i=0; i < vec_data.size(); ++i) {
+  for (int i = 0; i < vec_data.size(); ++i) {
     bRes &= computeData(vec_data[i]);
   }
 
   bool bRes2 = true;
-  for (int i=1; i < vec_data.size(); ++i) {
+  for (int i = 1; i < vec_data.size(); ++i) {
     if (m_ViewData.find(vec_data[i-1]) != m_ViewData.end() &&
-        m_ViewData.find(vec_data[i])   != m_ViewData.end())
-    {
+        m_ViewData.find(vec_data[i])   != m_ViewData.end()) {
       bRes2 &= this->MatchData(vec_data[i-1], vec_data[i]);
     }
   }
@@ -231,10 +219,8 @@ bool nRobustViewMatching::computeRelativeMatch(
 bool nRobustViewMatching::computeConstrainMatches(const Matches & matchIn,
                              int dataAindex,
                              int dataBindex,
-                             Matches * matchesOut)
-{
-  if (matchesOut == NULL)
-  {
+                             Matches * matchesOut) {
+  if (matchesOut == NULL) {
     LOG(INFO) << "[nViewMatching::computeConstrainMatches]"
               << " Could not export constrained matches.";
     return false;
@@ -257,9 +243,9 @@ bool nRobustViewMatching::computeConstrainMatches(const Matches & matchIn,
   // Rerun Robust correspondance on the inliers.
   // it will allow to compute a better model and filter ugly fitting.
 
-  //-- Assert that the output of the model is consistent :
+  // -- Assert that the output of the model is consistent :
   // As much as the minimal points are inliers.
-  if (inliers.size() > 7 * 2) { //2* [nbPoints required by the estimator]
+  if (inliers.size() > 7 * 2) {  // 2* [nbPoints required by the estimator]
     // If tracks table is empty initialize it
     if (m_featureToTrackTable.size() == 0)  {
       // Build new correspondence graph containing only inliers.
@@ -272,22 +258,20 @@ bool nRobustViewMatching::computeConstrainMatches(const Matches & matchIn,
         m_tracks.Insert(dataBindex, l,
             matchIn.Get(dataAindex, tracks[k]));
       }
-    }
-    else  {
+    } else {
       // Else update the tracks
-      for (int l = 0; l < inliers.size(); ++l)  {
+      for (int l = 0; l < inliers.size(); ++l) {
         const int k = inliers[l];
         map<const Feature*, int>::const_iterator iter =
           m_featureToTrackTable.find(matchIn.Get(1, tracks[k]));
 
-        if (iter!=m_featureToTrackTable.end())  {
+        if (iter != m_featureToTrackTable.end()) {
           // Add a feature to the existing track
           const int trackIndex = iter->second;
           m_featureToTrackTable[matchIn.Get(0, tracks[k])] = trackIndex;
           m_tracks.Insert(dataAindex, trackIndex,
             matchIn.Get(0, tracks[k]));
-        }
-        else  {
+        } else {
           // It's a new track
           const int trackIndex = m_tracks.NumTracks();
           m_featureToTrackTable[matchIn.Get(0, tracks[k])] = trackIndex;

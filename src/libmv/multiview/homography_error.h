@@ -47,7 +47,7 @@ struct AsymmetricError {
    * \param[in]  x2  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[out] dx  A 2xN matrix of column vectors of residuals errors
    */
-  static void Residuals(const Mat &H, const Mat &x1, 
+  static void Residuals(const Mat &H, const Mat &x1,
                         const Mat &x2, Mat2X *dx) {
     dx->resize(2, x1.cols());
     Mat3X x2h_est;
@@ -74,7 +74,7 @@ struct AsymmetricError {
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous)) 
    * \param[out] dx  A vector of size 2 of the residual error
    */
-  static void Residuals(const Mat &H, const Vec &x1, 
+  static void Residuals(const Mat &H, const Vec &x1,
                         const Vec &x2, Vec2 *dx) {
     Vec3 x2h_est;
     if (x1.rows() == 2)
@@ -84,12 +84,13 @@ struct AsymmetricError {
     if (x2.rows() == 2)
       *dx = x2 - x2h_est.head<2>() / x2h_est[2];
     else
-      *dx = HomogeneousToEuclidean(static_cast<Vec3>(x2)) - x2h_est.head<2>() / x2h_est[2];
+      *dx = HomogeneousToEuclidean(static_cast<Vec3>(x2)) -
+              x2h_est.head<2>() / x2h_est[2];
   }
   /**
    * Computes the squared norm of the residuals between a set of 2D points x2 
-   * and the transformed 2D point set x1 such that  
-   *   Error = || x2 - Psi(H * x1) ||^2 
+   * and the transformed 2D point set x1 such that
+   *   Error = || x2 - Psi(H * x1) ||^2
    * where Psi is the function that transforms homogeneous to euclidean coords.
    *
    * \param[in]  H The 3x3 homography matrix.
@@ -158,7 +159,7 @@ struct SymmetricError {
    */
 struct AlgebraicError {
   // TODO(julien) Make an AlgebraicError2Rows and AlgebraicError3Rows
-  
+
   /**
    * Computes the algebraic residuals (cross product) between a set of 2D 
    * points x2 and the transformed 2D point set x1 such that 
@@ -170,7 +171,7 @@ struct AlgebraicError {
    * \param[in]  x2  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[out] dx  A 3xN matrix of column vectors of residuals errors
    */
-  static void Residuals(const Mat &H, const Mat &x1, 
+  static void Residuals(const Mat &H, const Mat &x1,
                         const Mat &x2, Mat3X *dx) {
     dx->resize(3, x1.cols());
     Vec3 col;
@@ -190,7 +191,7 @@ struct AlgebraicError {
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous)) 
    * \param[out] dx  A vector of size 3 of the residual error
    */
-  static void Residuals(const Mat &H, const Vec &x1, 
+  static void Residuals(const Mat &H, const Vec &x1,
                         const Vec &x2, Vec3 *dx) {
     Vec3 x2h_est;
     if (x1.rows() == 2)
@@ -239,9 +240,9 @@ struct AlgebraicError {
 };
 // TODO(keir): Add error based on ideal points.
 
-} // namespace homography2D
+}  // namespace homography2D
 // TODO(julien) add homography3D errors
-} // namespace homography
-} // namespace libmv
+}  // namespace homography
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_HOMOGRAPHY_ERRORS_H_

@@ -35,9 +35,9 @@ using namespace libmv;
 // Compute candidate matches between 2 sets of features.  Two features A and B
 // are a candidate match if A is the nearest neighbor of B and B is the nearest
 // neighbor of A.
-void FindSymmetricCandidateMatches_FLANN( const FeatureSet &left,
-                                          const FeatureSet &right,
-                                          Matches *matches);
+void FindSymmetricCandidateMatches_FLANN(const FeatureSet &left,
+                                         const FeatureSet &right,
+                                         Matches *matches);
 
 // Compute 2 nearest matches of featureSet left in featureSet right.
 // It allow to keep only strong and distinctive match.
@@ -47,27 +47,25 @@ void FindSymmetricCandidateMatches_FLANN( const FeatureSet &left,
 // You can use David Lowe's magic ratio (0.6 or 0.8).
 // 0.8 allow to remove 90% of the false matches while discarding less than 5%
 // of the correct matches.
-void FindCandidateMatchesDistanceRatio_FLANN( const FeatureSet &left,
-                                              const FeatureSet &right,
-                                              Matches *matches,
-                                              float fRatio = 0.8f);
+void FindCandidateMatchesDistanceRatio_FLANN(const FeatureSet &left,
+                                             const FeatureSet &right,
+                                             Matches *matches,
+                                             float fRatio = 0.8f);
 
 // FLANN_Data is only a convenient wrapper over the data
 // It do not manage data destruction
-struct FLANN_Data
-{
+struct FLANN_Data {
         float * array;
         int rows;
         int cols;
 };
 
-//-- Small Wrapper to use Flann library :
+// -- Small Wrapper to use Flann library :
 // http://www.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
 // David G. Lowe and Marius Muja
 
-bool FLANN_Wrapper(const FLANN_Data & testSet,const FLANN_Data & dataSet,
+bool FLANN_Wrapper(const FLANN_Data & testSet, const FLANN_Data & dataSet,
                   vector<int> * resultIndices, vector<float> * resultDistances,
                   int NumberOfNeighbours);
 
-
-#endif //LIBMV_CORRESPONDENCE_FEATURE_MATCHING_FLANN_H_
+#endif  // LIBMV_CORRESPONDENCE_FEATURE_MATCHING_FLANN_H_

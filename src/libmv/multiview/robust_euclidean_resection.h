@@ -30,7 +30,7 @@ namespace libmv {
 // camera from 4 or more 3D points and their images.
 // The euclidean resection solver relies on the EPnP method.
 // Returns the score associated to the solution (R,t)
-double EuclideanResectionEPnPRobust(const Mat2X &x_image, 
+double EuclideanResectionEPnPRobust(const Mat2X &x_image,
                                     const Mat3X &X_world,
                                     const Mat3  &K,
                                     double max_error,
@@ -38,6 +38,6 @@ double EuclideanResectionEPnPRobust(const Mat2X &x_image,
                                     vector<int> *inliers = NULL,
                                     double outliers_probability = 1e-2);
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_ROBUST_EUCLIDEAN_RESECTION_H_

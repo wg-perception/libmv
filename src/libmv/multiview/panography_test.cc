@@ -29,23 +29,22 @@ namespace libmv {
 namespace {
 
 TEST(Panography, PrintSomeSharedFocalEstimationValues) {
-
-  Mat x1(2,2), x2(2,2);
+  Mat x1(2, 2), x2(2, 2);
   x1<< 158, 78,
        124, 113;
   x2<< 300, 214,
        125, 114;
 
   // Normalize data (set principal point 0,0 and image border to 1.0).
-  x1.block<1,2>(0,0)/=320;
-  x1.block<1,2>(1,0)/=240;
-  x2.block<1,2>(0,0)/=320;
-  x2.block<1,2>(1,0)/=240;
+  x1.block<1, 2>(0, 0) /= 320;
+  x1.block<1, 2>(1, 0) /= 240;
+  x2.block<1, 2>(0, 0) /= 320;
+  x2.block<1, 2>(1, 0) /= 240;
   x1+=Mat2::Constant(0.5);
   x2+=Mat2::Constant(0.5);
 
   vector<double> fs;
-  F_FromCorrespondance_2points( x1, x2, &fs);
+  F_FromCorrespondance_2points(x1, x2, &fs);
 
   // Assert we found a valid solution.
   EXPECT_EQ(1, fs.size());
@@ -53,35 +52,35 @@ TEST(Panography, PrintSomeSharedFocalEstimationValues) {
 }
 
 TEST(Panography, GetR_FixedCameraCenterWithIdentity) {
-  Mat x1(3,3);
+  Mat x1(3, 3);
   x1  <<  0.5,  0.6,  0.7,
           0.5,  0.5,  0.4,
          10.0, 10.0, 10.0;
 
   Mat3 R;
   GetR_FixedCameraCenter(x1, x1, 1.0, &R);
-  R /= R(2,2);
-  EXPECT_MATRIX_NEAR( Mat3::Identity(), R, 1e-8);
+  R /= R(2, 2);
+  EXPECT_MATRIX_NEAR(Mat3::Identity(), R, 1e-8);
   LOG(INFO) << "R \n" << R;
 }
 
 TEST(Panography, Homography_GetR_Test_PitchY30) {
   int n = 3;
 
-  Mat x1(3,n);
+  Mat x1(3, n);
   x1 << 0.5, 0.6, 0.7,
         0.5, 0.5, 0.4,
         10,   10,  10;
 
   Mat x2 = x1;
-  const double alpha = 30.0 * M_PI / 180.0;;
+  const double alpha = 30.0 * M_PI / 180.0;
   Mat3 rotY;
   rotY << cos(alpha), 0, -sin(alpha),
                0,     1,      0,
           sin(alpha), 0,  cos(alpha);
 
   for (int i = 0; i < n; ++i) {
-    x2.block<3,1>(0, i) = rotY * x1.col(i);
+    x2.block<3, 1>(0, i) = rotY * x1.col(i);
   }
 
   Mat3 R;
@@ -95,18 +94,17 @@ TEST(Panography, Homography_GetR_Test_PitchY30) {
 
   // Check that the rotation angle along Y is the expected one.
   // Use the euler approximation to recover the angle.
-  double pitch_y = asin(R(2,0)) * 180.0 / M_PI;
+  double pitch_y = asin(R(2, 0)) * 180.0 / M_PI;
   EXPECT_NEAR(30, pitch_y, 1e-4);
 }
 
-TEST(MinimalPanoramic, Real_Case_Kernel)
-{
+TEST(MinimalPanoramic, Real_Case_Kernel) {
   const int n = 2;
-  Mat x1(2,n);  // From image 0.jpg
+  Mat x1(2, n);  // From image 0.jpg
   x1<< 158, 78,
        124, 113;
 
-  Mat x2(2,n);  // From image 3.jpg
+  Mat x2(2, n);  // From image 3.jpg
   x2<<  300, 214,
         125, 114;
 
@@ -123,11 +121,11 @@ TEST(MinimalPanoramic, Real_Case_Kernel)
   for (int j = 0; j < Hs.size(); ++j) {
     Mat3 H = Hs[j];
 
-    EXPECT_MATRIX_NEAR( H, Ground_TruthHomography, 1e-1);
+    EXPECT_MATRIX_NEAR(H, Ground_TruthHomography, 1e-1);
 
     Mat x1h, x2h;
-    EuclideanToHomogeneous(x1,&x1h);
-    EuclideanToHomogeneous(x2,&x2h);
+    EuclideanToHomogeneous(x1, &x1h);
+    EuclideanToHomogeneous(x2, &x2h);
 
     // Assert that residuals are small enough
     for (int i = 0; i < n; ++i) {

@@ -18,9 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <fstream>
-
 #include "libmv/correspondence/export_matches_txt.h"
+
+#include <fstream>
 
 namespace libmv {
 
@@ -34,8 +34,8 @@ void ExportMatchesToTxt(const Matches &matches, std::string out_file_name) {
       // Exports points
       Matches::Features<PointFeature> pfeatures =
           matches.InImage<PointFeature>(*iter_image);
-      while(pfeatures) {
-        outfile << *iter_image << " " << pfeatures.track() << " " 
+      while (pfeatures) {
+        outfile << *iter_image << " " << pfeatures.track() << " "
                 << pfeatures.feature()->x() << " "
                 << pfeatures.feature()->y() << std::endl;
         pfeatures.operator++();
@@ -44,4 +44,4 @@ void ExportMatchesToTxt(const Matches &matches, std::string out_file_name) {
     outfile.close();
   }
 }
-} // namespace libmv
+}  // namespace libmv

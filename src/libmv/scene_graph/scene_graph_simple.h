@@ -43,7 +43,7 @@ class Node {
   typedef std::map<string, NodeT *> ChildMap;
  public:
   virtual ~Node() {
-    typename ChildMap::iterator it,cp;
+    typename ChildMap::iterator it, cp;
     for (it = children_.begin(); it != children_.end();) {
       cp = it;
       ++cp;
@@ -150,7 +150,7 @@ class Node {
     iterator(const typename ChildMap::iterator &it):ChildMap::iterator(it) {   }
   public:
     iterator():ChildMap::iterator() {   }
-    NodeT &operator*() const{
+    NodeT &operator*() const {
       return (*(ChildMap::iterator::operator*().second));
     }
     NodeT *operator->() {

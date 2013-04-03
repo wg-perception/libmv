@@ -37,7 +37,7 @@ using namespace libmv;
 
 TEST(RobustFundamental, FundamentalFromCorrespondences8PointRobust) {
   const int n = 16;
-  Mat x1(2,n);
+  Mat x1(2, n);
   x1 << 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4,   5,
         0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2,   5;
 
@@ -58,14 +58,14 @@ TEST(RobustFundamental, FundamentalFromCorrespondences8PointRobust) {
   // F should be 0, 0,  0,
   //             0, 0, -1,
   //             0, 1,  0
-  EXPECT_NEAR(0.0, F(0,0), 1e-8);
-  EXPECT_NEAR(0.0, F(0,1), 1e-8);
-  EXPECT_NEAR(0.0, F(0,2), 1e-8);
-  EXPECT_NEAR(0.0, F(1,0), 1e-8);
-  EXPECT_NEAR(0.0, F(1,1), 1e-8);
-  EXPECT_NEAR(0.0, F(2,0), 1e-8);
-  EXPECT_NEAR(0.0, F(2,2), 1e-8);
-  EXPECT_NEAR(F(1,2), -F(2,1), 1e-8);
+  EXPECT_NEAR(0. 0, F(0, 0), 1e-8);
+  EXPECT_NEAR(0. 0, F(0, 1), 1e-8);
+  EXPECT_NEAR(0. 0, F(0, 2), 1e-8);
+  EXPECT_NEAR(0. 0, F(1, 0), 1e-8);
+  EXPECT_NEAR(0. 0, F(1, 1), 1e-8);
+  EXPECT_NEAR(0. 0, F(2, 0), 1e-8);
+  EXPECT_NEAR(0. 0, F(2, 2), 1e-8);
+  EXPECT_NEAR(F(1, 2), -F(2, 1), 1e-8);
 
   EXPECT_EQ(n - 1, inliers.size());
 }
@@ -90,7 +90,7 @@ TEST(RobustFundamental,
   EXPECT_MATRIX_NEAR(F_gt_norm, F_estimated_norm, 1e-8);
 
   // Check fundamental properties.
-  ExpectFundamentalProperties( F_estimated, d.x1, d.x2, 1e-8);
+  ExpectFundamentalProperties(F_estimated, d.x1, d.x2, 1e-8);
 }
 
 
@@ -116,8 +116,8 @@ TEST(RobustFundamental, FundamentalFromCorrespondences8PointRealistic) {
                                              &F_estimated, &inliers);
 
   LOG(INFO) << "Number of inliers = " << inliers.size();
-  EXPECT_LE(d.x1.cols(), inliers.size()); // Some outliers may be considered
-                                          // inliers, that's fine.
+  EXPECT_LE(d.x1.cols(), inliers.size());  // Some outliers may be considered
+                                           // inliers, that's fine.
 
   // Normalize.
   Mat3 F_gt_norm, F_estimated_norm;
@@ -130,13 +130,13 @@ TEST(RobustFundamental, FundamentalFromCorrespondences8PointRealistic) {
   EXPECT_MATRIX_NEAR(F_gt_norm, F_estimated_norm, 1e-8);
 
   // Check fundamental properties.
-  ExpectFundamentalProperties( F_estimated, d.x1, d.x2, 1e-8);
+  ExpectFundamentalProperties(F_estimated, d.x1, d.x2, 1e-8);
 }
 
 
 TEST(RobustFundamental, FundamentalFromCorrespondences7PointRobust) {
   const int n = 16;
-  Mat x1(2,n);
+  Mat x1(2, n);
   x1 << 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
         0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 5;
 
@@ -160,16 +160,17 @@ TEST(RobustFundamental, FundamentalFromCorrespondences7PointRobust) {
   // b,  c,   0
   const double expectedPrecision = 1e-8;
   const double & ep = expectedPrecision;
-  EXPECT_NEAR(0.0, F(0,0), ep);
-  EXPECT_NEAR(0.0, F(1,1), ep);
-  EXPECT_NEAR(0.0, F(2,2), ep);
-  EXPECT_NEAR(F(0,1), -F(1,0), ep);
-  EXPECT_NEAR(F(0,2), -F(2,0), ep);
-  EXPECT_NEAR(F(1,2), -F(2,1), ep);
+  EXPECT_NEAR(0.0, F(0, 0), ep);
+  EXPECT_NEAR(0.0, F(1, 1), ep);
+  EXPECT_NEAR(0.0, F(2, 2), ep);
+  EXPECT_NEAR(F(0, 1), -F(1, 0), ep);
+  EXPECT_NEAR(F(0, 2), -F(2, 0), ep);
+  EXPECT_NEAR(F(1, 2), -F(2, 1), ep);
 
   EXPECT_EQ(n - 1, inliers.size());
   // 15 must not be in inliers indices list.
-  EXPECT_EQ(std::find(inliers.begin(), inliers.end(), 15) == inliers.end() , true);
+  EXPECT_EQ(std::find(inliers.begin(), inliers.end(), 15) == inliers.end(),
+            true);
 }
 
 
@@ -192,7 +193,7 @@ TEST(RobustFundamental, FundamentalFromCorrespondences7PointRealisticNoOutliers)
 
   EXPECT_MATRIX_NEAR(F_gt_norm, F_estimated_norm, 1e-2);
 
-  ExpectFundamentalProperties( F_estimated, d.x1, d.x2, 1e-6 );
+  ExpectFundamentalProperties(F_estimated, d.x1, d.x2, 1e-6);
 }
 
-} // namespace
+}  // namespace

@@ -45,15 +45,15 @@ TYPED_TEST(EuclideanKernelTest, Fitting) {
   vector<Mat3> H_gt(3);
 
   H_gt[0] = Mat3::Identity();
-  
+
   H_gt[1] << 1, 0, -4,
              0, 1,  5,
              0, 0,  1;
   double angle = 0.3;
-  H_gt[2] << cos(angle),-sin(angle),  3,
-             sin(angle), cos(angle), -6,
+  H_gt[2] << cos(angle), -sin(angle),  3,
+             sin(angle),  cos(angle), -6,
              0,  0,  1;
-  
+
   // Define a set of points.
   Mat x(2, 9), xh;
   x << 0, 0, 0, 1, 1, 1, 2, 2, 2,

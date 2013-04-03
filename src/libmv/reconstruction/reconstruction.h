@@ -31,7 +31,7 @@
 #include "libmv/multiview/structure.h"
 
 namespace libmv {
-// TODO(julien) shoud a camera have the same ID then an image? 
+// TODO(julien) shoud a camera have the same ID then an image?
 typedef Matches::ImageID CameraID;
 typedef Matches::TrackID StructureID;
 // Use cases:
@@ -52,7 +52,7 @@ typedef Matches::TrackID StructureID;
 //   Iterate over (derived) points
 //
 // For bundling:
-// 
+//
 //   Iterate over features, and access corresponding structure / camera.
 //
 // For resection:
@@ -63,7 +63,7 @@ typedef Matches::TrackID StructureID;
 //      correspondences.
 //
 //   For 1: Loop through each Image, see if there is a Camera.
-//     
+//
 //     Need fast 'Image to Camera or NULL" on Reconstruction.
 //
 //   For 2: Loop through Tracks matching Features in this Image, checking for
@@ -83,7 +83,7 @@ typedef Matches::TrackID StructureID;
 //
 //     Need fast "Track has Structure?" query.
 //     Need fast "Image has Camera?" query.
-//   
+//
 
 // Possible signatures:
 //
@@ -96,7 +96,7 @@ typedef Matches::TrackID StructureID;
 // The reconstruction takes ownership of camera and structure.
 class Reconstruction {
  public:
-   
+
   Reconstruction() {}
   ~Reconstruction() {}
 
@@ -109,44 +109,44 @@ class Reconstruction {
       cameras_[id] = camera;
     }
   }
-  
+
   void InsertTrack(StructureID id, Structure *structure) {
     std::map<StructureID, Structure *>::iterator it = structures_.find(id);
     if (it != structures_.end()) {
       delete it->second;
-      it->second = structure; 
+      it->second = structure;
     } else {
       structures_[id] = structure;
     }
   }
-  
+
   void RemoveCamera(CameraID id) {
     std::map<CameraID, Camera *>::iterator it = cameras_.find(id);
     if (it != cameras_.end()) {
-      delete it->second; 
+      delete it->second;
       cameras_.erase(it);
     }
   }
-  
+
   void RemoveTrack(StructureID id) {
     std::map<StructureID, Structure *>::iterator it = structures_.find(id);
     if (it != structures_.end()) {
-      delete it->second; 
+      delete it->second;
       structures_.erase(it);
     }
   }
-  
+
   bool ImageHasCamera(CameraID id) const {
     std::map<CameraID, Camera *>::const_iterator it = cameras_.find(id);
     return it != cameras_.end();
   }
-  
+
   bool TrackHasStructure(StructureID id) const {
     std::map<StructureID, Structure *>::const_iterator it =
       structures_.find(id);
     return it != structures_.end();
   }
-  
+
   Camera * GetCamera(CameraID id) const {
     std::map<CameraID, Camera *>::const_iterator it = cameras_.find(id);
     if (it != cameras_.end()) {
@@ -154,7 +154,7 @@ class Reconstruction {
     }
     return NULL;
   }
-  
+
   Structure * GetStructure(StructureID id) const {
     std::map<StructureID, Structure *>::const_iterator it =
       structures_.find(id);
@@ -163,7 +163,7 @@ class Reconstruction {
     }
     return NULL;
   }
-  
+
   void ClearCamerasMap() {
     std::map<CameraID, Camera *>::iterator it = cameras_.begin();
     for (; it != cameras_.end(); ++it) {
@@ -178,7 +178,7 @@ class Reconstruction {
     }
     structures_.clear();
   }
-  
+
   size_t GetNumberCameras() const    { return cameras_.size(); }
   size_t GetNumberStructures() const { return structures_.size(); }
 
@@ -192,7 +192,7 @@ class Reconstruction {
     return structures_; }
   const Matches                             & matches() const {
     return matches_; }
-  
+
  private:
   std::map<CameraID, Camera *>        cameras_;
   std::map<StructureID, Structure *>  structures_;

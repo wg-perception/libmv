@@ -47,8 +47,8 @@ class BipartiteGraph {
     if (iter != right_to_left_.end())
       right_to_left_.erase(iter);
   }
-  
-  int NumLeftLeft(T left) const { 
+
+  int NumLeftLeft(T left) const {
     int n = 0;
     typename EdgeMap::const_iterator it;
     for (it = left_to_right_.begin(); it != left_to_right_.end(); ++it) {
@@ -57,8 +57,8 @@ class BipartiteGraph {
     }
     return n;
   }
-  
-  int NumLeftRight(T right) const { 
+
+  int NumLeftRight(T right) const {
     int n = 0;
     typename EdgeMap::const_iterator it;
     for (it = left_to_right_.begin(); it != left_to_right_.end(); ++it) {
@@ -67,15 +67,15 @@ class BipartiteGraph {
     }
     return n;
   }
-  
-  // Erases all the elements.  
+
+  // Erases all the elements.
   // Note that this function does not desallocate pointers
-  void Clear() { 
+  void Clear() {
     left_to_right_.clear();
     right_to_left_.clear();
   }
   class Range {
-   friend class BipartiteGraph<T, EdgeT>;
+    friend class BipartiteGraph<T, EdgeT>;
    public:
     T left()  const { return reversed_ ? it_->first.second : it_->first.first; }
     T right() const { return reversed_ ? it_->first.first  : it_->first.second;}

@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/autocalibrate.h"
+
 #include <cmath>
 #include <limits>
 
@@ -31,7 +33,7 @@ namespace libmv {
 // Finds a transformation H such that P * H = [I|0].
 Mat4 NormalizingTransform(const Mat34 &P) {
   // Assuming that
-  // 
+  //
   //   P1 = [Q | q] ,
   //
   // then the transformation H, shown below,
@@ -275,7 +277,7 @@ void UpgradeProjectiveReconstructionToEuclidean(
   // Set the intrinsics to the best one. Since the reconstruction is
   // quasicalibrated, only the focal length needs setting.
   camera_intrinsics->SetK(Mat3::Identity());
-  camera_intrinsics->SetFocalLength(best_focal_length,best_focal_length);
+  camera_intrinsics->SetFocalLength(best_focal_length, best_focal_length);
 
   // Make the Euclidean cameras.
   for (int i = 0; i < all_cameras.size(); i++) {

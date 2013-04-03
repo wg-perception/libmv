@@ -34,22 +34,22 @@ TEST(LensDistortion, LensDistortionDistortUndistor) {
 
   NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
 
-  Vec2u size_image(d.K[0](0,2)*2., d.K[0](1,2)*2.);
-  Vec radial_k,tangential_p;
+  Vec2u size_image(d.K[0](0, 2)*2., d.K[0](1, 2)*2.);
+  Vec radial_k, tangential_p;
 
   Mat2X x_distorted_undistorted[nviews];
   Vec2 x;
 
-  //generate some distortion parameters
+  // generate some distortion parameters
   vector<Vec> realistic_radial_k;
   vector<Vec> realistic_tangential_p;
 
-  realistic_radial_k.push_back(Vec4(0.441142,-0.299391,0.000664,-0.000428));
+  realistic_radial_k.push_back(Vec4(0.441142, -0.299391, 0.000664, -0.000428));
   realistic_tangential_p.push_back(Vec());
-  realistic_radial_k.push_back(Vec2(0.44,-0.299));
-  realistic_tangential_p.push_back(Vec2(0.01,0.01));
-  realistic_radial_k.push_back(Vec2(0.24,-0.199));
-  realistic_tangential_p.push_back(Vec3(0.11,0.01,0.001));
+  realistic_radial_k.push_back(Vec2(0.44, -0.299));
+  realistic_tangential_p.push_back(Vec2(0.01, 0.01));
+  realistic_radial_k.push_back(Vec2(0.24, -0.199));
+  realistic_tangential_p.push_back(Vec3(0.11, 0.01, 0.001));
   // TODO(julien) use some more distinct  realistic distortion data
   // TODO(pmoulon) I suggest simulate a K1 level disto, a K1-2-3, and K+Tang.
 

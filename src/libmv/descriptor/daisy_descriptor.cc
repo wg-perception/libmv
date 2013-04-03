@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/descriptor/daisy_descriptor.h"
+
 #include "libmv/logging/logging.h"
 #include "libmv/descriptor/descriptor.h"
 #include "libmv/descriptor/vector_descriptor.h"

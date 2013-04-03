@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/reconstruction/projective_reconstruction.h"
+
 #include "libmv/base/vector_utils.h"
 #include "libmv/camera/pinhole_camera.h"
 #include "libmv/multiview/autocalibration.h"
@@ -27,16 +29,15 @@
 #include "libmv/reconstruction/mapping.h"
 #include "libmv/reconstruction/optimization.h"
 #include "libmv/reconstruction/tools.h"
-#include "libmv/reconstruction/projective_reconstruction.h"
 
 namespace libmv {
 
-bool ReconstructFromTwoUncalibratedViews(const Matches &matches, 
-                                         CameraID image_id1, 
-                                         CameraID image_id2, 
+bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
+                                         CameraID image_id1,
+                                         CameraID image_id2,
                                          Matches *matches_inliers,
                                          Reconstruction *reconstruction) {
-  double epipolar_threshold = 1;// in pixels
+  double epipolar_threshold = 1;  // in pixels
   vector<Mat> xs(2);
   vector<Matches::TrackID> tracks;
   vector<Matches::ImageID> images;
@@ -49,7 +50,7 @@ bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
                << xs[0].cols()<< "<7).";
     return false;
   }
-  
+
   Mat &x0 = xs[0];
   Mat &x1 = xs[1];
   vector<int> feature_inliers;
@@ -59,7 +60,7 @@ bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
   // directly the 5 points algorithm
   FundamentalFromCorrespondences7PointRobust(x0, x1,
                                              epipolar_threshold,
-                                             &F, &feature_inliers, 
+                                             &F, &feature_inliers,
                                              1e-3);
   Mat34 P1;
   Mat34 P2;
@@ -67,7 +68,7 @@ bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
   PinholeCamera * pcamera = NULL;
   pcamera = dynamic_cast<PinholeCamera *>(
     reconstruction->GetCamera(image_id1));
-  // If the first image has no associated camera, we choose the center of the 
+  // If the first image has no associated camera, we choose the center of the
   // coordinate frame
   if (!pcamera) {
     pcamera = new PinholeCamera(P1);
@@ -90,8 +91,8 @@ bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
   VLOG(1)   << "Add Camera ["
             << image_id2 <<"]"<< std::endl <<"P="
               << P2 << std::endl;
-            
-  //Adds only inliers matches into 
+
+  // Adds only inliers matches into
   const Feature * feature = NULL;
   for (size_t s = 0; s < feature_inliers.size(); ++s) {
     feature = matches.Get(image_id1, tracks[feature_inliers[s]]);
@@ -103,18 +104,18 @@ bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
   return true;
 }
 
-bool UncalibratedCameraResection(const Matches &matches, 
-                                 CameraID image_id, 
+bool UncalibratedCameraResection(const Matches &matches,
+                                 CameraID image_id,
                                  Matches *matches_inliers,
                                  Reconstruction *reconstruction) {
-  double rms_inliers_threshold = 1;// in pixels
+  double rms_inliers_threshold = 1;  // in pixels
   vector<StructureID> structures_ids;
   Mat2X x_image;
   Mat4X X_world;
   // Selects only the reconstructed tracks observed in the image
   SelectExistingPointStructures(matches, image_id, *reconstruction,
                                 &structures_ids, &x_image);
- 
+
   // TODO(julien) Also remove structures that are on the same location
   if (structures_ids.size() < 6) {
     LOG(ERROR) << "Error: there are not enough points to estimate the "
@@ -122,24 +123,24 @@ bool UncalibratedCameraResection(const Matches &matches,
     // We need at least 6 tracks in order to do resection
     return false;
   }
-  
+
   MatrixOfPointStructureCoordinates(structures_ids, *reconstruction, &X_world);
   CHECK(x_image.cols() == X_world.cols());
-  
+
   Mat34 P;
   vector<int> inliers;
-  ResectionRobust(x_image, X_world, rms_inliers_threshold, &P,&inliers, 1e-3);
+  ResectionRobust(x_image, X_world, rms_inliers_threshold, &P, &inliers, 1e-3);
 
   // TODO(julien) Performs non-linear optimization of the pose.
-  
+
   // Creates a new camera and add it to the reconstruction
   PinholeCamera * camera = new PinholeCamera(P);
   reconstruction->InsertCamera(image_id, camera);
-  
+
   VLOG(1)   << "Add Camera ["
             << image_id <<"]"<< std::endl <<"P="
             << P << std::endl;
-  //Adds only inliers matches into 
+  // Adds only inliers matches into
   const Feature * feature = NULL;
   for (size_t s = 0; s < structures_ids.size(); ++s) {
     feature = matches.Get(image_id, structures_ids[s]);
@@ -149,8 +150,8 @@ bool UncalibratedCameraResection(const Matches &matches,
   return true;
 }
 
-bool UpgradeToMetric(const Matches &matches, 
-                     Reconstruction *reconstruction) { 
+bool UpgradeToMetric(const Matches &matches,
+                     Reconstruction *reconstruction) {
   double rms = EstimateRootMeanSquareError(matches, reconstruction);
   VLOG(1)   << "Upgrade to Metric - Initial RMS:" << rms << std::endl;
   AutoCalibrationLinear auto_calibration_linear;
@@ -173,13 +174,13 @@ bool UpgradeToMetric(const Matches &matches,
       auto_calibration_linear.AddProjection(pcamera->projection_matrix(),
                                             image_width, image_height);
     }
-  } 
+  }
   // TODO(julien) Put the following in a function.
   // Upgrade the reconstruction to metric using {Pm, Xm} = {P*H, H^{-1}*X}
   Mat4 H = auto_calibration_linear.MetricTransformation();
   VLOG(1)   << "Rectification H = " << H << "\n";
   if (isnan(H.sum())) {
-    LOG(ERROR) << "Warning: The metric rectification cannot be applied, the "  
+    LOG(ERROR) << "Warning: The metric rectification cannot be applied, the "
                << "matrix contains NaN values.\n";
     return false;
   }
@@ -190,7 +191,7 @@ bool UpgradeToMetric(const Matches &matches,
     if (pcamera) {
       P = pcamera->projection_matrix() * H;
       pcamera->set_projection_matrix(P);
-      P_From_KRt(pcamera->intrinsic_matrix(),  
+      P_From_KRt(pcamera->intrinsic_matrix(),
                  pcamera->orientation_matrix(),
                  pcamera->position(), &P);
       // TODO(julien) change this.
@@ -210,4 +211,4 @@ bool UpgradeToMetric(const Matches &matches,
   MetricBundleAdjust(matches, reconstruction);
   return true;
 }
-} // namespace libmv
+}  // namespace libmv

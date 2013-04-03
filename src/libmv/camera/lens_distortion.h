@@ -47,12 +47,12 @@ class PinholeCamera;
 //    + (p1(r^2 + 2(x-cx)^2) + 2p2(x-cx)(y-cy))(1 + p3*r^2 +...)
 //  v = y + (y - cy) * (k1 * r^2 + k2 * r^4 +...)
 //   + (p2(r^2 + 2(y-cy)^2) + 2p1(x-cx)(y-cy))(1 + p3*r^2 +...)
- //
+//
 class LensDistortion {
  public:
-  LensDistortion(const Vec &radial_distortion = Vec(), 
+  LensDistortion(const Vec &radial_distortion = Vec(),
                  const Vec &tangential_distortion = Vec());
-  virtual ~LensDistortion() {};
+  virtual ~LensDistortion() {}
 
   // Compute the distorted coordinates of a 2D point
   // \param[in] camera is a pinhole camera model
@@ -72,7 +72,7 @@ class LensDistortion {
                                              const Vec2 &point,
                                              Vec2 *undistorted_point) const;
 
-  
+
   void set_radial_distortion(const Vec &radial_distortion) {
     radial_distortion_ = radial_distortion;
   }
@@ -86,7 +86,6 @@ class LensDistortion {
  private:
   Vec radial_distortion_;
   Vec tangential_distortion_;
-
 };
 
 //
@@ -95,7 +94,7 @@ class LensDistortion {
 // This class is cleary not thought out yet!
 class LensDistortionField : public LensDistortion {
  public:
-  LensDistortionField(const Vec &radial_distortion = Vec(), 
+  LensDistortionField(const Vec &radial_distortion = Vec(),
                       const Vec &tangential_distortion = Vec());
 
   // Compute the undistorted coordinates of a 2D point
@@ -110,15 +109,15 @@ class LensDistortionField : public LensDistortion {
   // The function constructs two vectors containing the undistorted
   // coordinates for every pixels of an image
   void ComputeDistortionMap(const PinholeCamera &camera);
- 
+
  private:
   // TODO(julien): Find an efficient index for the precomputed map
   // Contains the undistorted coordinates for every pixel
   vector<Vec> precomputed_undistortion_grid_;
-  // Defines if the precomputed_distortion_grid is precomputed or not 
+  // Defines if the precomputed_distortion_grid is precomputed or not
   bool is_precomputed_grid_done_;
 };
 
-}
+}  // namespace libmv
 
 #endif  // LIBMV_CAMERA_LENS_DISTORTION_H_

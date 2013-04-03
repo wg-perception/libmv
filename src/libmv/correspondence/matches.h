@@ -46,7 +46,7 @@ class Matches {
   ~Matches();
 
   // Iterate over features, silently skiping any that are not FeatureT or
-  // derived from FeatureT. 
+  // derived from FeatureT.
   template<typename FeatureT>
   class Features {
    public:
@@ -94,8 +94,8 @@ class Matches {
   void Remove(ImageID image, TrackID track) {
     graph_.Remove(image, track);
   }
-  
-  // Erases all the elements.  
+
+  // Erases all the elements.
   // Note that this function does not desallocate features
   void Clear() {
     graph_.Clear();
@@ -110,7 +110,7 @@ class Matches {
     std::map<TrackID, TrackID> new_track_ids;
     std::set<ImageID>::const_iterator iter_image;
     std::set<TrackID>::const_iterator iter_track;
-    
+
     ImageID image_id;
     iter_image = matches.images_.begin();
     for (; iter_image != matches.images_.end(); ++iter_image) {
@@ -141,7 +141,7 @@ class Matches {
     std::map<TrackID, TrackID> new_track_ids;
     std::set<ImageID>::const_iterator iter_image;
     std::set<TrackID>::const_iterator iter_track;
-    //Find non common elements and add them into new_matches
+    // Find non common elements and add them into new_matches
     std::set<ImageID>::const_iterator found_image;
     std::set<TrackID>::const_iterator found_track;
     iter_image = matches.images_.begin();
@@ -153,57 +153,57 @@ class Matches {
       iter_track = matches.tracks_.begin();
       for (; iter_track != matches.tracks_.end(); ++iter_track) {
         found_track = tracks_.find(*iter_track);
-        if (found_track == tracks_.end() 
+        if (found_track == tracks_.end()
           && new_track_ids.find(*iter_track) == new_track_ids.end()) {
           new_track_ids[*iter_track] = *iter_track;
           tracks_.insert(*iter_track);
-        }      
+        }
         const Feature * feature = matches.Get(*iter_image, *iter_track);
         graph_.Insert(*iter_image, *iter_track, feature);
       }
     }
   }
-  
+
   const Feature *Get(ImageID image, TrackID track) const {
     const Feature *const *f = graph_.Edge(image, track);
     return f ? *f : NULL;
   }
-  
+
   ImageID GetMaxImageID() const {
     ImageID max_images = -1;
     std::set<ImageID>::const_iterator iter_image =
-     std::max_element (images_.begin(), images_.end());
+     std::max_element(images_.begin(), images_.end());
     if (iter_image != images_.end()) {
       max_images = *iter_image;
     }
     return max_images;
   }
-  
+
   TrackID GetMaxTrackID() const {
     TrackID max_tracks = -1;
     std::set<TrackID>::const_iterator iter_track =
-     std::max_element (tracks_.begin(), tracks_.end());
+     std::max_element(tracks_.begin(), tracks_.end());
     if (iter_track != tracks_.end()) {
       max_tracks = *iter_track;
     }
     return max_tracks;
   }
-  
+
   const std::set<ImageID> &get_images() const {
     return images_;
   }
   const std::set<TrackID> &get_tracks() const {
     return tracks_;
   }
-  
+
   int NumFeatureImage(ImageID image_id) const {
     return graph_.NumLeftLeft(image_id);
   }
-  
+
   int NumFeatureTrack(TrackID track_id) const {
     return graph_.NumLeftRight(track_id);
   }
-    
+
   size_t NumTracks() const { return tracks_.size(); }
   size_t NumImages() const { return images_.size(); }
 
@@ -294,7 +294,7 @@ inline void PointMatchMatrices(const Matches &matches,
 }
 
 inline void TwoViewPointMatchMatrices(const Matches &matches,
-                                      Matches::ImageID image_id1, 
+                                      Matches::ImageID image_id1,
                                       Matches::ImageID image_id2,
                                       vector<Mat> *xs) {
   vector<Matches::TrackID> tracks;

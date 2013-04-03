@@ -35,7 +35,7 @@ namespace libmv {
  * - 3D points on a plane (+ general moving camera)
  * - 3D points + rotating camera (pure rotation)
  * - 3D points + differents focal lengths (or plan projection)
- * 
+ *
  * \param[in] x1 The first 2xN matrix of euclidean points
  * \param[in] x2 The second 2xN matrix of euclidean points
  * \param[in] max_error maximum error (in pixels)
@@ -50,9 +50,9 @@ namespace libmv {
  * The number of iterations is controlled using the following equation:
  *    n_iter = log(outliers_prob) / log(1.0 - pow(inlier_ratio, min_samples)))
  * The more this value is high, the less the function selects ramdom samples.
- * 
+ *
  * \return the best error found (in pixels), associated to the solution H
- * 
+ *
  * \note The function needs at least 4 points 
  * \note The overall iteration limit is 1000
  */
@@ -64,6 +64,6 @@ double Homography2DFromCorrespondences4PointRobust(
     vector<int> *inliers = NULL,
     double outliers_probability = 1e-2);
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_ROBUST_HOMOGRAPHY_H_

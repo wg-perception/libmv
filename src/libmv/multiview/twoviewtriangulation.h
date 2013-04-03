@@ -51,9 +51,9 @@ namespace libmv {
 * by D. Nist\'er, IEEE PAMI, vol. 26
 */
 void TwoViewTriangulationByPlanes(const Vec3 &x1, const Vec3 &x2,
-                                  const Mat34 &P,const Mat3 &E, Vec4 *X);
+                                  const Mat34 &P, const Mat3 &E, Vec4 *X);
 void TwoViewTriangulationByPlanes(const Vec2 &x1, const Vec2 &x2,
-                                  const Mat34 &P,const Mat3 &E, Vec3 *X);
+                                  const Mat34 &P, const Mat3 &E, Vec3 *X);
 
 /**
 * The same algorithm as above generalized for ideal points,

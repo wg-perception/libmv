@@ -25,7 +25,7 @@
 
 namespace libmv {
 // Exports the reconstruction in a Blender script format file
-void ExportToBlenderScript(const Reconstruction &reconstruct, 
+void ExportToBlenderScript(const Reconstruction &reconstruct,
                            std::string out_file_name);
 }  // namespace libmv
 

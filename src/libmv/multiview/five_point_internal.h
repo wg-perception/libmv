@@ -1,15 +1,15 @@
 // Copyright (c) 2011 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,7 @@ namespace libmv {
 
 // In the following code, polynomials are expressed as vectors containing
 // their coeficients in the basis of monomials:
-// 
+//
 //   [xxx xxy xyy yyy xxz xyz yyz xzz yzz zzz xx xy yy xz yz zz x y z 1]
 //
 // Note that there is an error in Stewenius' paper.  In equation (9) they
@@ -71,11 +71,11 @@ Mat FivePointsNullspaceBasis(const Mat2X &x1, const Mat2X &x2);
 // Multiply two polynomials of degree 1.
 Vec o1(const Vec &a, const Vec &b);
 
-// Multiply a polynomial of degree 2, a, by a polynomial of degree 1, b.
+// Multiply a polynomial of degree 2, a, by a polynomial of degree 1, b
 Vec o2(const Vec &a, const Vec &b);
 
 void FivePointsGaussJordan(Mat *Mp);
-  
-} // namespace libmv
+
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_FIVE_POINT_H_

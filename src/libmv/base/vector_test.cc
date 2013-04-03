@@ -193,18 +193,18 @@ TEST_F(VectorTest, STLFind) {
   a.push_back(3);
 
   // Find return an int *
-  EXPECT_EQ( std::find( &a[0], &a[2], 1 ) == &a[0], true);
-  EXPECT_EQ( std::find( &a[0], &a[2], 5 ) == &a[1], true);
-  EXPECT_EQ( std::find( &a[0], &a[2], 3 ) == &a[2], true);
+  EXPECT_EQ(std::find(&a[0], &a[2], 1) == &a[0], true);
+  EXPECT_EQ(std::find(&a[0], &a[2], 5) == &a[1], true);
+  EXPECT_EQ(std::find(&a[0], &a[2], 3) == &a[2], true);
 
   // Find return a const int *
-  EXPECT_EQ( std::find( a.begin(), a.end(), 1 ) == &a[0], true);
-  EXPECT_EQ( std::find( a.begin(), a.end(), 5 ) == &a[1], true);
-  EXPECT_EQ( std::find( a.begin(), a.end(), 3 ) == &a[2], true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 1) == &a[0], true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 5) == &a[1], true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 3) == &a[2], true);
 
   // Search value that are not in the vector
-  EXPECT_EQ( std::find( a.begin(), a.end(), 0 ) == a.end(), true);
-  EXPECT_EQ( std::find( a.begin(), a.end(), 52 ) == a.end(), true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 0) == a.end(), true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 52) == a.end(), true);
 }
 
 TEST(Vector, swap) {

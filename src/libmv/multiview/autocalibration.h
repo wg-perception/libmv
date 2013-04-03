@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,7 +17,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
-// 
+//
 
 #ifndef LIBMV_MULTIVIEW_AUTOCALIBRATION_H_
 #define LIBMV_MULTIVIEW_AUTOCALIBRATION_H_
@@ -36,7 +36,7 @@ void K_From_AbsoluteConic(const Mat3 &W, Mat3 *K);
 
 /** \brief Compute a metric reconstruction from a projective one by computing
  *         the dual absolute quadric using linear constraints.
- *         
+ *
  * We follow the linear approach proposed by Pollefeys in section 3.4 of [1]
  *
  * [1] M. Pollefeys, L. Van Gool, M. Vergauwen, F. Verbiest, K. Cornelis,
@@ -55,7 +55,7 @@ class AutoCalibrationLinear {
    *  matrix for improving numerical stability.  The don't need to be exact.
    */
   int AddProjection(const Mat34 &P, double width, double height);
-  
+
   /** \brief Computes the metric updating transformation.
    *
    *  \return The homography, H, that transforms the space into a metric space.
@@ -92,19 +92,19 @@ class AutoCalibrationLinear {
                                   double width,
                                   double height,
                                   Mat34 *P_new);
-  
+
   static void DenormalizeProjection(const Mat34 &P,
                                     double width,
                                     double height,
                                     Mat34 *P_new);
 
  private:
-  vector<Mat34> projections_; // The *normalized* projection matrices.
+  vector<Mat34> projections_;  // The *normalized* projection matrices.
   vector<double> widths_;
   vector<double> heights_;
   vector<Vec> constraints_;  // Linear constraints on q.
 };
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_AUTOCALIBRATION_H_

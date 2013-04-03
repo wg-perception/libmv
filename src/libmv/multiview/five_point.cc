@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,11 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/five_point.h"
+
 #include <Eigen/QR>
- 
+
 #include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/fundamental_kernel.h"
-#include "libmv/multiview/five_point.h"
 #include "libmv/multiview/five_point_internal.h"
 
 namespace libmv {
@@ -32,7 +33,7 @@ Mat FivePointsNullspaceBasis(const Mat2X &x1, const Mat2X &x2) {
   A.setZero();  // Make A square until Eigen supports rectangular SVD.
   fundamental::kernel::EncodeEpipolarEquation(x1, x2, &A);
   Eigen::JacobiSVD<Matrix<double, 9, 9> > svd;
-  return svd.compute(A, Eigen::ComputeFullV).matrixV().topRightCorner<9,4>();
+  return svd.compute(A, Eigen::ComputeFullV).matrixV().topRightCorner<9, 4>();
 }
 
 Vec o1(const Vec &a, const Vec &b) {
@@ -124,8 +125,8 @@ Mat FivePointsPolynomialConstraints(const Mat &E_basis) {
   int mrow = 0;
 
   // Determinant constraint det(E) = 0; equation (19) of Nister [2].
-  M.row(mrow++) = o2(o1(E[0][1], E[1][2]) - o1(E[0][2], E[1][1]), E[2][0]) + 
-                  o2(o1(E[0][2], E[1][0]) - o1(E[0][0], E[1][2]), E[2][1]) + 
+  M.row(mrow++) = o2(o1(E[0][1], E[1][2]) - o1(E[0][2], E[1][1]), E[2][0]) +
+                  o2(o1(E[0][2], E[1][0]) - o1(E[0][0], E[1][2]), E[2][1]) +
                   o2(o1(E[0][0], E[1][1]) - o1(E[0][1], E[1][0]), E[2][2]);
 
   // Cubic singular values constraint.
@@ -169,16 +170,16 @@ void FivePointsGaussJordan(Mat *Mp) {
 
   // Gauss Elimination.
   for (int i = 0; i < 10; ++i) {
-    M.row(i) /= M(i,i);
+    M.row(i) /= M(i, i);
     for (int j = i + 1; j < 10; ++j) {
-      M.row(j) = M.row(j) / M(j,i) - M.row(i);
+      M.row(j) = M.row(j) / M(j, i) - M.row(i);
     }
   }
 
   // Backsubstitution.
   for (int i = 9; i >= 0; --i) {
     for (int j = 0; j < i; ++j) {
-      M.row(j) = M.row(j) - M(j,i) * M.row(i);
+      M.row(j) = M.row(j) - M(j, i) * M.row(i);
     }
   }
 }
@@ -198,18 +199,18 @@ void FivePointsRelativePose(const Mat2X &x1,
   // For the next steps, follow the matlab code given in Stewenius et al [1].
 
   // Build the action matrix.
-  Mat B = M.topRightCorner<10,10>();
-  Mat At = Mat::Zero(10,10);
+  Mat B = M.topRightCorner<10, 10>();
+  Mat At = Mat::Zero(10, 10);
   At.row(0) = -B.row(0);
   At.row(1) = -B.row(1);
   At.row(2) = -B.row(2);
   At.row(3) = -B.row(4);
   At.row(4) = -B.row(5);
   At.row(5) = -B.row(7);
-  At(6,0) = 1;
-  At(7,1) = 1;
-  At(8,3) = 1;
-  At(9,6) = 1;
+  At(6, 0) = 1;
+  At(7, 1) = 1;
+  At(8, 3) = 1;
+  At(9, 6) = 1;
 
   // Compute the solutions from action matrix's eigenvectors.
   Eigen::EigenSolver<Mat> es(At);
@@ -246,6 +247,6 @@ void FivePointsRelativePose(const Mat2X &x1,
     }
   }
 }
-  
-} // namespace libmv
+
+}  // namespace libmv
 

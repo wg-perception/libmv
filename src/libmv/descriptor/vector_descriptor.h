@@ -30,7 +30,7 @@ struct VecfDescriptor : public Descriptor {
   virtual ~VecfDescriptor() {}
   VecfDescriptor(const Vecf & coords) : coords(coords) {}
   VecfDescriptor(int n) : coords(n) {}
-  VecfDescriptor() {};
+  VecfDescriptor() {}
 
   Vecf coords;
 };

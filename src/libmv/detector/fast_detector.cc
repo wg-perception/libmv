@@ -18,10 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-
+#include "libmv/detector/fast_detector.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/detector/detector.h"
-#include "libmv/detector/fast_detector.h"
 #include "libmv/detector/orientation_detector.h"
 #include "libmv/image/image.h"
 #include "libmv/logging/logging.h"
@@ -57,14 +56,13 @@ class FastDetector : public Detector {
         f->orientation = 0.0;
         features->push_back(f);
       }
-      free( detections );
+      free(detections);
 
       if (bRotationInvariant_) {
-        fastRotationEstimation(*byte_image,*features);
+        fastRotationEstimation(*byte_image, *features);
         //gradientBoxesRotationEstimation(*byte_image,*features);
       }
-    }
-    else  {
+    } else {
       LOG(ERROR) << "Invalid input image type for FAST detector";
     }
 
@@ -76,7 +74,7 @@ class FastDetector : public Detector {
   }
 
  private:
-  int threshold_; // Threshold called barrier in Fast paper (cf. [1]).
+  int threshold_;  // Threshold called barrier in Fast paper (cf. [1]).
   int size_;  // In pixels {9,10,11,12}.
   FastDetectorCall detector_;
   bool bRotationInvariant_;

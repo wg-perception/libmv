@@ -22,7 +22,7 @@
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
-  
+
 // TODO(julien) ReflectHoriImage
 // TODO(julien) ReflectVertImage
 // TODO(julien) ScaleImage
@@ -135,4 +135,4 @@ void WarpImageBlend(const FloatImage &image_in,
                     const Mat3 &H,
                     FloatImage *image_out,
                     float blending_ratio = 0.5);
-} // namespace libmv 
+}  // namespace libmv

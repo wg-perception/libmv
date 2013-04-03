@@ -32,8 +32,7 @@ namespace correspondence  {
 // David G. Lowe and Marius Muja
 
 template < typename Scalar >
-class ArrayMatcher_Kdtree_Flann : public ArrayMatcher<Scalar>
-{
+class ArrayMatcher_Kdtree_Flann : public ArrayMatcher<Scalar> {
   public:
   ArrayMatcher_Kdtree_Flann():_index_id(NULL) {}
 
@@ -51,23 +50,28 @@ class ArrayMatcher_Kdtree_Flann : public ArrayMatcher<Scalar>
    *
    * \return True if success.
    */
-  bool build( const Scalar * dataset, int nbRows, int dimension)  {
-
+  bool build(const Scalar * dataset, int nbRows, int dimension) {
     _p.log_destination = NULL;
-    _p.log_level = LOG_WARN;//LOG_INFO;
+    _p.log_level = LOG_WARN;  // LOG_INFO;
 
     // Force KDTREE matching
     _p.algorithm = KDTREE;
-    _p.checks = 32;    // Maximum number of leaf checked in one search
-    _p.trees = 8;      // number of randomized trees to use
-    _p.branching = 32; // branching factor
-    _p.iterations = 7; // max iterations to perform in one kmeans clustering (kmeans tree)
+    _p.checks = 32;     // Maximum number of leaf checked in one search
+    _p.trees = 8;       // number of randomized trees to use
+    _p.branching = 32;  // branching factor
+    _p.iterations = 7;  // max iterations to perform in one kmeans
+                        // clustering (kmeans tree)
     _p.target_precision = -1.0f;
-    _p.random_seed = 1; // Initialize random seed to ensure same result every time this is run
+    _p.random_seed = 1;  // Initialize random seed to ensure same
+                         // result every time this is run
 
-    //-- Build FLANN index
+    // -- Build FLANN index
     float fspeedUp;
-    _index_id = flann_build_index( (float*)dataset, nbRows, dimension, &fspeedUp, &_p);
+    _index_id = flann_build_index((float*)dataset,
+                                  nbRows,
+                                  dimension,
+                                  &fspeedUp,
+                                  &_p);
     return (_index_id != NULL);
   }
 
@@ -81,14 +85,12 @@ class ArrayMatcher_Kdtree_Flann : public ArrayMatcher<Scalar>
    *
    * \return True if success.
    */
-  bool searchNeighbour( const Scalar * query, int * indice, Scalar * distance)
-  {
+  bool searchNeighbour(const Scalar * query, int * indice, Scalar * distance) {
     if (_index_id != NULL) {
       int iRet = flann_find_nearest_neighbors_index(_index_id, (Scalar*)query, 1,
         indice, distance, 1, _p.checks, &_p);
         return (iRet == 0);
-    }
-    else  {
+    } else {
       return false;
     }
   }
@@ -105,21 +107,21 @@ class ArrayMatcher_Kdtree_Flann : public ArrayMatcher<Scalar>
    *
    * \return True if success.
    */
-  bool searchNeighbours( const Scalar * query, int nbQuery,
-    vector<int> * indice, vector<Scalar> * distance, int NN)
-  {
+  bool searchNeighbours(const Scalar * query, int nbQuery,
+    vector<int> * indice, vector<Scalar> * distance, int NN) {
     if (_index_id != NULL)  {
-      //-- Check if resultIndices is allocated
+      // -- Check if resultIndices is allocated
       indice->resize(nbQuery * NN);
       distance->resize(nbQuery * NN);
 
       int * indicePTR = &((*indice)[0]);
       float * distancePTR = &(*distance)[0];
-      int iRet = flann_find_nearest_neighbors_index(_index_id, (Scalar*)query, nbQuery,
+      int iRet = flann_find_nearest_neighbors_index(_index_id,
+                                                    (Scalar*)query,
+                                                    nbQuery,
         indicePTR, distancePTR, NN, _p.checks, &_p);
         return (iRet == 0);
-    }
-    else  {
+    } else {
       return false;
     }
   }
@@ -129,7 +131,7 @@ class ArrayMatcher_Kdtree_Flann : public ArrayMatcher<Scalar>
   FLANNParameters _p;
 };
 
-} // namespace correspondence
-} // namespace libmv
+}  // namespace correspondence
+}  // namespace libmv
 
-#endif // LIBMV_CORRESPONDENCE_ARRAYMATCHER_KDTREE_FLANN_H_
+#endif  // LIBMV_CORRESPONDENCE_ARRAYMATCHER_KDTREE_FLANN_H_

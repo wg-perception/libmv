@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,9 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/intersect.h"
+
 #include <iostream>
 
-#include "intersect.h"
 #include "testing/testing.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
@@ -63,18 +64,18 @@ TEST(Intersect, EuclideanIntersect) {
     MatrixColumn(X, i, &expected);
 
     EuclideanReconstruction reconstruction;
-    reconstruction.InsertCamera(1,R1,t1);
-    reconstruction.InsertCamera(2,R2,t2);
+    reconstruction.InsertCamera(1, R1, t1);
+    reconstruction.InsertCamera(2, R2, t2);
 
     vector<Marker> markers;
     Marker a = { 1, 0, x1.x(), x1.y() };
-    markers.push_back( a );
+    markers.push_back(a);
     Marker b = { 2, 0, x2.x(), x2.y() };
-    markers.push_back( b );
+    markers.push_back(b);
 
     EuclideanIntersect(markers, &reconstruction);
     Vec3 estimated = reconstruction.PointForTrack(0)->X;
     EXPECT_NEAR(0, DistanceLInfinity(estimated, expected), 1e-8);
   }
 }
-} // namespace
+}  // namespace

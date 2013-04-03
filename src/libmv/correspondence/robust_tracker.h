@@ -28,29 +28,29 @@ namespace tracker {
 
 class RobustTracker : public Tracker {
  public:
-  RobustTracker(detector::Detector *detector, 
+  RobustTracker(detector::Detector *detector,
                 descriptor::Describer *describer,
-                correspondence::ArrayMatcher<float> *matcher) : 
+                correspondence::ArrayMatcher<float> *matcher) :
                  Tracker(detector, describer, matcher) {
-    minimum_number_inliers_ = 8; // from the 8 point algorithm
+    minimum_number_inliers_ = 8;  // from the 8 point algorithm
     rms_threshold_inlier_   = 0.3;
   }
-                  
+
   virtual ~RobustTracker() {}
-   
+
   // Tracks new features between two images.
-  bool Track(const Image &image1, 
-             const Image &image2, 
+  bool Track(const Image &image1,
+             const Image &image2,
              FeaturesGraph *new_features_graph,
              bool keep_single_feature = true);
-                     
+
   // Tracks all features in an image.
-  bool Track(const Image &image, 
-             const FeaturesGraph &known_features_graph, 
+  bool Track(const Image &image,
+             const FeaturesGraph &known_features_graph,
              FeaturesGraph *new_features_graph,
              Matches::ImageID *image_id,
-             bool keep_single_feature = true); 
-             
+             bool keep_single_feature = true);
+
   void set_rms_threshold_inlier(double threshold) {
     rms_threshold_inlier_ = threshold;
   }
@@ -60,7 +60,7 @@ class RobustTracker : public Tracker {
   double  rms_threshold_inlier_;
 };
 
-} // using namespace tracker
-} // using namespace libmv
+}  // using namespace tracker
+}  // using namespace libmv
 
 #endif  // LIBMV_CORRESPONDENCE_ROBUST_TRACKER_H_

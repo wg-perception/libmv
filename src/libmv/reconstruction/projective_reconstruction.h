@@ -39,11 +39,11 @@ namespace libmv {
 //    creates and adds it to the reconstruction
 //    inserts only inliers matches into matches_inliers
 // Returns true if the projection matrix has succeed
-// Returns false if 
+// Returns false if
 //    the number of common matches is less than 7
-bool ReconstructFromTwoUncalibratedViews(const Matches &matches, 
-                                         CameraID image_id1, 
-                                         CameraID image_id2, 
+bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
+                                         CameraID image_id1,
+                                         CameraID image_id2,
                                          Matches *matches_inliers,
                                          Reconstruction *reconstruction);
 
@@ -55,10 +55,10 @@ bool ReconstructFromTwoUncalibratedViews(const Matches &matches,
 //    creates and adds the new camera to reconstruction
 //    inserts only inliers matches into matches_inliers
 // Returns true if the resection has succeed
-// Returns false if 
+// Returns false if
 //    the number of reconstructed Tracks is less than 6
-bool UncalibratedCameraResection(const Matches &matches, 
-                                 CameraID image_id, 
+bool UncalibratedCameraResection(const Matches &matches,
+                                 CameraID image_id,
                                  Matches *matches_inliers,
                                  Reconstruction *reconstruction);
 
@@ -68,7 +68,7 @@ bool UncalibratedCameraResection(const Matches &matches,
 //    the dual absolute quadric using linear constraints.
 //  estimates the metric rectification H
 //  upgrades the reconstruction using H
-bool UpgradeToMetric(const Matches &matches, 
+bool UpgradeToMetric(const Matches &matches,
                      Reconstruction *reconstruction);
 }  // namespace libmv
 

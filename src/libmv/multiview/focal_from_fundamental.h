@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,7 +43,7 @@ void FocalFromFundamental(const Mat3 &F,
                           const Vec2 &principal_point2,
                           double *f1,
                           double *f2);
-                          
+
 void FocalFromFundamentalExhaustive(const Mat3 &F,
                                     const Vec2 &principal_point,
                                     const Mat2X &x1,
@@ -52,7 +52,7 @@ void FocalFromFundamentalExhaustive(const Mat3 &F,
                                     double max_focal,
                                     int n_samples,
                                     double *focal);
-                                                    
-} // namespace libmv
+
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_FOCAL_FROM_FUNDAMENTAL_H_

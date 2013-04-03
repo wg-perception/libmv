@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/image/image_io.h"
+
 #include <cstring>
 
 #include <iostream>
@@ -27,7 +29,6 @@ extern "C" {
 #include "png.h"
 }
 
-#include "libmv/image/image_io.h"
 #include "libmv/logging/logging.h"
 
 namespace libmv {
@@ -43,7 +44,7 @@ static bool CmpFormatExt(const char *a, const char *b) {
 }
 
 Format GetFormat(const char *c) {
-  const char *p = strrchr (c, '.');
+  const char *p = strrchr(c, '.');
 
   if (p == NULL)
     return Unknown;
@@ -55,12 +56,12 @@ Format GetFormat(const char *c) {
   if (CmpFormatExt(p, ".pnm")) return Pnm;
   if (CmpFormatExt(p, ".jpg")) return Jpg;
   if (CmpFormatExt(p, ".jpeg")) return Jpg;
-  
+
   LOG(ERROR) << "Error: Couldn't open " << c << " Unknown file format";
   return Unknown;
 }
 
-int ReadImage(const char *filename, ByteImage *im){
+int ReadImage(const char *filename, ByteImage *im) {
   Format f = GetFormat(filename);
 
   switch (f) {
@@ -75,7 +76,7 @@ int ReadImage(const char *filename, ByteImage *im){
   };
 }
 
-int ReadImage(const char *filename, FloatImage *im){
+int ReadImage(const char *filename, FloatImage *im) {
   Format f = GetFormat(filename);
 
   switch (f) {
@@ -90,7 +91,7 @@ int ReadImage(const char *filename, FloatImage *im){
   };
 }
 
-int WriteImage(const ByteImage &im, const char *filename){
+int WriteImage(const ByteImage &im, const char *filename) {
   Format f = GetFormat(filename);
 
   switch (f) {
@@ -105,7 +106,7 @@ int WriteImage(const ByteImage &im, const char *filename){
   };
 }
 
-int WriteImage(const FloatImage &im, const char *filename){
+int WriteImage(const FloatImage &im, const char *filename) {
   Format f = GetFormat(filename);
 
   switch (f) {
@@ -147,8 +148,7 @@ struct my_error_mgr {
 };
 
 METHODDEF(void)
-jpeg_error (j_common_ptr cinfo)
-{
+jpeg_error(j_common_ptr cinfo) {
   my_error_mgr *myerr = (my_error_mgr*) cinfo->err;
   (*cinfo->err->output_message) (cinfo);
   longjmp(myerr->setjmp_buffer, 1);
@@ -227,9 +227,9 @@ int WriteJpgStream(const ByteImage &im, FILE *file, int quality) {
   cinfo.image_height = im.Height();
   cinfo.input_components = im.Depth();
 
-  if (cinfo.input_components==3) {
+  if (cinfo.input_components == 3) {
     cinfo.in_color_space = JCS_RGB;
-  } else if (cinfo.input_components==1) {
+  } else if (cinfo.input_components == 1) {
     cinfo.in_color_space = JCS_GRAYSCALE;
   } else {
     LOG(ERROR) << "Error: Unsupported number of channels in file";
@@ -249,7 +249,7 @@ int WriteJpgStream(const ByteImage &im, FILE *file, int quality) {
   while (cinfo.next_scanline < cinfo.image_height) {
     int i;
     for (i = 0; i < row_bytes; ++i)
-    	row[i] = ptr[i];
+    row[i] = ptr[i];
     jpeg_write_scanlines(&cinfo, &row, 1);
     ptr += row_bytes;
   }
@@ -434,13 +434,12 @@ int ReadPnm(const char *filename, FloatImage *image) {
 //   http://netpbm.sourceforge.net/doc/pgm.html
 // and http://netpbm.sourceforge.net/doc/pbm.html
 int ReadPnmStream(FILE *file, ByteImage *im) {
+  const int NUM_VALUES = 3;
+  const int INT_BUFFER_SIZE = 256;
 
-  const int NUM_VALUES = 3 ;
-  const int INT_BUFFER_SIZE = 256 ;
-
-  int magicnumber, depth ;
+  int magicnumber, depth;
   char intBuffer[INT_BUFFER_SIZE];
-  int values[NUM_VALUES], valuesIndex = 0, intIndex = 0, inToken = 0 ;
+  int values[NUM_VALUES], valuesIndex = 0, intIndex = 0, inToken = 0;
   int res;
   // values[0] = width, values[1] = height, values[2] = maxValue
 
@@ -464,35 +463,32 @@ int ReadPnmStream(FILE *file, ByteImage *im) {
   // whitespace character, and only one whitespace char is eaten after the
   // third int token is parsed.
   while (valuesIndex < NUM_VALUES) {
-    char nextChar ;
-    res = fread(&nextChar,1,1,file);
-    if (res == 0) return 0; // read failed, EOF?
+    char nextChar;
+    res = fread(&nextChar, 1, 1, file);
+    if (res == 0) return 0;  // read failed, EOF?
 
     if (isspace(nextChar)) {
-      if (inToken) { // we were reading a token, so this white space delimits it
+      if (inToken) {  // we were reading a token, so this white space delimits it
         inToken = 0;
-        intBuffer[intIndex] = 0 ; // NULL-terminate the string
+        intBuffer[intIndex] = 0;  // NULL-terminate the string
         values[valuesIndex++] = atoi(intBuffer);
-        intIndex = 0; // reset for next int token
+        intIndex = 0;  // reset for next int token
         // use this line if image class aloows 2-byte grey-scale
 //        if (valuesIndex == 3 && values[2] > 65535) return 0 ;
         // to conform with current image class
         if (valuesIndex == 3 && values[2] > 255) return 0;
       }
-    }
-    else if (isdigit(nextChar)) {
-      inToken = 1 ; // in case it's not already set
-      intBuffer[intIndex++] = nextChar ;
-      if (intIndex == INT_BUFFER_SIZE) // tokens should never be this long
+    } else if (isdigit(nextChar)) {
+      inToken = 1;  // in case it's not already set
+      intBuffer[intIndex++] = nextChar;
+      if (intIndex == INT_BUFFER_SIZE)  // tokens should never be this long
         return 0;
-    }
-    else if (nextChar == '#') {
-      do { // eat all characters from input stream until newline
-        res = fread(&nextChar,1,1,file);
+    } else if (nextChar == '#') {
+      do {  // eat all characters from input stream until newline
+        res = fread(&nextChar, 1, 1, file);
       } while (res == 1 && nextChar != '\n');
-      if (res == 0) return 0; // read failed, EOF?
-    }
-    else {
+      if (res == 0) return 0;  // read failed, EOF?
+    } else {
       // Encountered a non-whitepace, non-digit outside a comment - bail out.
       return 0;
     }
@@ -502,7 +498,7 @@ int ReadPnmStream(FILE *file, ByteImage *im) {
 //  if (values[2] > 255 && magicnumber == 5) depth = 2 ;
 
   // Read pixels.
-  im->Resize(values[1],values[0], depth);
+  im->Resize(values[1], values[0], depth);
   res = fread(im->Data(), 1, im->Size(), file);
   if (res != im->Size()) {
     return 0;

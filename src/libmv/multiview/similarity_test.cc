@@ -39,10 +39,10 @@ TEST(Similarity2DTest, TranslationX) {
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat));
   VLOG(1) << "Mat Similarity2D "<< std::endl <<sim_mat;
   Mat3 ground_truth;
-  ground_truth << 1,0,1,
-                  0,1,0,
-                  0,0,1;
-  EXPECT_MATRIX_NEAR(sim_mat, ground_truth,1e-8);
+  ground_truth << 1, 0, 1,
+                  0, 1, 0,
+                  0, 0, 1;
+  EXPECT_MATRIX_NEAR(sim_mat, ground_truth, 1e-8);
   double angle, scale;
   Vec2 trans;
   ExtractSimilarity2DCoefficients(sim_mat, &trans, &angle, &scale);
@@ -66,10 +66,10 @@ TEST(Similarity2DTest, TranslationXY) {
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat));
   VLOG(1) << "Mat Similarity2D "<< std::endl << sim_mat;
   Mat3 ground_truth;
-  ground_truth << 1,0,1,
-                 0,1,1,
-                 0,0,1;
-  EXPECT_MATRIX_NEAR(sim_mat, ground_truth,1e-8);
+  ground_truth << 1, 0, 1,
+                  0, 1, 1,
+                  0, 0, 1;
+  EXPECT_MATRIX_NEAR(sim_mat, ground_truth, 1e-8);
   double angle, scale;
   Vec2 trans;
   ExtractSimilarity2DCoefficients(sim_mat, &trans, &angle, &scale);
@@ -91,8 +91,8 @@ TEST(Similarity2DTest, Rotation45) {
 
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i);
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
   }
 
   Mat3 sim_mat;
@@ -122,8 +122,8 @@ TEST(Similarity2DTest, RotationM90) {
 
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i);
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
   }
 
   Mat3 sim_mat;
@@ -155,16 +155,16 @@ TEST(Similarity2DTest, Rotation45AndTranslationXY) {
 
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i);
-    x2.block<2,1>(0,i) += rot.block<2,1>(0,2); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
+    x2.block<2, 1>(0, i) += rot.block<2, 1>(0, 2);  // translation
   }
 
   Mat3 sim_mat;
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat));
   VLOG(1) << "Mat Similarity2D "<< std::endl << sim_mat;
   EXPECT_MATRIX_NEAR(sim_mat, rot, 1e-8);
-  
+
   double angle, scale;
   Vec2 trans;
   ExtractSimilarity2DCoefficients(sim_mat, &trans, &angle, &scale);
@@ -186,15 +186,15 @@ TEST(Similarity2DTest, Scale3) {
 
   Mat x2 = x1;
   // Transform point from ground truth scale matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = m.block<2,2>(0,0) * x1.col(i);
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = m.block<2, 2>(0, 0) * x1.col(i);
   }
 
   Mat3 sim_mat;
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat));
   VLOG(1) << "Mat Similarity2D "<< std::endl << sim_mat;
   EXPECT_MATRIX_NEAR(sim_mat, m, 1e-8);
-  
+
   double angle, scale;
   Vec2 trans;
   Vec2 trans_gt;
@@ -221,16 +221,16 @@ TEST(Similarity2DTest, Rotation90AndScale) {
 
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i);
-    x2.block<2,1>(0,i) += rot.block<2,1>(0,2); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
+    x2.block<2, 1>(0, i) += rot.block<2, 1>(0, 2);  // translation
   }
 
   Mat3 sim_mat;
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat));
   VLOG(1) << "Mat Similarity2D "<< std::endl << sim_mat;
   EXPECT_MATRIX_NEAR(sim_mat, rot, 1e-8);
-  
+
   double angle, scale;
   Vec2 trans;
   ExtractSimilarity2DCoefficients(sim_mat, &trans, &angle, &scale);
@@ -255,16 +255,16 @@ TEST(Similarity2DTest, Rotation45AndTransXYAndScale) {
 
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i);
-    x2.block<2,1>(0,i) += rot.block<2,1>(0,2); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
+    x2.block<2, 1>(0, i) += rot.block<2, 1>(0, 2);  // translation
   }
 
   Mat3 sim_mat;
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat));
   VLOG(1) << "Mat Similarity2D "<< std::endl << sim_mat;
   EXPECT_MATRIX_NEAR(sim_mat, rot, 1e-8);
-  
+
   double angle, scale;
   Vec2 trans;
   ExtractSimilarity2DCoefficients(sim_mat, &trans, &angle, &scale);
@@ -291,9 +291,9 @@ TEST(Similarity2DTest, AlmostEuclidean) {
 
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i);
-    x2.block<2,1>(0,i) += rot.block<2,1>(0,2); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
+    x2.block<2, 1>(0, i) += rot.block<2, 1>(0, 2);  // translation
   }
 
   const double kPrecision = 3e-2;
@@ -301,7 +301,7 @@ TEST(Similarity2DTest, AlmostEuclidean) {
   EXPECT_TRUE(Similarity2DFromCorrespondencesLinear(x1, x2, &sim_mat, 1e-2));
   VLOG(1) << "Mat Similarity2D "<< std::endl << sim_mat;
   EXPECT_MATRIX_NEAR(sim_mat, rot, kPrecision);
-  
+
   double angle, scale;
   Vec2 trans;
   ExtractSimilarity2DCoefficients(sim_mat, &trans, &angle, &scale);
@@ -326,11 +326,11 @@ TEST(Similarity3DTest, TranslationX) {
   EXPECT_TRUE(Similarity3DFromCorrespondencesLinear(x1, x2, &euc_mat));
   VLOG(1) << "Mat Euclidean3D "<< std::endl <<euc_mat;
   Mat4 ground_truth;
-  ground_truth << 1,0,0,0,
-                  0,1,0,0,
-                  0,0,1,1,
-                  0,0,0,1;
-  EXPECT_MATRIX_NEAR(euc_mat, ground_truth,1e-8);
+  ground_truth << 1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0, 1, 1,
+                  0, 0, 0, 1;
+  EXPECT_MATRIX_NEAR(euc_mat, ground_truth, 1e-8);
 }
 
 TEST(Similarity3DTest, TranslationXYZ) {
@@ -348,11 +348,11 @@ TEST(Similarity3DTest, TranslationXYZ) {
   EXPECT_TRUE(Similarity3DFromCorrespondencesLinear(x1, x2, &euc_mat));
   VLOG(1) << "Mat Euclidean3D "<< std::endl << euc_mat;
   Mat4 ground_truth;
-  ground_truth << 1,0,0, 2,
-                  0,1,0,-1,
-                  0,0,1, 1,
-                  0,0,0, 1;
-  EXPECT_MATRIX_NEAR(euc_mat, ground_truth,1e-8);
+  ground_truth << 1, 0, 0,  2,
+                  0, 1, 0, -1,
+                  0, 0, 1,  1,
+                  0, 0, 0,  1;
+  EXPECT_MATRIX_NEAR(euc_mat, ground_truth, 1e-8);
 }
 
 TEST(Similarity3DTest, Rotation90Z) {
@@ -364,7 +364,7 @@ TEST(Similarity3DTest, Rotation90Z) {
   Mat4 M;
   /*
   M = AngleAxisd(45.0, Vector3f::UnitZ());*/
-  // Rotation on x 
+  // Rotation on x
   double angle = M_PI / 2.0;
   M   <<  1,          0,           0, 0,
           0, cos(angle), -sin(angle), 0,
@@ -372,14 +372,14 @@ TEST(Similarity3DTest, Rotation90Z) {
           0,          0,           0, 1;
   Mat x2 = x1;
   // Transform point from ground truth matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<3,1>(0,i) =  M.block<3,3>(0,0) * x1.col(i) ;
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<3, 1>(0, i) =  M.block<3, 3>(0, 0) * x1.col(i);
   }
 
   Mat4 euc_mat;
   EXPECT_TRUE(Similarity3DFromCorrespondencesLinear(x1, x2, &euc_mat));
   VLOG(1) << "Mat Euclidean3D "<< std::endl << euc_mat;
-  EXPECT_MATRIX_NEAR(euc_mat, M, 1e-8);;
+  EXPECT_MATRIX_NEAR(euc_mat, M, 1e-8);
 }
 
 TEST(Similarity3DTest, Rotation45AndTranslationXY) {
@@ -393,14 +393,14 @@ TEST(Similarity3DTest, Rotation45AndTranslationXY) {
   M = AngleAxisd(45.0, Vector3f::UnitZ())
     * AngleAxisd(25.0, Vector3f::UnitX())
     * AngleAxisd(5.0, Vector3f::UnitZ());*/
-      
+
   // Rotation on x + translation
   double angle = 45.0;
   Mat4 rot;
-  rot <<  1,          0,           0, 1,
-          0, cos(angle), -sin(angle), 3,
-          0, sin(angle),  cos(angle),-2,
-          0,          0,           0, 1;
+  rot <<  1,          0,           0,  1,
+          0, cos(angle), -sin(angle),  3,
+          0, sin(angle),  cos(angle), -2,
+          0,          0,           0,  1;
   M *= rot;
   // Rotation on y
   angle = 25.0;
@@ -418,9 +418,9 @@ TEST(Similarity3DTest, Rotation45AndTranslationXY) {
   M *= rot;
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<3,1>(0,i) = M.block<3,3>(0,0) * x1.col(i);
-    x2.block<3,1>(0,i) += M.block<3,1>(0,3); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<3, 1>(0, i) = M.block<3, 3>(0, 0) * x1.col(i);
+    x2.block<3, 1>(0, i) += M.block<3, 1>(0, 3);  // translation
   }
   Mat4 euc_mat;
   EXPECT_TRUE(Similarity3DFromCorrespondencesLinear(x1, x2, &euc_mat));
@@ -442,8 +442,8 @@ TEST(Similarity3DTest, Scale3) {
 
   Mat x2 = x1;
   // Transform point from ground truth scale matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<3,1>(0,i) = m.block<3,3>(0,0) * x1.col(i);
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<3, 1>(0, i) = m.block<3, 3>(0, 0) * x1.col(i);
   }
   Mat4 sim_mat;
   EXPECT_TRUE(Similarity3DFromCorrespondencesLinear(x1, x2, &sim_mat));
@@ -462,22 +462,22 @@ TEST(Similarity3DTest, RotationTranslationScale) {
   M = AngleAxisd(45.0, Vector3f::UnitZ())
     * AngleAxisd(25.0, Vector3f::UnitX())
     * AngleAxisd(5.0, Vector3f::UnitZ());*/
-      
+
   // Rotation on x + translation
   double angle = 45.0;
   Mat4 rot;
-  rot <<  1,          0,           0, 1,
-          0, cos(angle), -sin(angle), 3,
-          0, sin(angle),  cos(angle),-2,
-          0,          0,           0, 1;
+  rot <<  1,          0,           0,  1,
+          0, cos(angle), -sin(angle),  3,
+          0, sin(angle),  cos(angle), -2,
+          0,          0,           0,  1;
   M *= rot;
   // Rotation on y + scale
   double scale = 0.3;
   angle = 25.0;
-  rot <<  scale*cos(angle), 0, scale*sin(angle),  0,
-          0,            scale,                0,  0,
-          scale*-sin(angle),0, scale*cos(angle),  0,
-          0,                0,                0,  1;
+  rot <<  scale*cos(angle) , 0, scale*sin(angle),  0,
+          0,             scale,                0,  0,
+          scale*-sin(angle), 0, scale*cos(angle),  0,
+          0,                 0,                0,  1;
   M *= rot;
   // Rotation on z
   angle = 5.0;
@@ -488,9 +488,9 @@ TEST(Similarity3DTest, RotationTranslationScale) {
   M *= rot;
   Mat x2 = x1;
   // Transform point from ground truth rotation matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<3,1>(0,i) = M.block<3,3>(0,0) * x1.col(i);
-    x2.block<3,1>(0,i) += M.block<3,1>(0,3); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<3, 1>(0, i) = M.block<3, 3>(0, 0) * x1.col(i);
+    x2.block<3, 1>(0, i) += M.block<3, 1>(0, 3);  // translation
   }
   Mat4 euc_mat;
   EXPECT_TRUE(Similarity3DFromCorrespondencesLinear(x1, x2, &euc_mat));

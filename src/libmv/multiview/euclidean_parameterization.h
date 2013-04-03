@@ -1,15 +1,15 @@
 // Copyright (c) 2011 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,14 +40,14 @@ class Euclidean2DEulerParameterization {
   typedef Eigen::Matrix<T, 3, 3> Parameterized;  // H
 
   /// Convert from the 3 parameters (angle, tx, ty) to a H matrix.
-  static void To(const Parameters &p, Parameterized *h) { 
+  static void To(const Parameters &p, Parameterized *h) {
     Eigen::Matrix<T, 2, 2> R;
     Rotation2DEulerParameterization<T>::To(p(0), &R);
     h->template block<2, 2>(0, 0) = R;
     h->col(2).template head<2>() << p(1), p(2);
     h->row(2) << 0.0, 0.0, 1.0;
-    /*const T sin_a = std::sin(p(0));   
-    const T cos_a = std::cos(p(0));   
+    /*const T sin_a = std::sin(p(0));
+    const T cos_a = std::cos(p(0));
     (*h)<<cos_a,-sin_a, p(1), // cos -sin tx
           sin_a, cos_a, p(2), // sin  cos ty
           0.0,     0.0,  1.0;*/
@@ -55,7 +55,7 @@ class Euclidean2DEulerParameterization {
 
   /// Convert from a H matrix to the 3 parameters (angle, tx, ty).
   static void From(const Parameterized &h, Parameters *p) {
-    Rotation2DEulerParameterization<T>::From(h.template block<2, 2>(0, 0), 
+    Rotation2DEulerParameterization<T>::From(h.template block<2, 2>(0, 0),
                                              &(*p)(0));
     p->template segment<2>(1) << h(0, 2), h(1, 2);
     /*const double angle = std::atan2(h.coeff(1,0), h.coeff(0,0));
@@ -79,7 +79,7 @@ class Euclidean2DSCParameterization {
   typedef Eigen::Matrix<T, 3, 3> Parameterized;  // H
 
   /// Convert from the 4 parameters (sin, cos, tx, ty) to a H matrix.
-  static void To(const Parameters &p, Parameterized *h) { 
+  static void To(const Parameters &p, Parameterized *h) {
     /*(*h)<<p(1),-p(0), p(2), // cos -sin tx
           p(0), p(1), p(3), // sin  cos ty
           0.0,   0.0,  1.0;*/
@@ -94,7 +94,7 @@ class Euclidean2DSCParameterization {
   static void From(const Parameterized &h, Parameters *p) {
     //*p << h(1, 0), h(0, 0), h(0, 2), h(1, 2);
     Eigen::Matrix<T, 2, 1> sin_cos;
-    Rotation2DSCParameterization<T>::From(h.template block<2, 2>(0, 0), 
+    Rotation2DSCParameterization<T>::From(h.template block<2, 2>(0, 0),
                                           &sin_cos);
     *p << sin_cos(0), sin_cos(1), h(0, 2), h(1, 2);
   }
@@ -113,9 +113,9 @@ class Euclidean2DSCParameterization {
  * where R(e) = Rot(Y, e0) * Rot(X, e1) * Rot(Z, e2)
  * for N0 = 1, N1 = 0, N2 = 2.
  */
-template<typename T = double, 
-         int N0 = 1, 
-         int N1 = 0, 
+template<typename T = double,
+         int N0 = 1,
+         int N1 = 0,
          int N2 = 2>
 class Euclidean3DEulerParameterization {
  public:
@@ -124,7 +124,7 @@ class Euclidean3DEulerParameterization {
 
   /// Convert from the 6 parameters (e0, e1, e2, tx, ty, tz) to an
   /// Euclidean matrix.
-  static void To(const Parameters &p, Parameterized *h) { 
+  static void To(const Parameters &p, Parameterized *h) {
     Eigen::Matrix<T, 3, 3> R;
     Rotation3DEulerParameterization<T, N0, N1, N2>::To(
         p.template segment<3>(0), &R);
@@ -133,7 +133,7 @@ class Euclidean3DEulerParameterization {
     h->row(3) << 0.0, 0.0, 0.0, 1.0;
   }
 
-  /// Convert from an Euclidean matrix to the 6 parameters 
+  /// Convert from an Euclidean matrix to the 6 parameters
   /// (e0, e1, e2, tx, ty, tz).
   static void From(const Parameterized &h, Parameters *p) {
     Eigen::Matrix<T, 3, 1> v;
@@ -143,9 +143,9 @@ class Euclidean3DEulerParameterization {
   }
 };
 
-/** A parameterization of the 2D euclidean matrix that uses 7 
+/** A parameterization of the 2D euclidean matrix that uses 7
  * parameters. The rotation is parametrized by a quaternion.
- * The euclidean matrix H is built from a list of 7 parameters 
+ * The euclidean matrix H is built from a list of 7 parameters
  * (q0, q1, q2, q3, tx, ty, tz) as follows
  *            |      tx|
  *        H = | R(q) ty|
@@ -165,7 +165,7 @@ class Euclidean3DQuaternionParameterization {
 
   /// Convert from the 7 parameters (q0, q1, q2, q3, tx, ty, tz) to an
   /// Euclidean matrix.
-  static void To(const Parameters &p, Parameterized *h) { 
+  static void To(const Parameters &p, Parameterized *h) {
     Eigen::Matrix<T, 3, 3> R;
     Rotation3DQuaternionParameterization<T>::To(
         p.template segment<4>(0), &R);
@@ -174,7 +174,7 @@ class Euclidean3DQuaternionParameterization {
     h->row(3) << 0.0, 0.0, 0.0, 1.0;
   }
 
-  /// Convert from an Euclidean matrix to the 7 parameters 
+  /// Convert from an Euclidean matrix to the 7 parameters
   /// (q0, q1, q2, q3, tx, ty, tz).
   static void From(const Parameterized &h, Parameters *p) {
     Eigen::Matrix<T, 4, 1> v;
@@ -183,6 +183,6 @@ class Euclidean3DQuaternionParameterization {
     *p << v, h(0, 3), h(1, 3), h(2, 3);
   }
 };
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_EUCLIDEAN_PARAMETERIZATION_H_

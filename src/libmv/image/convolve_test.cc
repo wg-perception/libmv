@@ -37,11 +37,11 @@ TEST(Convolve, ComputeGaussianKernel) {
 }
 
 TEST(Convolve, ConvolveGaussian) {
-  FloatImage im(10,10);
+  FloatImage im(10, 10);
   im.Fill(1);
   FloatImage blured;
   ConvolveGaussian(im, 3, &blured);
-  EXPECT_NEAR(im(5,5), 1, 1e-7);
+  EXPECT_NEAR(im(5, 5), 1, 1e-7);
 }
 
 TEST(Convolve, BoxFilterHorizontal) {
@@ -73,7 +73,7 @@ TEST(Convolve, BoxFilter) {
 }
 
 TEST(Convolve, BlurredImageAndDerivativesChannelsFlat) {
-  FloatImage im(10,10), blurred_and_derivatives;
+  FloatImage im(10, 10), blurred_and_derivatives;
   im.Fill(1);
   BlurredImageAndDerivativesChannels(im, 1.0, &blurred_and_derivatives);
   EXPECT_NEAR(blurred_and_derivatives(5, 5, 0), 1.0, 1e-7);
@@ -82,7 +82,7 @@ TEST(Convolve, BlurredImageAndDerivativesChannelsFlat) {
 }
 
 TEST(Convolve, BlurredImageAndDerivativesChannelsHorizontalSlope) {
-  FloatImage image(10,10), blurred_and_derivatives;
+  FloatImage image(10, 10), blurred_and_derivatives;
   for (int j = 0; j < 10; ++j) {
     for (int i = 0; i < 10; ++i) {
       image(j, i) = 2*i;
@@ -95,7 +95,7 @@ TEST(Convolve, BlurredImageAndDerivativesChannelsHorizontalSlope) {
 }
 
 TEST(Convolve, BlurredImageAndDerivativesChannelsVerticalSlope) {
-  FloatImage image(10,10), blurred_and_derivatives;
+  FloatImage image(10, 10), blurred_and_derivatives;
   for (int j = 0; j < 10; ++j) {
     for (int i = 0; i < 10; ++i) {
       image(j, i) = 2*j;

@@ -18,10 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/reconstruction/export_ply.h"
+
 #include <fstream>
 #include <locale.h>
-
-#include "libmv/reconstruction/export_ply.h"
 
 namespace libmv {
 
@@ -33,7 +33,7 @@ void ExportToPLY(const Reconstruction &reconstruct, std::string out_file_name) {
     outfile << "format ascii 1.0" << std::endl;
     outfile << "comment Made by libmv authors" << std::endl;
     outfile << "comment 3D points structure:" << std::endl;
-    outfile << "element vertex " << reconstruct.GetNumberStructures() 
+    outfile << "element vertex " << reconstruct.GetNumberStructures()
       << std::endl;
     outfile << "property float x" << std::endl;
     outfile << "property float y" << std::endl;
@@ -53,7 +53,7 @@ void ExportToPLY(const Reconstruction &reconstruct, std::string out_file_name) {
     std::map<StructureID, Structure *>::const_iterator track_iter =
       reconstruct.structures().begin();
     for (; track_iter != reconstruct.structures().end(); ++track_iter) {
-      PointStructure * point_s = 
+      PointStructure * point_s =
         dynamic_cast<PointStructure*>(track_iter->second);
       if (point_s) {
         // Exports the point affine position
@@ -62,10 +62,10 @@ void ExportToPLY(const Reconstruction &reconstruct, std::string out_file_name) {
         outfile << "255 255 255" << std::endl;
       }
     }
-    std::map<CameraID, Camera *>::const_iterator camera_iter =  
+    std::map<CameraID, Camera *>::const_iterator camera_iter =
       reconstruct.cameras().begin();
     for (; camera_iter != reconstruct.cameras().end(); ++camera_iter) {
-      PinholeCamera * camera_pinhole =  
+      PinholeCamera * camera_pinhole =
         dynamic_cast<PinholeCamera *>(camera_iter->second);
       if (camera_pinhole) {
         // Exports the camera position
@@ -77,4 +77,4 @@ void ExportToPLY(const Reconstruction &reconstruct, std::string out_file_name) {
     outfile.close();
   }
 }
-} // namespace libmv
+}  // namespace libmv

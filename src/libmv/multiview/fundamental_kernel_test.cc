@@ -126,9 +126,9 @@ TYPED_TEST(SevenPointTest, DegeneratePointsOnCubeStillSolve) {
   // Try the 7 points of a cube and their projections, missing the last corner.
   TwoViewDataSet d = TwoRealisticCameras();
   d.X.resize(3, 7);
-  d.X <<  0, 1, 0, 1, 0, 1, 0, // X,
-          0, 0, 1, 1, 0, 0, 1, // Y,
-          0, 0, 0, 0, 1, 1, 1; // Z.
+  d.X <<  0, 1, 0, 1, 0, 1, 0,  // X,
+          0, 0, 1, 1, 0, 0, 1,  // Y,
+          0, 0, 0, 0, 1, 1, 1;  // Z.
   Project(d.P1, d.X, &d.x1);
   Project(d.P2, d.X, &d.x2);
   this->ExpectKernelProperties(d.x1, d.x2, &d.F);
@@ -170,15 +170,15 @@ typedef Types<SampsonError,
 TYPED_TEST_CASE(FundamentalErrorTest, FundamentalErrorImplementations);
 TYPED_TEST(FundamentalErrorTest, FundamentalErrorTest2) {
   Vec3 t(1, 0, 0);
-  Mat3 F = CrossProductMatrix(t); // Fundamental matrix corresponding to pure
-                                  // translation.
+  Mat3 F = CrossProductMatrix(t);  // Fundamental matrix corresponding to pure
+                                   // translation.
 
-  Vec2 x0(0, 0), y0(  0,   0); // Good match (at infinity).
-  Vec2 x1(0, 0), y1(100,   0); // Good match (no vertical disparity).
-  Vec2 x2(0, 0), y2(0.0, 0.1); // Small error (a bit of vertical disparity).
-  Vec2 x3(0, 0), y3(  0,   1); // Bigger error.
-  Vec2 x4(0, 0), y4(  0,  10); // Biggest error.
-  Vec2 x5(0, 0), y5(100,  10); // Biggest error with horizontal disparity.
+  Vec2 x0(0, 0), y0(  0,   0);  // Good match (at infinity).
+  Vec2 x1(0, 0), y1(100,   0);  // Good match (no vertical disparity).
+  Vec2 x2(0, 0), y2(0.0, 0.1);  // Small error (a bit of vertical disparity).
+  Vec2 x3(0, 0), y3(  0,   1);  // Bigger error.
+  Vec2 x4(0, 0), y4(  0,  10);  // Biggest error.
+  Vec2 x5(0, 0), y5(100,  10);  // Biggest error with horizontal disparity.
 
   Vec6 dists;
   dists << TypeParam::Error(F, x0, y0),

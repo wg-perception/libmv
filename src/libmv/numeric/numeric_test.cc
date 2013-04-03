@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -63,7 +63,7 @@ TEST(Numeric, NullspaceMatchesLapackSVD) {
 
   EXPECT_NEAR(-0.64999717, x(0), 1e-8);
   EXPECT_NEAR(-0.18452646, x(1), 1e-8);
-  EXPECT_NEAR( 0.7371931, x(2), 1e-8);
+  EXPECT_NEAR(0.7371931, x(2), 1e-8);
 }
 
 TEST(Numeric, Nullspace2) {
@@ -122,10 +122,10 @@ TEST(Numeric, Diag) {
   Vec x(2);
   x << 1, 2;
   Mat D = Diag(x);
-  EXPECT_EQ(1, D(0,0));
-  EXPECT_EQ(0, D(0,1));
-  EXPECT_EQ(0, D(1,0));
-  EXPECT_EQ(2, D(1,1));
+  EXPECT_EQ(1, D(0, 0));
+  EXPECT_EQ(0, D(0, 1));
+  EXPECT_EQ(0, D(1, 0));
+  EXPECT_EQ(2, D(1, 1));
 }
 
 TEST(Numeric, Determinant) {
@@ -133,22 +133,22 @@ TEST(Numeric, Determinant) {
   A <<  1, 2,
        -1, 3;
   double detA = A.determinant();
-  EXPECT_NEAR(5, detA, 1e-8); 
-  
-  Mat B(4,4);
+  EXPECT_NEAR(5, detA, 1e-8);
+
+  Mat B(4, 4);
   B <<  0,  1,  2,  3,
         4,  5,  6,  7,
         8,  9, 10, 11,
        12, 13, 14, 15;
   double detB = B.determinant();
-  EXPECT_NEAR(0, detB, 1e-8); 
+  EXPECT_NEAR(0, detB, 1e-8);
 
   Mat3 C;
   C <<  0, 1, 2,
         3, 4, 5,
         6, 7, 1;
   double detC = C.determinant();
-  EXPECT_NEAR(21, detC, 1e-8); 
+  EXPECT_NEAR(21, detC, 1e-8);
 }
 
 TEST(Numeric, Inverse) {
@@ -157,33 +157,33 @@ TEST(Numeric, Inverse) {
        -1, 3;
   Mat I = A * A.inverse();
 
-  EXPECT_NEAR(1, I(0,0), 1e-8); 
-  EXPECT_NEAR(0, I(0,1), 1e-8); 
-  EXPECT_NEAR(0, I(1,0), 1e-8); 
-  EXPECT_NEAR(1, I(1,1), 1e-8); 
+  EXPECT_NEAR(1, I(0, 0), 1e-8);
+  EXPECT_NEAR(0, I(0, 1), 1e-8);
+  EXPECT_NEAR(0, I(1, 0), 1e-8);
+  EXPECT_NEAR(1, I(1, 1), 1e-8);
 
-  Mat B(4,4), B1;
+  Mat B(4, 4), B1;
   B <<  0,  1,  2,  3,
         4,  5,  6,  7,
         8,  9,  2, 11,
        12, 13, 14,  4;
   Mat I2 = B * B.inverse();
-  EXPECT_NEAR(1, I2(0,0), 1e-8); 
-  EXPECT_NEAR(0, I2(0,1), 1e-8); 
-  EXPECT_NEAR(0, I2(0,2), 1e-8); 
-  EXPECT_NEAR(0, I2(1,0), 1e-8); 
-  EXPECT_NEAR(1, I2(1,1), 1e-8); 
-  EXPECT_NEAR(0, I2(1,2), 1e-8); 
-  EXPECT_NEAR(0, I2(2,0), 1e-8); 
-  EXPECT_NEAR(0, I2(2,1), 1e-8); 
-  EXPECT_NEAR(1, I2(2,2), 1e-8); 
+  EXPECT_NEAR(1, I2(0, 0), 1e-8);
+  EXPECT_NEAR(0, I2(0, 1), 1e-8);
+  EXPECT_NEAR(0, I2(0, 2), 1e-8);
+  EXPECT_NEAR(0, I2(1, 0), 1e-8);
+  EXPECT_NEAR(1, I2(1, 1), 1e-8);
+  EXPECT_NEAR(0, I2(1, 2), 1e-8);
+  EXPECT_NEAR(0, I2(2, 0), 1e-8);
+  EXPECT_NEAR(0, I2(2, 1), 1e-8);
+  EXPECT_NEAR(1, I2(2, 2), 1e-8);
 }
 
 TEST(Numeric, MeanAndVarianceAlongRows) {
   int n = 4;
-  Mat points(2,n);
+  Mat points(2, n);
   points << 0, 0, 1, 1,
-            0, 2, 1, 3; 
+            0, 2, 1, 3;
 
   Vec mean, variance;
   MeanAndVarianceAlongRows(points, &mean, &variance);
@@ -195,7 +195,7 @@ TEST(Numeric, MeanAndVarianceAlongRows) {
 }
 
 TEST(Numeric, HorizontalStack) {
-  Mat x(2,1), y(2,1), z;
+  Mat x(2, 1), y(2, 1), z;
   x << 1, 2;
   y << 3, 4;
 
@@ -203,14 +203,14 @@ TEST(Numeric, HorizontalStack) {
 
   EXPECT_EQ(2, z.cols());
   EXPECT_EQ(2, z.rows());
-  EXPECT_EQ(1, z(0,0));
-  EXPECT_EQ(2, z(1,0));
-  EXPECT_EQ(3, z(0,1));
-  EXPECT_EQ(4, z(1,1));
+  EXPECT_EQ(1, z(0, 0));
+  EXPECT_EQ(2, z(1, 0));
+  EXPECT_EQ(3, z(0, 1));
+  EXPECT_EQ(4, z(1, 1));
 }
 
 TEST(Numeric, HStack) {
-  Mat x(2,1), y(2,1), z(2, 2);
+  Mat x(2, 1), y(2, 1), z(2, 2);
   x << 1, 2;
   y << 3, 4;
   z << 1, 3,
@@ -229,7 +229,7 @@ TEST(Numeric, HStack) {
 // TODO(keir): Need some way of verifying that the compile time types of the
 // resulting stacked matrices properly propagate the fixed dimensions.
 TEST(Numeric, VStack) {
-  Mat x(2,2), y(2,2), z(4, 2);
+  Mat x(2, 2), y(2, 2), z(4, 2);
   x << 1, 2,
        3, 4;
   y << 10, 20,
@@ -250,17 +250,17 @@ TEST(Numeric, VStack) {
 }
 
 TEST(Numeric, VerticalStack) {
-  Mat x(1,2), y(1,2), z;
+  Mat x(1, 2), y(1, 2), z;
   x << 1, 2;
   y << 3, 4;
   VerticalStack(x, y, &z);
 
   EXPECT_EQ(2, z.cols());
   EXPECT_EQ(2, z.rows());
-  EXPECT_EQ(1, z(0,0));
-  EXPECT_EQ(2, z(0,1));
-  EXPECT_EQ(3, z(1,0));
-  EXPECT_EQ(4, z(1,1));
+  EXPECT_EQ(1, z(0, 0));
+  EXPECT_EQ(2, z(0, 1));
+  EXPECT_EQ(3, z(1, 0));
+  EXPECT_EQ(4, z(1, 1));
 }
 
 TEST(Numeric, CrossProduct) {
@@ -291,7 +291,7 @@ TEST(Numeric, CrossProductMatrix) {
 }
 
 TEST(Numeric, MatrixColumn) {
-  Mat A2(2,3);
+  Mat A2(2, 3);
   Vec2 v2;
   A2 << 1, 2, 3,
         4, 5, 6;
@@ -299,7 +299,7 @@ TEST(Numeric, MatrixColumn) {
   EXPECT_EQ(2, v2(0));
   EXPECT_EQ(5, v2(1));
 
-  Mat A3(3,3);
+  Mat A3(3, 3);
   Vec3 v3;
   A3 << 1, 2, 3,
         4, 5, 6,
@@ -309,7 +309,7 @@ TEST(Numeric, MatrixColumn) {
   EXPECT_EQ(5, v3(1));
   EXPECT_EQ(8, v3(2));
 
-  Mat A4(4,3);
+  Mat A4(4, 3);
   Vec4 v4;
   A4 <<  1,  2,  3,
          4,  5,  6,
@@ -362,7 +362,7 @@ TEST(Numeric, DeterminantLU7) {
         0, 0, 1, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 0, 1;
-  EXPECT_NEAR(1, A.determinant(), 1e-8); 
+  EXPECT_NEAR(1, A.determinant(), 1e-8);
 }
 
 // This segfaults inside lapack.
@@ -370,7 +370,7 @@ TEST(Numeric, DeterminantLU) {
   Mat A(2, 2);
   A <<  1, 2,
        -1, 3;
-  EXPECT_NEAR(5, A.determinant(), 1e-8); 
+  EXPECT_NEAR(5, A.determinant(), 1e-8);
 }
 
 // This does unexpected things.
@@ -391,10 +391,10 @@ TEST(Numeric, ExtractColumns) {
        6, 7, 8, 9, 10;
   Vec2i columns; columns << 0, 2;
   Mat2X extracted = ExtractColumns(A, columns);
-  EXPECT_NEAR(1, extracted(0,0), 1e-15);
-  EXPECT_NEAR(3, extracted(0,1), 1e-15);
-  EXPECT_NEAR(6, extracted(1,0), 1e-15);
-  EXPECT_NEAR(8, extracted(1,1), 1e-15);
+  EXPECT_NEAR(1, extracted(0, 0), 1e-15);
+  EXPECT_NEAR(3, extracted(0, 1), 1e-15);
+  EXPECT_NEAR(6, extracted(1, 0), 1e-15);
+  EXPECT_NEAR(8, extracted(1, 1), 1e-15);
 }
 
 TEST(Numeric, RotationRodrigues) {

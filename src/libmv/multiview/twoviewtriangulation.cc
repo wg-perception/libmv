@@ -18,11 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/twoviewtriangulation.h"
+
 #include "libmv/numeric/numeric.h"
 #include "libmv/multiview/projection.h"
-#include "libmv/multiview/twoviewtriangulation.h"
-#include "libmv/multiview/projection.h"
-
 
 namespace libmv {
 
@@ -49,7 +48,7 @@ void TwoViewTriangulationByPlanes(const Vec3 &x1, const Vec3 &x2,
 }
 
 void TwoViewTriangulationByPlanes(const Vec2 &x1, const Vec2 &x2,
-                                  const Mat34 &P,const Mat3 &E,
+                                  const Mat34 &P, const Mat3 &E,
                                   Vec3 *X) {
   Vec3 x1_homogenious = EuclideanToHomogeneous(x1);
   Vec3 x2_homogenious = EuclideanToHomogeneous(x2);
@@ -62,7 +61,7 @@ void TwoViewTriangulationByPlanes(const Vec2 &x1, const Vec2 &x2,
 
 void TwoViewTriangulationIdeal(const Vec3 &x1, const Vec3 &x2,
                                const Mat34 &P, const Mat3 &E,
-                               Vec4 *X){
+                               Vec4 *X) {
   Vec3 c = E * x1;
   c(2) = 0;
   c = c.cross(x2);

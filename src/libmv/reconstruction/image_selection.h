@@ -30,7 +30,7 @@ namespace libmv {
 // The outpout images_list contains a list of connected graphs
 // (vectors), each vector contains the ImageID ordered by the criterion.
 void SelectEfficientImageOrder(
-  const Matches &matches, 
+  const Matches &matches,
   std::list<vector<Matches::ImageID> >*images_list);
 
 }  // namespace libmv

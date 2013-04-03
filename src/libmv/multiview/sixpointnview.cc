@@ -25,11 +25,12 @@
 // Computer Science; Vol. 1842 archive Proceedings of the 6th European
 // Conference on Computer Vision-Part I pp 632-648, 2000.
 
+#include "libmv/multiview/sixpointnview.h"
+
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/conditioning.h"
 #include "libmv/multiview/fundamental.h"
-#include "libmv/multiview/sixpointnview.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/poly.h"
 
@@ -49,7 +50,7 @@ static void FivePointCameraPencil(const TMatP &points, TMatA *A, TMatB *B) {
   Vec5 v1, v2;
   Nullspace2(&design, &v1, &v2);
 
-  Mat34 five_points = design.block<3,4>(0, 0);
+  Mat34 five_points = design.block<3, 4>(0, 0);
   Mat34 tmpA = five_points;
   Mat34 tmpB = five_points;
   for (int r = 0; r < 3; ++r) {
@@ -67,7 +68,7 @@ static Vec4 CalcX6FromDesignMat(
     double a, double b, double c, double d, double e) {
   // This should match the matrix in step 6 above, equation (9) in [1].
   // The 6th world point is the nullspace of this matrix.
-  Mat X6null(6,4);
+  Mat X6null(6, 4);
   X6null << e-d,  0 ,  0 , a-b,
             e-c,  0 ,  a ,  0 ,
             d-c,  b ,  0 ,  0 ,
@@ -81,7 +82,7 @@ static Vec4 CalcX6FromDesignMat(
 
 // See paragraph after equation 16 in torr97robust for the equation used to
 // derive the following coefficients.
-#define ACCUMULATE_CUBIC_COEFFICIENTS(x,y,z, sgn) \
+#define ACCUMULATE_CUBIC_COEFFICIENTS(x, y, z, sgn) \
   p = t1[x]*t1[y]; \
   q = t2[x]*t1[y] + t1[x]*t2[y]; \
   d += sgn *  p*t1[z]; \
@@ -108,7 +109,7 @@ void SixPointNView(const Mat2X &points,
   // number of views.
   Mat34 *As = new Mat34[nviews];
   Mat34 *Bs = new Mat34[nviews];
-  Mat ws(nviews,5);
+  Mat ws(nviews, 5);
 
   for (int i = 0; i < nviews; ++i) {
     // Extract pencil of camera matrices.
@@ -121,11 +122,11 @@ void SixPointNView(const Mat2X &points,
     Mat4 Q = Qa + Qa.transpose();
 
     // Read the coefficients w^i from Q and put into the ws matrix.
-    ws(i,0) = Q(0,1);
-    ws(i,1) = Q(0,2);
-    ws(i,2) = Q(1,2);
-    ws(i,3) = Q(1,3);
-    ws(i,4) = Q(2,3);
+    ws(i, 0) = Q(0, 1);
+    ws(i, 1) = Q(0, 2);
+    ws(i, 2) = Q(1, 2);
+    ws(i, 3) = Q(1, 3);
+    ws(i, 4) = Q(2, 3);
   }
   Vec t1, t2;
   Nullspace2(&ws, &t1, &t2);
@@ -136,12 +137,12 @@ void SixPointNView(const Mat2X &points,
   // alpha. See equation (10) in [1].
   double a, b, c, d, p, q;
   a = b = c = d = 0;
-  ACCUMULATE_CUBIC_COEFFICIENTS(0,1,3,  1);
-  ACCUMULATE_CUBIC_COEFFICIENTS(0,1,4, -1);
-  ACCUMULATE_CUBIC_COEFFICIENTS(0,2,4,  1);
-  ACCUMULATE_CUBIC_COEFFICIENTS(0,3,4, -1);
-  ACCUMULATE_CUBIC_COEFFICIENTS(1,2,3, -1);
-  ACCUMULATE_CUBIC_COEFFICIENTS(1,3,4,  1);
+  ACCUMULATE_CUBIC_COEFFICIENTS(0, 1, 3,   1);
+  ACCUMULATE_CUBIC_COEFFICIENTS(0, 1, 4,  -1);
+  ACCUMULATE_CUBIC_COEFFICIENTS(0, 2, 4,   1);
+  ACCUMULATE_CUBIC_COEFFICIENTS(0, 3, 4,  -1);
+  ACCUMULATE_CUBIC_COEFFICIENTS(1, 2, 3,  -1);
+  ACCUMULATE_CUBIC_COEFFICIENTS(1, 3, 4,   1);
 
   // TODO(keir): Handle case a = 0.
   // TODO(keir): Handle the case (a=b=c=d=0. If a=b=c=0 and d!=0, then alpha=0;
@@ -158,7 +159,7 @@ void SixPointNView(const Mat2X &points,
 
   // Check each solution for alpha.
   reconstructions->resize(nroots);
-  for (int ia=0; ia<nroots; ia++) {
+  for (int ia = 0; ia < nroots; ia++) {
     alpha = alphas[ia];
 
     double e;
@@ -206,4 +207,4 @@ void SixPointNView(const Mat2X &points,
   delete [] Bs;
 }
 
-} // namespace libmv
+}  // namespace libmv

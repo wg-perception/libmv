@@ -57,14 +57,14 @@ TEST(RobustHomography, Homography2DFromCorrespondences4PointRobust) {
 
     // Introduce outliers.
     for (int j = 0; j < 8; j++) {
-      x(0,j) = x(0,j) + j * 5.5;
-      x(1,j) = x(1,j) + 7.8;
+      x(0, j) = x(0, j) + j * 5.5;
+      x(1, j) = x(1, j) + 7.8;
     }
 
     // Estimate homography from points.
     vector<int> inliers;
     Homography2DFromCorrespondences4PointRobust(x, y, 0.1, &H[i], &inliers);
-    H[i] /= H[i](2,2);
+    H[i] /= H[i](2, 2);
   }
 
   EXPECT_MATRIX_NEAR(H_gt[0], H[0], 1e-8);

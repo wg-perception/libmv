@@ -23,7 +23,7 @@
 
 #include "testing/testing.h"
 #include "libmv/numeric/numeric.h"
-#include "projection.h"
+#include "libmv/multiview/projection.h"
 
 namespace libmv {
 

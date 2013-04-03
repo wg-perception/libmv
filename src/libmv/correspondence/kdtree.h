@@ -52,9 +52,9 @@ class PriorityQueue {
 
   Value Top() { return nodes_.front().value; }
   Priority TopPriority() { return nodes_.front().priority; }
-  
+
   void Push(Value v, Priority p) {
-    nodes_.push_back(Node(v,p));
+    nodes_.push_back(Node(v, p));
     std::push_heap(nodes_.begin(), nodes_.end());
   }
 
@@ -214,7 +214,7 @@ class KdTree {
                                  SearchResults *neighbors) const {
     int num_explored_leafs = 0;
     PriorityQueue<int, Scalar> queue;
-    queue.Push(0, 0); // Push root node.
+    queue.Push(0, 0);  // Push root node.
 
     while (!queue.IsEmpty() && num_explored_leafs < max_leafs) {
       // Stop if best node is farther than worst neighbor found so far.
@@ -268,7 +268,7 @@ class KdTree {
     return (i - 1) / 2;
   }
   bool IsLeaf(int i) const {
-    return i >= NumNodes() / 2; // Note NumNodes() is odd.
+    return i >= NumNodes() / 2;  // Note NumNodes() is odd.
   }
 
   void CreateNode(int i, Point *begin, Point *end) {
@@ -299,7 +299,6 @@ class KdTree {
 
   int MoreVariantAxis(Point *begin, Point *end,
                       Scalar *min_val, Scalar *max_val) {
-
     // Compute variances.
     Vec mean = Vec::Zero(num_dims_);
     Vec mean2 = Vec::Zero(num_dims_);
@@ -348,4 +347,4 @@ class KdTree {
 
 }  // namespace libmv
 
-#endif // LIBMV_CORRESPONDENCE_KDTREE_H_
+#endif  // LIBMV_CORRESPONDENCE_KDTREE_H_

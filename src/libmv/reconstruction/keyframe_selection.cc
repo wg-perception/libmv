@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/reconstruction/keyframe_selection.h"
+
 #include <algorithm>
 #include <map>
 
@@ -26,14 +28,13 @@
 #include "libmv/multiview/robust_fundamental.h"
 #include "libmv/multiview/robust_homography.h"
 #include "libmv/correspondence/matches.h"
-#include "libmv/reconstruction/keyframe_selection.h"
 
 namespace libmv {
 
-void SelectKeyframesBasedOnMatchesNumber(const Matches &matches, 
+void SelectKeyframesBasedOnMatchesNumber(const Matches &matches,
                                          vector<Matches::ImageID> *keyframes,
                                          float min_matches_pc,
-                                         int min_num_matches) {  
+                                         int min_num_matches) {
   keyframes->reserve(matches.NumImages());
   std::set<Matches::ImageID>::const_iterator image_iter =
     matches.get_images().begin();
@@ -42,9 +43,9 @@ void SelectKeyframesBasedOnMatchesNumber(const Matches &matches,
   // The first frame is selected as a keyframe
   keyframes->push_back(prev_keyframe);
   image_iter++;
-  int num_features_to_keep = min_matches_pc * 
+  int num_features_to_keep = min_matches_pc *
                              matches.NumFeatureImage(prev_keyframe);
-  num_features_to_keep = std::max(num_features_to_keep, min_num_matches); 
+  num_features_to_keep = std::max(num_features_to_keep, min_num_matches);
   VLOG(3) << "# Features to keep: " << num_features_to_keep<< std::endl;
   vector<Matches::ImageID> two_images;
   two_images.push_back(prev_keyframe);
@@ -54,15 +55,15 @@ void SelectKeyframesBasedOnMatchesNumber(const Matches &matches,
     vector<Matches::TrackID> tracks;
     TracksInAllImages(matches, two_images, &tracks);
     VLOG(3) << "Shared tracks: " << tracks.size() << std::endl;
-    // If the current frame share not enough common matches with the previous 
-    // keyframe then we select the previous frame 
+    // If the current frame share not enough common matches with the previous
+    // keyframe then we select the previous frame
     // i.e. the one that has enough common matches
-    if (tracks.size() < num_features_to_keep && 
+    if (tracks.size() < num_features_to_keep &&
         prev_frame_good != prev_keyframe) {
       VLOG(2) << "Keyframe Detected!" << std::endl;
       keyframes->push_back(prev_frame_good);
       prev_keyframe = prev_frame_good;
-      num_features_to_keep = min_matches_pc * 
+      num_features_to_keep = min_matches_pc *
                              matches.NumFeatureImage(prev_keyframe);
       num_features_to_keep = std::max(num_features_to_keep, min_num_matches);
       VLOG(3) << "# Features to keep: " << num_features_to_keep<< std::endl;
@@ -80,8 +81,8 @@ void SelectKeyframesBasedOnMatchesNumber(const Matches &matches,
  * TODO(julien) It really doesn't work: Finish this function!
  * */
 void SelectKeyframesBasedOnFAndH(
-   const Matches &matches, 
-   vector<Matches::ImageID> *keyframes) {
+    const Matches &matches,
+    vector<Matches::ImageID> *keyframes) {
   keyframes->reserve(matches.NumImages());
   Mat m;
   Mat3 F, H;
@@ -99,14 +100,14 @@ void SelectKeyframesBasedOnFAndH(
   for (;image_iter != matches.get_images().end(); ++image_iter) {
     TwoViewPointMatchMatrices(matches, *prev_image_iter, *image_iter, &xs2);
     if (xs2[0].cols() >= 7) {
-      h_err = Homography2DFromCorrespondences4PointRobust(xs2[0], xs2[1], 
-                                                          max_error_h, 
-                                                          &H, &inliers, 
+      h_err = Homography2DFromCorrespondences4PointRobust(xs2[0], xs2[1],
+                                                          max_error_h,
+                                                          &H, &inliers,
                                                           outliers_prob);
       h_err /= inliers.size();
-      f_err = FundamentalFromCorrespondences7PointRobust(xs2[0], xs2[1], 
-                                                         max_error_f, 
-                                                         &F, &inliers, 
+      f_err = FundamentalFromCorrespondences7PointRobust(xs2[0], xs2[1],
+                                                         max_error_f,
+                                                         &F, &inliers,
                                                          outliers_prob);
       f_err /= inliers.size();
       VLOG(1) << "H error:" << h_err << "px" << std::endl;
@@ -128,4 +129,4 @@ void SelectKeyframesBasedOnFAndH(
   }
 }
 
-} // namespace libmv
+}  // namespace libmv

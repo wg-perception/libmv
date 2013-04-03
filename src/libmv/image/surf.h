@@ -46,7 +46,7 @@ struct SurfFeature : public PointFeature {
 };
 
 template<typename TImage, typename TOctave>
-void MakeSURFOctave(const TImage &integral_image, 
+void MakeSURFOctave(const TImage &integral_image,
                     int num_intervals,
                     int lobe_start,
                     int lobe_increment,
@@ -99,7 +99,6 @@ void DetectFeatures(const TImage &integral_image,
                     int lobe_increment,
                     int scale,
                     vector<TPointFeature> *features) {
-
   Array3Df blob_responses;
   MakeSURFOctave(integral_image,
                  num_intervals,
@@ -120,22 +119,26 @@ void DetectFeatures(const TImage &integral_image,
     if ( 0 == x || x == blob_responses.Shape(0)-1 ||
          0 == y || y == blob_responses.Shape(1)-1 ||
          0 == z || z == blob_responses.Shape(2)-1) {
-      rejected++; continue;
+      rejected++;
+      continue;
     }
     // Reject anything that's not blobby enough.
     double parameter_maxima_threshold = 0.004;
     if (blob_responses(x, y, z) < parameter_maxima_threshold) {
-      rejected++; continue;
+      rejected++;
+      continue;
     }
     // Reject saddle points.
     Vec3 delta;
     if (!RefineMaxima3D(blob_responses, x, y, z, &delta)) {
-      rejected++; continue;
+      rejected++;
+      continue;
     }
     // Reject points which have refinements that move far away.
     double parameter_maxima_max_refinement_distance = 0.7;
     if (delta.norm() > parameter_maxima_max_refinement_distance) {
-      rejected++; continue;
+      rejected++;
+      continue;
     }
     // 'src' is for (sigma, row, column).
     Vec3f src = maxima[i].cast<float>() + delta.cast<float>();

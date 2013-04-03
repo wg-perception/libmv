@@ -114,7 +114,7 @@ class Kernel {
     Solver::Solve(x1, x2, models);
   }
   double Error(int sample, const Model &model) const {
-    return ErrorArg::Error(model, 
+    return ErrorArg::Error(model,
                            static_cast<Vec>(x1_.col(sample)),
                            static_cast<Vec>(x2_.col(sample)));
   }

@@ -42,15 +42,15 @@ class PointStructure : public Structure {
   PointStructure(const Vec4 &coords);
   virtual ~PointStructure();
 
-  const Vec3 coords_affine() const { 
+  const Vec3 coords_affine() const {
     return HomogeneousToEuclidean(coords_);
   }
-  void set_coords_affine(const Vec3 &coords)  { 
-    coords_ << coords, 1; 
+  void set_coords_affine(const Vec3 &coords)  {
+    coords_ << coords, 1;
   }
   const Vec4 &coords() const          { return coords_; }
   void set_coords(const Vec4 &coords) { coords_ = coords; }
-  
+
  private:
   // Contains the homogeneous position of a structure point
   Vec4 coords_;

@@ -41,7 +41,7 @@ inline void VectorToMatrix(vector<Tvec> &vs, Tmat *m) {
 
 // Selects only the already reconstructed tracks observed in the image image_id
 // and returns a vector of StructureID and their feature coordinates
-void SelectExistingPointStructures(const Matches &matches, 
+void SelectExistingPointStructures(const Matches &matches,
                                    CameraID image_id,
                                    const Reconstruction &reconstruction,
                                    vector<StructureID> *structures_ids,
@@ -49,7 +49,7 @@ void SelectExistingPointStructures(const Matches &matches,
 
 // Selects only the NOT already reconstructed tracks observed in the image
 // image_id and returns a vector of StructureID and their feature coordinates
-void SelectNonReconstructedPointStructures(const Matches &matches, 
+void SelectNonReconstructedPointStructures(const Matches &matches,
                                            CameraID image_id,
                                            const Reconstruction &reconstruction,
                                            vector<StructureID> *structures_ids,

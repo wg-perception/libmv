@@ -34,7 +34,7 @@
 
 namespace libmv {
 namespace tracker {
-  
+
 // FeaturesGraph : Store a list of featureSet and its matches.
 struct FeaturesGraph {
  public:
@@ -42,20 +42,20 @@ struct FeaturesGraph {
     features_sets_.push_back(new FeatureSet());
     return features_sets_.back();
   }
-  
+
   void Merge(const FeaturesGraph &feature_graph) {
     matches_.Merge(feature_graph.matches_);
     features_sets_.insert(features_sets_.begin(),
                           feature_graph.features_sets_.begin(),
                           feature_graph.features_sets_.end());
   }
-  // Erases all the elements.  
+  // Erases all the elements.
   // Note that this function does not desallocate FeatureSets
   void Clear() {
     matches_.Clear();
     features_sets_.clear();
   }
-  
+
   void DeleteAndClear() {
     matches_.Clear();
     std::list<FeatureSet *>::iterator iter = features_sets_.begin();
@@ -64,7 +64,7 @@ struct FeaturesGraph {
     }
     features_sets_.clear();
   }
-  
+
   Matches matches_;
   std::list<FeatureSet *> features_sets_;
 };
@@ -77,38 +77,38 @@ struct FeaturesGraph {
 // tracker as the previous position.
 class Tracker {
  public:
-  Tracker(detector::Detector *detector, 
+  Tracker(detector::Detector *detector,
           descriptor::Describer *describer,
-          correspondence::ArrayMatcher<float> *matcher) : 
+          correspondence::ArrayMatcher<float> *matcher) :
            detector_(detector),
            describer_(describer),
            matcher_(matcher) {
-    //TODO(jmichot) Do a copy of the classes so that the Tracker class will have
-    // its own Detector, Describer & Matcher.
-  };
-            
+    // TODO(jmichot) Do a copy of the classes so that the Tracker class will
+    // have its own Detector, Describer & Matcher.
+  }
+
   virtual ~Tracker() {}
-   
+
   // Tracks new features between two images.
-  virtual bool Track(const Image &image1, 
-                     const Image &image2, 
+  virtual bool Track(const Image &image1,
+                     const Image &image2,
                      FeaturesGraph *new_features_graph,
                      bool keep_single_feature = true);
-                     
+
   // Tracks all features in an image.
-  virtual bool Track(const Image &image, 
-                     const FeaturesGraph &known_features_graph, 
+  virtual bool Track(const Image &image,
+                     const FeaturesGraph &known_features_graph,
                      FeaturesGraph *new_features_graph,
                      Matches::ImageID *image_id,
-                     bool keep_single_feature = true); 
+                     bool keep_single_feature = true);
 
  protected:
-   scoped_ptr<detector::Detector> detector_;
-   scoped_ptr<descriptor::Describer> describer_;
-   scoped_ptr<correspondence::ArrayMatcher<float> > matcher_;
+  scoped_ptr<detector::Detector> detector_;
+  scoped_ptr<descriptor::Describer> describer_;
+  scoped_ptr<correspondence::ArrayMatcher<float> > matcher_;
 };
 
-} // using namespace tracker
-} // using namespace libmv
+}  // using namespace tracker
+}  // using namespace libmv
 
 #endif  // LIBMV_CORRESPONDENCE_TRACKER_H_

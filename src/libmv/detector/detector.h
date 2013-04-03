@@ -36,7 +36,7 @@ namespace detector {
  */
 class DetectorData {
  public:
-  virtual ~DetectorData() {};
+  virtual ~DetectorData() {}
 };
 
 /**
@@ -44,7 +44,7 @@ class DetectorData {
  */
 class Detector {
  public:
-  virtual ~Detector() {};
+  virtual ~Detector() {}
   /**
    * Detects features in an image.
    *

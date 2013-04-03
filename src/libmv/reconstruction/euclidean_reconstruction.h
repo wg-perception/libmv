@@ -32,14 +32,14 @@ namespace libmv {
 //  - creates and adds the new camera to reconstruction
 //  - inserts only inliers matches into matches_inliers
 // Returns true if the resection has succeed
-// Returns false if 
+// Returns false if
 //  - the number of reconstructed Tracks is less than 5
-bool CalibratedCameraResection(const Matches &matches, 
-                               Matches::ImageID image_id, 
-                               const Mat3 &K, 
+bool CalibratedCameraResection(const Matches &matches,
+                               Matches::ImageID image_id,
+                               const Mat3 &K,
                                Matches *matches_inliers,
                                Reconstruction *reconstruction);
-                               
+
 // Estimates a precise initial reconstruction using the matches of two views.
 // The method:
 //  - selects common matches of the two images
@@ -53,9 +53,9 @@ bool CalibratedCameraResection(const Matches &matches,
 //  - creates and adds the cameras to the reconstruction
 //  - reconstructs only the inliers matches (point triangulation)
 //  - performs a metric bundle adjusment
-//    TODO(julien) remove outliers from matches or output matches_inliers.
+// TODO(julien) remove outliers from matches or output matches_inliers.
 // Returns true if the initial reconstruction has succeed
-// Returns false if 
+// Returns false if
 //  - the number of common matches is less than 7
 //  - there is no solution for the relative motion from the essential matrix
 bool InitialReconstructionTwoViews(const Matches &matches,
@@ -66,14 +66,14 @@ bool InitialReconstructionTwoViews(const Matches &matches,
                                    const Vec2u &image_size1,
                                    const Vec2u &image_size2,
                                    Reconstruction *recons);
-                               
+
 // Estimates the pose of the keyframes using the already reconstructed points.
 // For every keyframes (starting the first_keyframe_index th):
 //  - the keyframe is localized (by resection)
 //  - if the resection has not failed, the inliers tracks are reconstructed
 //    by point triangulation
 //  - if new points are created, a global bundle adjustment is performed
-//    TODO(julien) a local bundle adjustment would be sufficient?
+// TODO(julien) a local bundle adjustment would be sufficient?
 // The method stops when one keyframe cannot be localized (tracking lost),
 // keyframe_stopped_index is the index of this keyframe.
 // Returns true if all keyframes have been localized
@@ -85,13 +85,13 @@ bool IncrementalReconstructionKeyframes(const Matches &matches,
                                         const Vec2u &image_size,
                                         Reconstruction *reconstruction,
                                         int *keyframe_stopped_index);
-                               
-// Estimates the pose of non already localized frames using the already 
+
+// Estimates the pose of non already localized frames using the already
 // reconstructed points by resection.
 // It performs also a bundle adjustment when X=10 new cameras are localized.
 // TODO(julien) a local bundle adjustment would be sufficient?
 // The method automatically detect the reconstruction the frame may belongs.
-// NOTE: this method works only if the frame in the Matches class are ordered. 
+// NOTE: this method works only if the frame in the Matches class are ordered.
 //       If it is not the case, it will fail.
 // Returns true.
 bool ReconstructionNonKeyframes(const Matches &matches,
@@ -106,16 +106,16 @@ bool ReconstructionNonKeyframes(const Matches &matches,
 //    algorithm with the previously recontructed structures and new structures
 //    are estimated (points triangulation). A bundle adjustment is performed on
 //    all the reconstruction each time a keyframe is localized.
-//    TODO(julien) a local bundle adjustment would be sufficient?
-//    TODO(julien) +a global bundle adjusment on all data at the end?
+// TODO(julien) a local bundle adjustment would be sufficient?
+// TODO(julien) +a global bundle adjusment on all data at the end?
 //  - In a final step, non-keyframes are localized using the resection method.
 //    A bundle adjusment is periodically performed on all the data.
 // In the case that the tracking is lost, a new reconstruction is created.
 // TODO(julien) Add the calibration matrix K as input?
 // TODO(julien) remove outliers from matches or output inliers matches.
 bool EuclideanReconstructionFromVideo(
-    const Matches &matches, 
-    int image_width, 
+    const Matches &matches,
+    int image_width,
     int image_height,
     double focal,
     std::list<Reconstruction *> *reconstructions);
@@ -123,7 +123,7 @@ bool EuclideanReconstructionFromVideo(
 // Computes the poses of all unordered images.
 // TODO(julien) implement me.
 bool EuclideanReconstructionFromImageSet(
-    const Matches &matches, 
+    const Matches &matches,
     const vector<std::pair<size_t, size_t> > &image_sizes,
     std::list<Reconstruction *> *reconstructions);
 }  // namespace libmv

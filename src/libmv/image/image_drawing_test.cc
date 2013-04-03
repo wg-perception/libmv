@@ -29,9 +29,8 @@ using namespace libmv;
 // Horizontal / Vertical scanlines
 // Assert that pixels was drawn at the good place
 TEST(ImageDrawing, Scanlines) {
-
   const int w = 10, h = 10;
-  Array3Du image(h,w);
+  Array3Du image(h, w);
   image.Fill(0);
 
   // horizontal scanline
@@ -41,9 +40,9 @@ TEST(ImageDrawing, Scanlines) {
   //  |         |
   //  |_________|
   const int y = 5;
-  DrawLine( 0, y, w-1, y, 255, &image);
-  for(int i=0; i < w; ++i)
-    EXPECT_EQ( image(y,i), 255);
+  DrawLine(0, y, w-1, y, 255, &image);
+  for (int i = 0; i < w; ++i)
+    EXPECT_EQ(image(y, i), 255);
 
   image.Fill(0);
 
@@ -54,17 +53,16 @@ TEST(ImageDrawing, Scanlines) {
   //  |    r|   |
   //  |____e|___|
   const int x = 5;
-  DrawLine( x, 0, x, h-1, 255, &image);
+  DrawLine(x, 0, x, h-1, 255, &image);
   for (int i = 0; i < h; ++i)
-    EXPECT_EQ(image(i,y), 255);
+    EXPECT_EQ(image(i, y), 255);
 }
 
 // Lines with a given angle +/-45°
 // Assert that pixels was drawn at the good place
 TEST(ImageDrawing, Lines45) {
-
   const int w = 10, h = 10;
-  Array3Du image(h,w);
+  Array3Du image(h, w);
   image.Fill(0);
 
   //  _____
@@ -74,7 +72,7 @@ TEST(ImageDrawing, Lines45) {
 
   DrawLine(0, 0, w-1, h-1, 255, &image);
   for (int i = 0; i < w; ++i)
-    EXPECT_EQ(image(i,i), 255);
+    EXPECT_EQ(image(i, i), 255);
 
   image.Fill(0);
 
@@ -84,14 +82,13 @@ TEST(ImageDrawing, Lines45) {
   //  |/___|_
   DrawLine(0, h-1, w-1, 0, 255, &image);
   for (int i = 0; i < h; ++i)
-    EXPECT_EQ(image(h-1-i,i), 255);
+    EXPECT_EQ(image(h-1-i, i), 255);
 }
 
 // Draw a circle in an image and assert that all the points are
 // at a distance equal to the radius.
 TEST(ImageDrawing, Circle) {
-
-  Array3Du image(10,10);
+  Array3Du image(10, 10);
   image.Fill(0);
 
   const int radius = 3;
@@ -100,8 +97,8 @@ TEST(ImageDrawing, Circle) {
   DrawCircle(x, y, radius, (unsigned char)255, &image);
 
   // Distance checking :
-  for ( int j = 0; j < image.Height(); ++j)
-  for ( int i = 0; i < image.Width(); ++i) {
+  for (int j = 0; j < image.Height(); ++j)
+  for (int i = 0; i < image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
       EXPECT_NEAR(radius, distance, 1.0f);
@@ -114,8 +111,7 @@ TEST(ImageDrawing, Circle) {
 // in an image and assert that all the points are
 // at a distance equal to the radius.
 TEST(ImageDrawing, Ellipse) {
-
-  Array3Du image(10,10);
+  Array3Du image(10, 10);
   image.Fill(0);
 
   const int radius = 3, angle = 0;
@@ -124,8 +120,8 @@ TEST(ImageDrawing, Ellipse) {
   DrawEllipse(x, y, radius, radius, (unsigned char)255, &image, (double)angle);
 
   // Distance checking :
-  for ( int j = 0; j < image.Height(); ++j)
-  for ( int i = 0; i < image.Width(); ++i) {
+  for (int j = 0; j < image.Height(); ++j)
+  for (int i = 0; i < image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
       EXPECT_NEAR(radius, distance, 1.0f);
@@ -138,8 +134,7 @@ TEST(ImageDrawing, Ellipse) {
 // in an image and assert that all the points are
 // within the given radius.
 TEST(ImageDrawing, RotatedEllipse) {
-
-  Array3Du image(30,30);
+  Array3Du image(30, 30);
   image.Fill(0);
 
   const int radius = 6;
@@ -148,11 +143,11 @@ TEST(ImageDrawing, RotatedEllipse) {
   DrawEllipse(x, y, radius, radius/2.0, (unsigned char)255, &image, M_PI/4.0);
 
   // Distance checking :
-  for ( int j = 0; j < image.Height(); ++j)
-  for ( int i = 0; i < image.Width(); ++i) {
+  for (int j = 0; j < image.Height(); ++j)
+  for (int i = 0; i < image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
-      EXPECT_EQ( radius+1 >= distance && radius/2.0-1 <= distance, true);
+      EXPECT_EQ(radius+1 >= distance && radius/2.0-1 <= distance, true);
       // Due to discretisation we cannot expect better precision
       // Use +-1 to avoid rasterization error.
     }
@@ -162,44 +157,39 @@ TEST(ImageDrawing, RotatedEllipse) {
 /// Assert that the DrawLine function do not crash
 /// when one point is outside the image
 TEST(ImageDrawing, DrawLine_PointOutsideTheImage) {
-
-  Array3Du image(30,30);
+  Array3Du image(30, 30);
   image.Fill(0);
 
   const int radius = 20;
   int x = 15, y = 15;
 
   // Distance checking :
-  for (double i=0; i < 2.0*3.14; i+=3.14/12)
-  {
+  for (double i = 0; i < 2.0*3.14; i += 3.14/12) {
     int x1 = cos(i) * radius;
     int y1 = sin(i) * radius;
-    DrawLine( x, y, x+x1, y+y1, 255, &image);
+    DrawLine(x, y, x+x1, y+y1, 255, &image);
   }
   // Translate :
   x += 15/2.0;
-  for (double i=0; i < 2.0*3.14; i+=3.14/12)
-  {
+  for (double i = 0; i < 2.0*3.14; i += 3.14/12) {
     int x1 = cos(i) * radius;
     int y1 = sin(i) * radius;
-    DrawLine( x, y, x+x1, y+y1, 255, &image);
+    DrawLine(x, y, x+x1, y+y1, 255, &image);
   }
   // Translate :
   x += 15/2.0;
-  for (double i=0; i < 2.0*3.14; i+=3.14/12)
-  {
+  for (double i = 0; i < 2.0*3.14; i += 3.14/12) {
     int x1 = cos(i) * radius;
     int y1 = sin(i) * radius;
-    DrawLine( x, y, x+x1, y+y1, 255, &image);
+    DrawLine(x, y, x+x1, y+y1, 255, &image);
   }
 
-  //Point totally outside the image
+  // Point totally outside the image
   x = y = -100;
-  for (double i=0; i < 2.0*3.14; i+=3.14/12)
-  {
+  for (double i = 0; i < 2.0*3.14; i += 3.14/12) {
     int x1 = cos(i) * radius;
     int y1 = sin(i) * radius;
-    DrawLine( x, y, x+x1, y+y1, 255, &image);
+    DrawLine(x, y, x+x1, y+y1, 255, &image);
   }
 }
 
@@ -207,9 +197,8 @@ TEST(ImageDrawing, DrawLine_PointOutsideTheImage) {
 // Assert that pixels was drawn at the good place
 // and with the good color
 TEST(ImageDrawing, ScanlinesRGB) {
-
   const int w = 10, h = 10;
-  Array3Du image(h,w, 3);
+  Array3Du image(h, w, 3);
   image.Fill(0);
   unsigned char color[3] = {55, 255, 125};
 
@@ -220,11 +209,11 @@ TEST(ImageDrawing, ScanlinesRGB) {
   //  |         |
   //  |_________|
   const int y = 5;
-  DrawLine<Array3Du, unsigned char[3]>( 0, y, w-1, y, color, &image);
-  for(int i=0; i < w; ++i) {
-    EXPECT_EQ( image(y,i,0), color[0]);
-    EXPECT_EQ( image(y,i,1), color[1]);
-    EXPECT_EQ( image(y,i,2), color[2]);
+  DrawLine<Array3Du, unsigned char[3]>(0, y, w-1, y, color, &image);
+  for (int i = 0; i < w; ++i) {
+    EXPECT_EQ(image(y, i, 0), color[0]);
+    EXPECT_EQ(image(y, i, 1), color[1]);
+    EXPECT_EQ(image(y, i, 2), color[2]);
   }
 
   image.Fill(0);
@@ -236,10 +225,10 @@ TEST(ImageDrawing, ScanlinesRGB) {
   //  |    r|   |
   //  |____e|___|
   const int x = 5;
-  DrawLine<Array3Du, unsigned char[3]>( x, 0, x, h-1, color, &image);
+  DrawLine<Array3Du, unsigned char[3]>(x, 0, x, h-1, color, &image);
   for (int i = 0; i < h; ++i) {
-    EXPECT_EQ( image(i,y,0), color[0]);
-    EXPECT_EQ( image(i,y,1), color[1]);
-    EXPECT_EQ( image(i,y,2), color[2]);
+    EXPECT_EQ(image(i, y, 0), color[0]);
+    EXPECT_EQ(image(i, y, 1), color[1]);
+    EXPECT_EQ(image(i, y, 2), color[2]);
   }
 }

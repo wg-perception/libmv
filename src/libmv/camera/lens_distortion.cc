@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/camera/pinhole_camera.h"
 #include "libmv/camera/lens_distortion.h"
+#include "libmv/camera/pinhole_camera.h"
 #include "libmv/numeric/levenberg_marquardt.h"
 
 namespace libmv {
@@ -40,7 +40,7 @@ class UndistortionOptimizerClass {
     Vec2 fx;
     Vec2 point_x(x.x(), x.y());
     Vec2 distorted_point_x;
-    lens_distortion_.ComputeUndistortedCoordinates(camera_,point_x,
+    lens_distortion_.ComputeUndistortedCoordinates(camera_, point_x,
                                                    &distorted_point_x);
     fx = (distorted_point_ - distorted_point_x).cast<double>();
 

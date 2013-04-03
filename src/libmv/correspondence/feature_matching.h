@@ -47,11 +47,10 @@ struct FeatureSet {
   /// return a float * containing the concatenation of descriptor data.
   /// Must be deleted with []
   static float *FeatureSetDescriptorsToContiguousArray
-    ( const FeatureSet & featureSet );
+    (const FeatureSet & featureSet);
 };
 
-enum eLibmvMatchMethod
-{
+enum eLibmvMatchMethod {
   eMATCH_LINEAR,
   eMATCH_KDTREE,
   eMATCH_KDTREE_FLANN
@@ -88,4 +87,4 @@ void FindCorrespondences(const FeatureSet &left,
                          eLibmvMatchMethod eMatchMethod = eMATCH_KDTREE_FLANN,
                          float fRatio = 0.8f);
 
-#endif //LIBMV_CORRESPONDENCE_FEATURE_MATCHING_H_
+#endif  // LIBMV_CORRESPONDENCE_FEATURE_MATCHING_H_

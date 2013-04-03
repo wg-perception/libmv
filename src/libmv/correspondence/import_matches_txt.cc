@@ -18,13 +18,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <fstream>
-
 #include "libmv/correspondence/import_matches_txt.h"
+
+#include <fstream>
 
 namespace libmv {
 
-void ImportMatchesFromTxt(const std::string &input_file, 
+void ImportMatchesFromTxt(const std::string &input_file,
                           Matches *matches,
                           FeatureSet *feature_set) {
   Matches::ImageID image_id = 0;
@@ -39,9 +39,9 @@ void ImportMatchesFromTxt(const std::string &input_file,
     KeypointFeature pf;
     pf.coords << x, y;
     feature_set->features.push_back(pf);
-    matches->Insert(image_id, track_id, 
+    matches->Insert(image_id, track_id,
                     &feature_set->features.back());
   }
   infile.close();
 }
-} // namespace libmv
+}  // namespace libmv

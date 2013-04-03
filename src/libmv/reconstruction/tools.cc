@@ -18,23 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/reconstruction/tools.h"
+
 #include <stdio.h>
 #include <locale.h>
-
-#include "libmv/reconstruction/tools.h"
 
 namespace libmv {
 
 // Selects only the already reconstructed tracks observed in the image image_id
 // and returns a vector of StructureID and their feature coordinates
-void SelectExistingPointStructures(const Matches &matches, 
+void SelectExistingPointStructures(const Matches &matches,
                                    CameraID image_id,
                                    const Reconstruction &reconstruction,
                                    vector<StructureID> *structures_ids,
                                    Mat2X *x_image) {
   const size_t kNumberStructuresToReserve = 1000;
   structures_ids->resize(0);
-  //TODO(julien) clean this
+  // TODO(julien) clean this
   structures_ids->reserve(kNumberStructuresToReserve);
   vector<Vec2> xs;
   if (x_image)
@@ -55,14 +55,14 @@ void SelectExistingPointStructures(const Matches &matches,
 
 // Selects only the NOT already reconstructed tracks observed in the image
 // image_id and returns a vector of StructureID and their feature coordinates
-void SelectNonReconstructedPointStructures(const Matches &matches, 
+void SelectNonReconstructedPointStructures(const Matches &matches,
                                            CameraID image_id,
                                            const Reconstruction &reconstruction,
                                            vector<StructureID> *structures_ids,
                                            Mat2X *x_image) {
   const size_t kNumberStructuresToReserve = 10000;
   structures_ids->resize(0);
-  //TODO(julien) clean this
+  // TODO(julien) clean this
   structures_ids->reserve(kNumberStructuresToReserve);
   vector<Vec2> xs;
   if (x_image)
@@ -96,4 +96,4 @@ void MatrixOfPointStructureCoordinates(
     }
   }
 }
-} // namespace libmv
+}  // namespace libmv

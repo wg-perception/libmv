@@ -37,10 +37,10 @@ TEST(Affine2DTest, TranslationX) {
   EXPECT_TRUE(Affine2DFromCorrespondencesLinear(x1, x2, &AffineMat));
   VLOG(1) << "Mat Affine2D "<< std::endl <<AffineMat;
   Mat3 ground_truth;
-  ground_truth << 1,0,1,
-                  0,1,0,
-                  0,0,1;
-  EXPECT_MATRIX_NEAR(AffineMat, ground_truth,1e-8);
+  ground_truth << 1, 0, 1,
+                  0, 1, 0,
+                  0, 0, 1;
+  EXPECT_MATRIX_NEAR(AffineMat, ground_truth, 1e-8);
 }
 
 TEST(Affine2DTest, TranslationXY) {
@@ -56,10 +56,10 @@ TEST(Affine2DTest, TranslationXY) {
   EXPECT_TRUE(Affine2DFromCorrespondencesLinear(x1, x2, &affine_mat));
   VLOG(1) << "Mat Affine2D "<< std::endl << affine_mat;
   Mat3 ground_truth;
-  ground_truth << 1,0,1,
-                  0,1,1,
-                  0,0,1;
-  EXPECT_MATRIX_NEAR(affine_mat, ground_truth,1e-8);
+  ground_truth << 1, 0, 1,
+                  0, 1, 1,
+                  0, 0, 1;
+  EXPECT_MATRIX_NEAR(affine_mat, ground_truth, 1e-8);
 }
 
 TEST(Affine2DTest, Rotation45) {
@@ -73,8 +73,8 @@ TEST(Affine2DTest, Rotation45) {
           sin(angle),  cos(angle), 0,
           0,           0,          1;
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) * x1.col(i) ;
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) * x1.col(i);
   }
 
   Mat3 affine_mat;
@@ -96,9 +96,9 @@ TEST(Affine2DTest, Rotation45AndTranslationXY) {
 
   Mat x2 = x1;
   // Transform point from ground truth matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = rot.block<2,2>(0,0) *  x1.col(i);// rot
-    x2.block<2,1>(0,i) += rot.block<2,1>(0,2); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = rot.block<2, 2>(0, 0) *  x1.col(i);  // rot
+    x2.block<2, 1>(0, i) += rot.block<2, 1>(0, 2);  // translation
   }
 
   Mat3 affine_mat;
@@ -118,9 +118,9 @@ TEST(Affine2DTest, AffineGeneral) {
 
   Mat x2 = x1;
   // Transform point from ground truth matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<2,1>(0,i) = m.block<2,2>(0,0) * x1.col(i);// affine
-    x2.block<2,1>(0,i) += m.block<2,1>(0,2); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<2, 1>(0, i) = m.block<2, 2>(0, 0) * x1.col(i);  // affine
+    x2.block<2, 1>(0, i) += m.block<2, 1>(0, 2);  // translation
   }
 
   Mat3 affine_mat;
@@ -144,11 +144,11 @@ TEST(Affine3DTest, TranslationZ) {
   EXPECT_TRUE(Affine3DFromCorrespondencesLinear(x1, x2, &AffineMat));
   VLOG(1) << "Mat Affine3D "<< std::endl <<AffineMat;
   Mat4 ground_truth;
-  ground_truth << 1,0,0,0,
-                  0,1,0,0,
-                  0,0,1,1,
-                  0,0,0,1;
-  EXPECT_MATRIX_NEAR(AffineMat, ground_truth,1e-8);
+  ground_truth << 1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0, 1, 1,
+                  0, 0, 0, 1;
+  EXPECT_MATRIX_NEAR(AffineMat, ground_truth, 1e-8);
 }
 
 TEST(Affine3DTest, TranslationXYZ) {
@@ -166,11 +166,11 @@ TEST(Affine3DTest, TranslationXYZ) {
   EXPECT_TRUE(Affine3DFromCorrespondencesLinear(x1, x2, &affine_mat));
   VLOG(1) << "Mat Affine3D "<< std::endl << affine_mat;
   Mat4 ground_truth;
-  ground_truth << 1,0,0, 2,
-                  0,1,0,-1,
-                  0,0,1, 1,
-                  0,0,0, 1;
-  EXPECT_MATRIX_NEAR(affine_mat, ground_truth,1e-8);
+  ground_truth << 1, 0, 0,  2,
+                  0, 1, 0, -1,
+                  0, 0, 1,  1,
+                  0, 0, 0,  1;
+  EXPECT_MATRIX_NEAR(affine_mat, ground_truth, 1e-8);
 }
 
 TEST(Affine3DTest, RotationAndTranslationXYZ) {
@@ -185,14 +185,14 @@ TEST(Affine3DTest, RotationAndTranslationXYZ) {
   M = AngleAxisd(45.0, Vector3f::UnitZ())
     * AngleAxisd(25.0, Vector3f::UnitX())
     * AngleAxisd(5.0, Vector3f::UnitZ());*/
-      
+
   // Rotation on x + translation
   double angle = 45.0;
   Mat4 rot;
-  rot <<  1,          0,           0, 1,
-          0, cos(angle), -sin(angle), 3,
-          0, sin(angle),  cos(angle),-2,
-          0,          0,           0, 1;
+  rot <<  1,          0,           0,  1,
+          0, cos(angle), -sin(angle),  3,
+          0, sin(angle),  cos(angle), -2,
+          0,          0,           0,  1;
   M *= rot;
   // Rotation on y
   angle = 25.0;
@@ -210,9 +210,9 @@ TEST(Affine3DTest, RotationAndTranslationXYZ) {
   M *= rot;
   Mat x2 = x1;
   // Transform point from ground affine matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<3,1>(0,i) =  M.block<3,3>(0,0) * x1.col(i) ;
-    x2.block<3,1>(0,i) += M.block<3,1>(0,3); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<3, 1>(0, i) =  M.block<3, 3>(0, 0) * x1.col(i);
+    x2.block<3, 1>(0, i) += M.block<3, 1>(0, 3);  // translation
   }
 
   Mat4 affine_mat;
@@ -227,16 +227,16 @@ TEST(Affine3DTest, AffineGeneral) {
          0, 1, 2, 3,
          2, 0, 1, 2;
   Mat4 m;
-  m <<   3, -1,  4, 1,
-         6, -2, -3,-6,
-         1,  0,  1, 2,
-         0,  0,  0, 1;
+  m <<   3, -1,  4,  1,
+         6, -2, -3, -6,
+         1,  0,  1,  2,
+         0,  0,  0,  1;
 
   Mat x2 = x1;
   // Transform point from ground truth affine matrix
-  for(int i = 0; i < x2.cols(); ++i)  {
-    x2.block<3,1>(0,i) = m.block<3,3>(0,0) * x1.col(i);// affine
-    x2.block<3,1>(0,i) += m.block<3,1>(0,3); // translation
+  for (int i = 0; i < x2.cols(); ++i) {
+    x2.block<3, 1>(0, i) = m.block<3, 3>(0, 0) * x1.col(i);  // affine
+    x2.block<3, 1>(0, i) += m.block<3, 1>(0, 3);  // translation
   }
 
   Mat4 affine_mat;

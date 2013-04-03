@@ -60,80 +60,76 @@ inline void safePutPixel(int yc, int xc, const Color *col, Image *pim) {
 // As the algo. use symmetry we must use 4 rotations.
 template <class Image, class Color>
 void DrawEllipse(int xc, int yc, int radiusA, int radiusB,
-                 const Color &col, Image *pim, double angle = 0.0)
-{
+                 const Color &col, Image *pim, double angle = 0.0) {
   int a = radiusA;
   int b = radiusB;
 
   // Counter Clockwise rotation matrix.
   double matXY[4] = { cos(angle), sin(angle),
                      -sin(angle), cos(angle)};
-  int x,y;
-  double d1,d2;
+  int x, y;
+  double d1, d2;
   x = 0;
   y = b;
   d1 = b*b - a*a*b + a*a/4;
 
   float rotX = (matXY[0] * x + matXY[1] * y);
   float rotY = (matXY[2] * x + matXY[3] * y);
-  safePutPixel( yc + rotY, xc + rotX, col, pim);
+  safePutPixel(yc + rotY, xc + rotX, col, pim);
   rotX = (matXY[0] * x - matXY[1] * y);
   rotY = (matXY[2] * x - matXY[3] * y);
-  safePutPixel( yc + rotY, xc + rotX, col, pim);
+  safePutPixel(yc + rotY, xc + rotX, col, pim);
   rotX = (-matXY[0] * x - matXY[1] * y);
   rotY = (-matXY[2] * x - matXY[3] * y);
-  safePutPixel( yc + rotY, xc + rotX, col, pim);
+  safePutPixel(yc + rotY, xc + rotX, col, pim);
   rotX = (-matXY[0] * x + matXY[1] * y);
   rotY = (-matXY[2] * x + matXY[3] * y);
-  safePutPixel( yc + rotY, xc + rotX, col, pim);
+  safePutPixel(yc + rotY, xc + rotX, col, pim);
 
-  while ( a*a*(y-.5) > b*b*(x+1) ) {
-    if ( d1 < 0 ) {
+  while (a*a*(y-.5) > b*b*(x+1)) {
+    if (d1 < 0) {
       d1 += b*b*(2*x+3);
       ++x;
-    }
-    else
-    {
+    } else {
       d1 += b*b*(2*x+3) + a*a*(-2*y+2);
       ++x;
       --y;
     }
     rotX = (matXY[0] * x + matXY[1] * y);
     rotY = (matXY[2] * x + matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
     rotX = (matXY[0] * x - matXY[1] * y);
     rotY = (matXY[2] * x - matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
     rotX = (-matXY[0] * x - matXY[1] * y);
     rotY = (-matXY[2] * x - matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
     rotX = (-matXY[0] * x + matXY[1] * y);
     rotY = (-matXY[2] * x + matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
   }
   d2 = b*b*(x+.5)*(x+.5) + a*a*(y-1)*(y-1) - a*a*b*b;
-  while ( y > 0 ) {
-    if ( d2 < 0 ) {
+  while (y > 0) {
+    if (d2 < 0) {
       d2 += b*b*(2*x+2) + a*a*(-2*y+3);
       --y;
       ++x;
-    }
-    else {
+    } else {
       d2 += a*a*(-2*y+3);
       --y;
     }
     rotX = (matXY[0] * x + matXY[1] * y);
     rotY = (matXY[2] * x + matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
     rotX = (matXY[0] * x - matXY[1] * y);
     rotY = (matXY[2] * x - matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
     rotX = (-matXY[0] * x - matXY[1] * y);
     rotY = (-matXY[2] * x - matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
     rotX = (-matXY[0] * x + matXY[1] * y);
     rotY = (-matXY[2] * x + matXY[3] * y);
-    safePutPixel( yc + rotY, xc + rotX, col, pim);
+    safePutPixel(yc + rotY, xc + rotX, col, pim);
   }
 }
 
@@ -185,32 +181,31 @@ void DrawLine(int xa, int ya, int xb, int yb, const Color &col, Image *pim) {
   // If one point is outside the image
   // Replace the outside point by the intersection of the line and
   // the limit (either x=width or y=height).
-  if (!im.Contains(ya, xa) || !im.Contains(yb, xb))
-  {
+  if (!im.Contains(ya, xa) || !im.Contains(yb, xb)) {
     int width = pim->Width();
     int height = pim->Height();
-    const bool xdir = xa<xb, ydir = ya<yb;
+    const bool xdir = xa < xb, ydir = ya < yb;
     float nx0 = xa, nx1 = xb, ny0 = ya, ny1 = yb,
         &xleft = xdir?nx0:nx1,  &yleft = xdir?ny0:ny1,
         &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
         &xup = ydir?nx0:nx1,    &yup = ydir?ny0:ny1,
         &xdown = ydir?nx1:nx0,  &ydown = ydir?ny1:ny0;
 
-    if (xright<0 || xleft>=width) return;
-    if (xleft<0) {
+    if (xright < 0 || xleft >= width) return;
+    if (xleft < 0) {
       yleft -= xleft*(yright - yleft)/(xright - xleft);
       xleft  = 0;
     }
-    if (xright>=width) {
+    if (xright >= width) {
       yright -= (xright - width)*(yright - yleft)/(xright - xleft);
       xright  = width - 1;
     }
-    if (ydown<0 || yup>=height) return;
-    if (yup<0) {
+    if (ydown < 0 || yup >= height) return;
+    if (yup < 0) {
       xup -= yup*(xdown - xup)/(ydown - yup);
       yup  =  0;
     }
-    if (ydown>=height) {
+    if (ydown >= height) {
       xdown -= (ydown - height)*(xdown - xup)/(ydown - yup);
       ydown  =  height - 1;
     }
@@ -238,15 +233,15 @@ void DrawLine(int xa, int ya, int xb, int yb, const Color &col, Image *pim) {
   int x, y, dx, dy, incrmX, incrmY, dp, N, S;
   dx = xhaut - xbas;
   dy = yhaut - ybas;
-  if (dx > 0) { // If xhaut > xbas we will increment X.
+  if (dx > 0) {  // If xhaut > xbas we will increment X.
     incrmX = 1;
   } else {
-    incrmX = -1; // else we will decrement X.
+    incrmX = -1;  // else we will decrement X.
     dx *= -1;
   }
-  if (dy > 0) { // Positive slope will increment X.
+  if (dy > 0) {  // Positive slope will increment X.
     incrmY = 1;
-  } else {      // Negative slope.
+  } else {       // Negative slope.
     incrmY = -1;
   }
   if (dx >= dy) {
@@ -256,11 +251,11 @@ void DrawLine(int xa, int ya, int xb, int yb, const Color &col, Image *pim) {
     y = ybas;
     x = xbas;
     while (x != xhaut) {
-      safePutPixel( y, x, col, pim);
+      safePutPixel(y, x, col, pim);
       x += incrmX;
-      if (dp <= 0) { // Go in direction of the South Pixel.
+      if (dp <= 0) {  // Go in direction of the South Pixel.
         dp += S;
-      } else {       // Go to the North.
+      } else {        // Go to the North.
         dp += N;
         y+=incrmY;
       }
@@ -272,19 +267,19 @@ void DrawLine(int xa, int ya, int xb, int yb, const Color &col, Image *pim) {
     x = xbas;
     y = ybas;
     while (y < yhaut) {
-      safePutPixel( y, x, col, pim);
+      safePutPixel(y, x, col, pim);
       y += incrmY;
-      if (dp <= 0) { // Go in direction of the South Pixel.
+      if (dp <= 0) {  // Go in direction of the South Pixel.
         dp += S;
-      } else {       // Go to the North.
+      } else {        // Go to the North.
         dp += N;
         x += incrmX;
       }
     }
   }
-  safePutPixel( y, x, col, pim);
+  safePutPixel(y, x, col, pim);
 }
 
-} //namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_IMAGE_IMAGE_DRAWING_H

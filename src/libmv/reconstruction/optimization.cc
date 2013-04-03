@@ -18,13 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/multiview/bundle.h"
 #include "libmv/reconstruction/optimization.h"
+
+#include "libmv/multiview/bundle.h"
 #include "libmv/reconstruction/tools.h"
 
 namespace libmv {
 
-double EstimateRootMeanSquareError(const Matches &matches, 
+double EstimateRootMeanSquareError(const Matches &matches,
                                    Reconstruction *reconstruction) {
   PinholeCamera * pcamera = NULL;
   vector<StructureID> structures_ids;
@@ -33,20 +34,20 @@ double EstimateRootMeanSquareError(const Matches &matches,
   double sum_rms2 = 0;
   size_t num_features = 0;
   std::map<StructureID, Structure *>::iterator stucture_iter;
-  std::map<CameraID, Camera *>::iterator camera_iter = 
+  std::map<CameraID, Camera *>::iterator camera_iter =
       reconstruction->cameras().begin();
   for (; camera_iter != reconstruction->cameras().end(); ++camera_iter) {
     pcamera = dynamic_cast<PinholeCamera *>(camera_iter->second);
     if (pcamera) {
       SelectExistingPointStructures(matches, camera_iter->first,
-                                    *reconstruction, 
+                                    *reconstruction,
                                     &structures_ids,
                                     &x_image);
-      MatrixOfPointStructureCoordinates(structures_ids, 
+      MatrixOfPointStructureCoordinates(structures_ids,
                                         *reconstruction,
                                         &X_world);
       Mat2X dx =Project(pcamera->projection_matrix(), X_world) - x_image;
-      VLOG(1)   << "|Err Cam "<<camera_iter->first<<"| = " 
+      VLOG(1)   << "|Err Cam " << camera_iter->first << "| = "
                 << sqrt(Square(dx.norm()) / x_image.cols()) << " ("
                 << x_image.cols() << " pts)" << std::endl;
       // TODO(julien) use normSquare
@@ -58,7 +59,7 @@ double EstimateRootMeanSquareError(const Matches &matches,
   return sqrt(sum_rms2 / num_features);
 }
 
-double MetricBundleAdjust(const Matches &matches, 
+double MetricBundleAdjust(const Matches &matches,
                           Reconstruction *reconstruction) {
   double rms = 0, rms0 = EstimateRootMeanSquareError(matches, reconstruction);
   VLOG(1)   << "Initial RMS = " << rms0 << std::endl;
@@ -72,10 +73,10 @@ double MetricBundleAdjust(const Matches &matches,
   Mat3X         X(3, nstructure);
   vector<StructureID> structures_ids;
   std::map<StructureID, uint> map_structures_ids;
-  
+
   size_t str_id = 0;
   PointStructure *pstructure = NULL;
-  std::map<StructureID, Structure *>::iterator str_iter =  
+  std::map<StructureID, Structure *>::iterator str_iter =
     reconstruction->structures().begin();
   for (; str_iter != reconstruction->structures().end(); ++str_iter) {
     pstructure = dynamic_cast<PointStructure *>(str_iter->second);
@@ -89,10 +90,10 @@ double MetricBundleAdjust(const Matches &matches,
       return 0;
     }
   }
-  
+
   PinholeCamera * pcamera = NULL;
   size_t cam_id = 0;
-  std::map<CameraID, Camera *>::iterator cam_iter =  
+  std::map<CameraID, Camera *>::iterator cam_iter =
     reconstruction->cameras().begin();
   for (; cam_iter != reconstruction->cameras().end(); ++cam_iter) {
     pcamera = dynamic_cast<PinholeCamera *>(cam_iter->second);
@@ -146,7 +147,7 @@ double MetricBundleAdjust(const Matches &matches,
 }
 
 uint RemoveOutliers(CameraID image_id,
-                    Matches *matches,   
+                    Matches *matches,
                     Reconstruction *reconstruction,
                     double rmse_threshold) {
   // TODO(julien) finish it !
@@ -158,7 +159,7 @@ uint RemoveOutliers(CameraID image_id,
   // Selects only the reconstructed structures observed in the image
   SelectExistingPointStructures(*matches, image_id, *reconstruction,
                                 &structures_ids, NULL);
-  Vec2 q, q2; 
+  Vec2 q, q2;
   uint number_outliers = 0;
   uint num_views = 0;
   bool current_point_removed = false;
@@ -201,7 +202,7 @@ uint RemoveOutliers(CameraID image_id,
         fp.operator++();
       }
       if (num_views < 2) {
-        //Delete the point
+        // Delete the point
         reconstruction->RemoveTrack(structures_ids[t]);
       }
       // TODO(julien) also check if a camera has enough points (at least 2)
@@ -210,4 +211,4 @@ uint RemoveOutliers(CameraID image_id,
   VLOG(1) << "#outliers: " << number_outliers << std::endl;
   return number_outliers;
 }
-} // namespace libmv
+}  // namespace libmv

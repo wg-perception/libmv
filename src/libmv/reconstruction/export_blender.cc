@@ -18,16 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/reconstruction/export_blender.h"
+
 #include <stdio.h>
 #include <locale.h>
 
-#include "libmv/reconstruction/export_blender.h"
-
 namespace libmv {
 
-void ExportToBlenderScript(const Reconstruction &reconstruct, 
+void ExportToBlenderScript(const Reconstruction &reconstruct,
                            std::string out_file_name) {
-  // Avoid to have comas instead of dots (foreign lang.) 
+  // Avoid to have comas instead of dots (foreign lang.)
   setlocale(LC_ALL, "C");
 
   FILE* fid = fopen(out_file_name.c_str(), "wb");
@@ -46,12 +46,13 @@ void ExportToBlenderScript(const Reconstruction &reconstruct,
   fprintf(fid, "# Cameras\n");
   PinholeCamera *pcamera = NULL;
   uint i = 0;
-  Mat3 K, R; Vec3 t;
-  std::map<CameraID, Camera *>::const_iterator camera_iter =  
+  Mat3 K, R;
+  Vec3 t;
+  std::map<CameraID, Camera *>::const_iterator camera_iter =
     reconstruct.cameras().begin();
   for (; camera_iter != reconstruct.cameras().end(); ++camera_iter) {
     pcamera = dynamic_cast<PinholeCamera *>(camera_iter->second);
-    // TODO(julien) how to export generic cameras ? 
+    // TODO(julien) how to export generic cameras ?
     if (pcamera) {
       K = pcamera->intrinsic_matrix();
       R = pcamera->orientation_matrix();
@@ -60,7 +61,7 @@ void ExportToBlenderScript(const Reconstruction &reconstruct,
       fprintf(fid, "c%04d = Camera.New('persp')\n", i);
       // TODO(pau) we may want to take K(0,0)/K(1,1) and push that into the
       // render aspect ratio settings.
-      double f = K(0,0);
+      double f = K(0, 0);
       double width = pcamera->image_width();
       // WARNING: MAGIC CONSTANT from blender source
       // Look for 32.0 in 'source/blender/render/intern/source/initrender.c'
@@ -75,7 +76,7 @@ void ExportToBlenderScript(const Reconstruction &reconstruct,
       // Usually it is x = K[R|t]X; but here it is the inverse of R|t stacked
       // on [0,0,0,1], but then in fortran-order. So that is where the
       // weirdness comes from.
-      fprintf(fid, "o%04d.setMatrix(Mathutils.Matrix(",i);
+      fprintf(fid, "o%04d.setMatrix(Mathutils.Matrix(", i);
       for (int j = 0; j < 3; ++j) {
         fprintf(fid, "[");
         for (int k = 0; k < 3; ++k) {
@@ -83,9 +84,9 @@ void ExportToBlenderScript(const Reconstruction &reconstruct,
           // do a 180 degree X axis rotation. The math works out so that
           // the following conditional nicely implements that.
           if (j == 2 || j == 1)
-            fprintf(fid, "%g,", -R(j,k)); // transposed + opposite!
+            fprintf(fid, "%g,", -R(j, k));  // transposed + opposite!
           else
-            fprintf(fid, "%g,", R(j,k)); // transposed!
+            fprintf(fid, "%g,", R(j, k));  // transposed!
         }
         fprintf(fid, "0.0],");
       }
@@ -113,7 +114,7 @@ void ExportToBlenderScript(const Reconstruction &reconstruct,
   std::map<StructureID, Structure *>::const_iterator track_iter =
     reconstruct.structures().begin();
   for (; track_iter != reconstruct.structures().end(); ++track_iter) {
-    PointStructure * point_s = 
+    PointStructure * point_s =
       dynamic_cast<PointStructure*>(track_iter->second);
     if (point_s) {
       fprintf(fid, "v = NMesh.Vert(%g,%g,%g)\n", point_s->coords_affine()(0),
@@ -145,4 +146,4 @@ void ExportToBlenderScript(const Reconstruction &reconstruct,
 
   fclose(fid);
 }
-} // namespace libmv
+}  // namespace libmv

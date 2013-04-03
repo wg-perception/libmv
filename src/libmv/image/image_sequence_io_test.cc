@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,10 +38,10 @@ namespace {
 TEST(ImageSequenceIO, FromFiles) {
   Array3Df image1(1, 2);
   Array3Df image2(1, 2);
-  image1(0,0) = 1.f;
-  image1(0,1) = 0.f;
-  image2(0,0) = 0.f;
-  image2(0,1) = 1.f;
+  image1(0, 0) = 1.f;
+  image1(0, 1) = 0.f;
+  image2(0, 0) = 0.f;
+  image2(0, 1) = 1.f;
 
   string image1_fn = string(THIS_SOURCE_DIR) + "/1.pgm";
   string image2_fn = string(THIS_SOURCE_DIR) + "/2.pgm";
@@ -60,16 +60,16 @@ TEST(ImageSequenceIO, FromFiles) {
   EXPECT_EQ(2, image->Width());
   EXPECT_EQ(1, image->Height());
   EXPECT_EQ(1, image->Depth());
-  EXPECT_EQ((*image)(0,0), 1.f);
-  EXPECT_EQ((*image)(0,1), 0.f);
+  EXPECT_EQ((*image)(0, 0), 1.f);
+  EXPECT_EQ((*image)(0, 1), 0.f);
 
   image = sequence->GetFloatImage(1);
   ASSERT_TRUE(image);
   EXPECT_EQ(2, image->Width());
   EXPECT_EQ(1, image->Height());
   EXPECT_EQ(1, image->Depth());
-  EXPECT_EQ((*image)(0,0), 0.f);
-  EXPECT_EQ((*image)(0,1), 1.f);
+  EXPECT_EQ((*image)(0, 0), 0.f);
+  EXPECT_EQ((*image)(0, 1), 1.f);
 
   sequence->Unpin(0);
   sequence->Unpin(1);

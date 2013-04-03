@@ -65,65 +65,65 @@ TEST(Matches, Views) {
 
 TEST(Matches, InsertMatches) {
   Matches matches_insert;
-  matches_insert.Insert(1, 1, new PointFeature( 1,  10));
-  matches_insert.Insert(1, 2, new PointFeature( 2,  20));
-  matches_insert.Insert(1, 3, new PointFeature( 3,  30));
-                                              
-  matches_insert.Insert(4, 1, new PointFeature( 4,  40));
-  matches_insert.Insert(4, 2, new PointFeature( 5,  50));
-  matches_insert.Insert(4, 3, new PointFeature( 6,  60));
-  matches_insert.Insert(4, 6, new PointFeature( 7,  70));
-                                              
-  matches_insert.Insert(7, 2, new PointFeature( 8,  80));
-  matches_insert.Insert(7, 3, new PointFeature( 9,  90));
+  matches_insert.Insert(1, 1, new PointFeature(1,  10));
+  matches_insert.Insert(1, 2, new PointFeature(2,  20));
+  matches_insert.Insert(1, 3, new PointFeature(3,  30));
+
+  matches_insert.Insert(4, 1, new PointFeature(4,  40));
+  matches_insert.Insert(4, 2, new PointFeature(5,  50));
+  matches_insert.Insert(4, 3, new PointFeature(6,  60));
+  matches_insert.Insert(4, 6, new PointFeature(7,  70));
+
+  matches_insert.Insert(7, 2, new PointFeature(8,  80));
+  matches_insert.Insert(7, 3, new PointFeature(9,  90));
   matches_insert.Insert(7, 6, new PointFeature(10, 100));
-                                              
+
   matches_insert.Insert(5, 1, new PointFeature(11, 110));
   matches_insert.Insert(5, 3, new PointFeature(12, 120));
   matches_insert.Insert(5, 5, new PointFeature(13, 130));
   matches_insert.Insert(5, 6, new PointFeature(14, 140));
-    
+
   ASSERT_EQ(4, matches_insert.NumImages());
   ASSERT_EQ(5, matches_insert.NumTracks());
-  
+
   Matches new_matches;
-  new_matches.Insert(1, 8, new PointFeature( 1,  10));
-  new_matches.Insert(1, 4, new PointFeature( 2,  20));
-  new_matches.Insert(2, 2, new PointFeature( 3,  30));
- 
+  new_matches.Insert(1, 8, new PointFeature(1,  10));
+  new_matches.Insert(1, 4, new PointFeature(2,  20));
+  new_matches.Insert(2, 2, new PointFeature(3,  30));
+
   matches_insert.Insert(new_matches);
-  
+
   ASSERT_EQ(6, matches_insert.NumImages());
   ASSERT_EQ(8, matches_insert.NumTracks());
 }
 
 TEST(Matches, MergeMatches) {
   Matches matches_merge;
-  matches_merge.Insert(1, 1, new PointFeature( 1,  10));
-  matches_merge.Insert(1, 2, new PointFeature( 2,  20));
-  matches_merge.Insert(1, 3, new PointFeature( 3,  30));
-                                              
-  matches_merge.Insert(4, 1, new PointFeature( 4,  40));
-  matches_merge.Insert(4, 2, new PointFeature( 5,  50));
-  matches_merge.Insert(4, 3, new PointFeature( 6,  60));
-  matches_merge.Insert(4, 6, new PointFeature( 7,  70));
-                                              
-  matches_merge.Insert(7, 2, new PointFeature( 8,  80));
-  matches_merge.Insert(7, 3, new PointFeature( 9,  90));
+  matches_merge.Insert(1, 1, new PointFeature(1,  10));
+  matches_merge.Insert(1, 2, new PointFeature(2,  20));
+  matches_merge.Insert(1, 3, new PointFeature(3,  30));
+
+  matches_merge.Insert(4, 1, new PointFeature(4,  40));
+  matches_merge.Insert(4, 2, new PointFeature(5,  50));
+  matches_merge.Insert(4, 3, new PointFeature(6,  60));
+  matches_merge.Insert(4, 6, new PointFeature(7,  70));
+
+  matches_merge.Insert(7, 2, new PointFeature(8,  80));
+  matches_merge.Insert(7, 3, new PointFeature(9,  90));
   matches_merge.Insert(7, 6, new PointFeature(10, 100));
-                                              
+
   matches_merge.Insert(5, 1, new PointFeature(11, 110));
   matches_merge.Insert(5, 3, new PointFeature(12, 120));
   matches_merge.Insert(5, 5, new PointFeature(13, 130));
   matches_merge.Insert(5, 6, new PointFeature(14, 140));
-    
+
   Matches new_matches;
-  new_matches.Insert(1, 8, new PointFeature( 1,  10));
-  new_matches.Insert(1, 4, new PointFeature( 2,  20));
-  new_matches.Insert(2, 2, new PointFeature( 3,  30));
- 
+  new_matches.Insert(1, 8, new PointFeature(1,  10));
+  new_matches.Insert(1, 4, new PointFeature(2,  20));
+  new_matches.Insert(2, 2, new PointFeature(3,  30));
+
   matches_merge.Merge(new_matches);
-    
+
   ASSERT_EQ(5, matches_merge.NumImages());
   ASSERT_EQ(7, matches_merge.NumTracks());
 }
@@ -207,19 +207,19 @@ TEST(TracksInAllImages, SimpleCase) {
 
 TEST(PointMatchMatrices, SimpleCase) {
   Matches matches;
-  matches.Insert(1, 1, new PointFeature( 1,  10));
-  matches.Insert(1, 2, new PointFeature( 2,  20));
-  matches.Insert(1, 3, new PointFeature( 3,  30));
-                                              
-  matches.Insert(4, 1, new PointFeature( 4,  40));
-  matches.Insert(4, 2, new PointFeature( 5,  50));
-  matches.Insert(4, 3, new PointFeature( 6,  60));
-  matches.Insert(4, 6, new PointFeature( 7,  70));
-                                              
-  matches.Insert(7, 2, new PointFeature( 8,  80));
-  matches.Insert(7, 3, new PointFeature( 9,  90));
+  matches.Insert(1, 1, new PointFeature(1,  10));
+  matches.Insert(1, 2, new PointFeature(2,  20));
+  matches.Insert(1, 3, new PointFeature(3,  30));
+
+  matches.Insert(4, 1, new PointFeature(4,  40));
+  matches.Insert(4, 2, new PointFeature(5,  50));
+  matches.Insert(4, 3, new PointFeature(6,  60));
+  matches.Insert(4, 6, new PointFeature(7,  70));
+
+  matches.Insert(7, 2, new PointFeature(8,  80));
+  matches.Insert(7, 3, new PointFeature(9,  90));
   matches.Insert(7, 6, new PointFeature(10, 100));
-                                              
+
   matches.Insert(5, 1, new PointFeature(11, 110));
   matches.Insert(5, 3, new PointFeature(12, 120));
   matches.Insert(5, 5, new PointFeature(13, 130));

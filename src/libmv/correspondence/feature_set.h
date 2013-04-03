@@ -45,7 +45,7 @@ typedef int FeatureID;
  */
 class FeatureSet {
   typedef std::map<FeatureID, Feature *> FeatureMap;
-  
+
  public:
   /**
    * Iterate over features, silently skiping any that are not FeatureT or
@@ -100,7 +100,7 @@ class FeatureSet {
   Iterator<FeatureT> New() {
     Feature *f = new FeatureT;
     FeatureID id = id_generator_.Generate();
-    
+
     FeatureMap::iterator it =
         features_.insert(FeatureMap::value_type(id, f)).first;
     return Iterator<FeatureT>(it, features_.end());
@@ -118,7 +118,7 @@ class FeatureSet {
   Iterator<FeatureT> Insert(const FeatureT &feature) {
     Feature *f = new FeatureT(feature);
     FeatureID id = id_generator_.Generate();
-    
+
     FeatureMap::iterator it =
         features_.insert(FeatureMap::value_type(id, f)).first;
     return Iterator<FeatureT>(it, features_.end());
@@ -141,7 +141,7 @@ class FeatureSet {
     return Iterator<FeatureT>(features_.find(id), features_.end());
   }
 
- private: 
+ private:
   FeatureMap features_;   // This map owns the features.
   IdGenerator<FeatureID> id_generator_;
 };

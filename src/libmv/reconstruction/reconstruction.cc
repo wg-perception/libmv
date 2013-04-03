@@ -22,4 +22,4 @@
 
 namespace libmv {
 
-} // namespace libmv
+}  // namespace libmv

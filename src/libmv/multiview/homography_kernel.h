@@ -59,7 +59,7 @@ typedef two_view::kernel::Kernel<
     AsymmetricError,
     Mat3>
   IsotropicNormalizedKernel;
-  
+
 // By default use the normalized version for increased robustness.
 typedef two_view::kernel::Kernel<
     two_view::kernel::NormalizedSolver<FourPointSolver, UnnormalizerI>,
@@ -72,4 +72,4 @@ typedef two_view::kernel::Kernel<
 }  // namespace homography
 }  // namespace libmv
 
-#endif //LIBMV_MULTIVIEW_HOMOGRAPHY_H_
+#endif  // LIBMV_MULTIVIEW_HOMOGRAPHY_H_

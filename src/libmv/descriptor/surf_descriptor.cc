@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/descriptor/surf_descriptor.h"
+
 #include "libmv/correspondence/feature.h"
 #include "libmv/descriptor/descriptor.h"
 #include "libmv/descriptor/vector_descriptor.h"
@@ -71,7 +73,7 @@ void USURFDescriptor(const TImage &integral_image,
   int done_dims = 0;
   for (int row = -half_region; row < half_region; row += samples_per_block) {
     for (int col = -half_region; col < half_region; col += samples_per_block) {
-      Vec4f components(0,0,0,0);
+      Vec4f components(0, 0, 0, 0);
       for (int r = row; r < row + samples_per_block; ++r) {
         for (int c = col; c < col + samples_per_block; ++c) {
           int sample_row = lround(y + scale*r);
@@ -111,10 +113,9 @@ void MSURFDescriptor(const TImage &integral_image,
     gaussian(i + half_region) = Gaussian(i, 2*scale);
   }
 
-  float co = 1.0f, si = 0.0f; // Suppose Upright descriptor
-  bool bUpright = false; //TODO(pmoulon) set this variable as parameter
-  if (!bUpright)
-  {
+  float co = 1.0f, si = 0.0f;  // Suppose Upright descriptor
+  bool bUpright = false;  // TODO(pmoulon) set this variable as parameter
+  if (!bUpright) {
     co = cos(feature.orientation);
     si = sin(feature.orientation);
   }
@@ -124,16 +125,15 @@ void MSURFDescriptor(const TImage &integral_image,
         row += (samples_per_block - blocks)) {
     for (int col = -half_region; col < half_region - blocks;
         col += (samples_per_block - blocks)) {
-      Vec4f components(0.0f,0.0f,0.0f,0.0f);
+      Vec4f components(0.0f, 0.0f, 0.0f, 0.0f);
       for (int r = row; r < row + samples_per_block; ++r) {
         for (int c = col; c < col + samples_per_block; ++c) {
-
-          //Get coords of sample point on the rotated axis
+          // Get coords of sample point on the rotated axis
           int sample_col = lround(x + (-r*scale*si + c*scale*co));
           int sample_row = lround(y + ( r*scale*co + c*scale*si));
 
           float weight = gaussian(r + half_region) * gaussian(c + half_region);
-          //Compute Harr response on rotated axis
+          // Compute Harr response on rotated axis
           float rrx = HarrX(integral_image, sample_row, sample_col, int_scale);
           float rry = HarrY(integral_image, sample_row, sample_col, int_scale);
 
@@ -145,7 +145,7 @@ void MSURFDescriptor(const TImage &integral_image,
           components.tail<2>().array() += dxy.array().abs();
         }
       }
-      float gauss_BigBox = Gaussian2D(row/half_region,col/half_region,1.0f);
+      float gauss_BigBox = Gaussian2D(row/half_region, col/half_region, 1.0f);
       (*descriptor).segment<4>(done_dims) = components*gauss_BigBox;
       done_dims += 4;
     }

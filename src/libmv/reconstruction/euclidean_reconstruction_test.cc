@@ -17,6 +17,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
+
+#include "libmv/reconstruction/euclidean_reconstruction.h"
+
 #include <list>
 
 #include "libmv/logging/logging.h"
@@ -25,7 +28,6 @@
 #include "libmv/multiview/test_data_sets.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/reconstruction/reconstruction.h"
-#include "libmv/reconstruction/euclidean_reconstruction.h"
 #include "libmv/reconstruction/mapping.h"
 #include "libmv/reconstruction/optimization.h"
 #include "libmv/reconstruction/projective_reconstruction.h"
@@ -61,7 +63,7 @@ TEST(CalibratedReconstruction, TestSynthetic6FullViews) {
   // TODO(julien) maybe a better check is the relative motion
   int nviews = 6;
   int npoints = 100;
-  int noutliers = 0.4*npoints;// 30% of outliers
+  int noutliers = 0.4*npoints;  // 30% of outliers
   NViewDataSet d = NRealisticCamerasFull(nviews, npoints);
 
   Mat4X X;

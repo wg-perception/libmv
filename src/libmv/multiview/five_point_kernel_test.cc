@@ -1,15 +1,15 @@
 // Copyright (c) 2010 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -61,7 +61,7 @@ TEST(FivePointsRelativePoseKernel, CircularCameraRig) {
   for (int i = 0; i < num_views; ++i)  {
     vector<Mat3> Es, Rs;  // Essential and rotation matrices.
     vector<Vec3> ts;      // Translation matrices.
-   
+
     // Use a copy, since d.x[n] is a Mat2x&.
     Mat x0 = d.x[0];
     Mat x1 = d.x[1];
@@ -103,7 +103,7 @@ TEST(FivePointsRelativePoseKernel, CircularCameraRig) {
       EXPECT_ESSENTIAL_MATRIX_PROPERTIES(Es[j], 1e-8);
 
       // Check residuals
-      for(int k = 0; k < x1.cols(); ++k) {
+      for (int k = 0; k < x1.cols(); ++k) {
         EXPECT_NEAR(0.0, kernel.Error(k, Es[j]), 1e-8);
       }
 

@@ -70,7 +70,7 @@ TEST(SceneGraph, SetName) {
     Node<int> *node = new Node<int>(test_names[i], new int(10));
     scene.AddChild(node);
   }
-  
+
   Node<int> *node = scene.GetChild("bar");
   EXPECT_TRUE(node);
   node->SetName("something");

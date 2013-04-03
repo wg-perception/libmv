@@ -18,12 +18,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/fundamental_kernel.h"
+
 #include <cstdio>
 
 // TODO(keir): This code is plain unfinished! Doesn't even compile!
 
 #include "libmv/base/vector.h"
-#include "libmv/multiview/fundamental_kernel.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/poly.h"
 #include "libmv/logging/logging.h"

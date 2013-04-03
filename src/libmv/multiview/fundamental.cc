@@ -18,13 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/fundamental.h"
+
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/poly.h"
 #include "libmv/multiview/conditioning.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/triangulation.h"
-#include "libmv/multiview/fundamental.h"
 
 namespace libmv {
 

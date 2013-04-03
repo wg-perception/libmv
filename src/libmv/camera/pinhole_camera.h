@@ -99,8 +99,8 @@ class PinholeCamera : public Camera {
     focal_x_            = intrinsic_matrix_(0, 0);
     focal_y_            = intrinsic_matrix_(1, 1);
     skew_factor_        = intrinsic_matrix_(0, 1);
-    principal_point_(0) = intrinsic_matrix_(0, 2) ;
-    principal_point_(1) = intrinsic_matrix_(1, 2) ;
+    principal_point_(0) = intrinsic_matrix_(0, 2);
+    principal_point_(1) = intrinsic_matrix_(1, 2);
   }
 
   void set_intrinsic_matrix(const Mat3 &intrinsic_matrix) {
@@ -108,8 +108,8 @@ class PinholeCamera : public Camera {
     focal_x_            = intrinsic_matrix_(0, 0);
     focal_y_            = intrinsic_matrix_(1, 1);
     skew_factor_        = intrinsic_matrix_(0, 1);
-    principal_point_(0) = intrinsic_matrix_(0, 2) ;
-    principal_point_(1) = intrinsic_matrix_(1, 2) ;
+    principal_point_(0) = intrinsic_matrix_(0, 2);
+    principal_point_(1) = intrinsic_matrix_(1, 2);
 
     CHECK(intrinsic_matrix_(1, 0) == 0 &&
           intrinsic_matrix_(2, 0) == 0 &&

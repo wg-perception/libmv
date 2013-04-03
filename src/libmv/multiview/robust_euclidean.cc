@@ -18,9 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/robust_euclidean.h"
+
 #include "libmv/base/vector.h"
 #include "libmv/multiview/euclidean_kernel.h"
-#include "libmv/multiview/robust_euclidean.h"
 #include "libmv/multiview/robust_estimation.h"
 #include "libmv/numeric/numeric.h"
 
@@ -34,19 +35,18 @@ double Euclidean2DFromCorrespondences2PointRobust(
     double max_error,
     Mat3 *H,
     vector<int> *inliers,
-    double outliers_probability)
-{
+    double outliers_probability) {
   // The threshold is on the sum of the squared errors in the two images.
   double threshold = 2 * Square(max_error);
   double best_score = HUGE_VAL;
   typedef euclidean::euclidean2D::kernel::Kernel KernelH;
   KernelH kernel(x1, x2);
-  *H = Estimate(kernel, MLEScorer<KernelH>(threshold), inliers, 
+  *H = Estimate(kernel, MLEScorer<KernelH>(threshold), inliers,
                 &best_score, outliers_probability);
   if (best_score == HUGE_VAL)
     return HUGE_VAL;
   else
-    return std::sqrt(best_score / 2.0);  
+    return std::sqrt(best_score / 2.0);
 }
 
-} // namespace libmv
+}  // namespace libmv

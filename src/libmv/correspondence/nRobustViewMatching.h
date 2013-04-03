@@ -35,16 +35,15 @@ namespace correspondence  {
 using namespace std;
 
 class nRobustViewMatching :public nViewMatchingInterface  {
-
-  public:
+ public:
   nRobustViewMatching();
   // Constructor (Specify a detector and a describer interface)
   // The class do not handle memory management over this two parameter.
   nRobustViewMatching(detector::Detector * pDetector,
                       descriptor::Describer * pDescriber);
-  //TODO(pmoulon) Add a constructor with a Detector and a Descriptor
+  // TODO(pmoulon) Add a constructor with a Detector and a Descriptor
   // Add also a Template function to make the match robust..
-  ~nRobustViewMatching(){};
+  ~nRobustViewMatching() {}
 
   /**
    * Compute the data and store it in the class map<string,T>
@@ -74,9 +73,9 @@ class nRobustViewMatching :public nViewMatchingInterface  {
   *
   * \return True if success (and any matches was found).
   */
-  bool computeCrossMatch( const libmv::vector<string> & vec_data);
-  
-  
+  bool computeCrossMatch(const libmv::vector<string> & vec_data);
+
+
   /**
   * From a series of element it computes the incremental putative match list.
   * (only locally, in the relative neighborhood)
@@ -85,8 +84,8 @@ class nRobustViewMatching :public nViewMatchingInterface  {
   *
   * \return True if success (and any matches was found).
   */
-  bool computeRelativeMatch( const libmv::vector<string> & vec_data);
-  
+  bool computeRelativeMatch(const libmv::vector<string> & vec_data);
+
   /**
   * Give the posibility to constrain the matches list.
   *
@@ -103,22 +102,22 @@ class nRobustViewMatching :public nViewMatchingInterface  {
                                Matches * matchesOut);
 
   /// Return pairwise correspondence ( geometrically filtered )
-  const map< pair<string,string>, Matches> & getSharedData() const
+  const map< pair<string, string>, Matches> & getSharedData() const
     { return m_sharedData;  }
   /// Return extracted feature over the given image.
-  const map<string,FeatureSet> & getViewData() const
+  const map<string, FeatureSet> & getViewData() const
     { return m_ViewData;  }
   /// Return detected geometrical consistent matches
   const Matches & getMatches()  const
     { return m_tracks;  }
 
-private :
+ private:
   /// Input data names
   libmv::vector<string> m_vec_InputNames;
   /// Data that represent each named element.
-  map<string,FeatureSet> m_ViewData;
+  map<string, FeatureSet> m_ViewData;
   /// Matches between element named element <A,B>.
-  map< pair<string,string>, Matches> m_sharedData;
+  map< pair<string, string>, Matches> m_sharedData;
 
   /// LookUpTable to make the crossCorrespondence easier between tracks
   ///   and feature.
@@ -133,7 +132,7 @@ private :
   descriptor::Describer * m_pDescriber;
 };
 
-} // using namespace correspondence
-} // using namespace libmv
+}  // using namespace correspondence
+}  // using namespace libmv
 
 #endif  // LIBMV_CORRESPONDENCE_N_ROBUST_VIEW_MATCHING_INTERFACE_H_

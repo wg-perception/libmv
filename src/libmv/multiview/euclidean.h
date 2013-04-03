@@ -49,7 +49,7 @@ namespace libmv {
 bool Euclidean2DFromCorrespondencesLinear(const Mat &x1,
                                           const Mat &x2,
                                           Mat3 *M,
-                                          double expected_precision = 
+                                          double expected_precision =
                                             EigenDouble::dummy_precision());
 
 /** 3D Euclidean transformation estimation.
@@ -79,7 +79,7 @@ bool Euclidean2DFromCorrespondencesLinear(const Mat &x1,
 bool Euclidean3DFromCorrespondencesLinear(const Mat &x1,
                                           const Mat &x2,
                                           Mat4 *H,
-                                          double expected_precision = 
+                                          double expected_precision =
                                             EigenDouble::dummy_precision());
 
 /** Extract the translation and rotation angle from a 2D euclidean 
@@ -95,6 +95,6 @@ bool ExtractEuclidean2DCoefficients(const Mat3 &H,
                                     Vec2   *tr,
                                     double *angle);
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_EUCLIDEAN_H_

@@ -25,19 +25,19 @@
 
 namespace libmv {
 
-double EstimateRootMeanSquareError(const Matches &matches, 
+double EstimateRootMeanSquareError(const Matches &matches,
                                    Reconstruction *reconstruction);
 
 // This method performs an Euclidean Bundle Adjustment
 // and returns the root mean square error.
-double MetricBundleAdjust(const Matches &matches, 
+double MetricBundleAdjust(const Matches &matches,
                           Reconstruction *reconstruction);
 
 // Remove the matches associated to the points structures seen in the image
 // image_id and have a root mean square error bigger than rmse_threshold
 // NOTE It is at least barely started
 uint RemoveOutliers(CameraID image_id,
-                    Matches *matches,   
+                    Matches *matches,
                     Reconstruction *reconstruction,
                     double rmse_threshold = 2.0);
 

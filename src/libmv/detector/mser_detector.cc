@@ -18,6 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/detector/mser_detector.h"
 
 #include "libmv/base/vector.h"
 #include "libmv/correspondence/feature.h"
@@ -34,13 +35,13 @@ namespace detector {
 
 class MserDetector : public Detector {
  public:
-  MserDetector(bool bRotationInvariant):bRotationInvariant_(bRotationInvariant) {}
+  MserDetector(bool bRotationInvariant)
+    : bRotationInvariant_(bRotationInvariant) {}
   virtual ~MserDetector() {}
 
   virtual void Detect(const Image &image,
                       vector<Feature *> *vec_features,
                       DetectorData **data) {
-
     ByteImage *byte_image = image.AsArray3Du();
 
     vector<sMserProperties> vec_ellipses;
@@ -50,7 +51,7 @@ class MserDetector : public Detector {
     for (size_t i = 0; i < vec_ellipses.size(); ++i)  {
       const sMserProperties & ellipse = vec_ellipses[i];
       PointFeature *f = new PointFeature(ellipse._x, ellipse._y);
-      //Use square approximation since we do not have affine PointFeature.
+      // Use square approximation since we do not have affine PointFeature.
       f->scale = sqrt(ellipse._l1*ellipse._l2);
       if (bRotationInvariant_)
         f->orientation = ellipse._alpha;
@@ -67,13 +68,12 @@ class MserDetector : public Detector {
   }
 
  private:
- bool bRotationInvariant_;
+  bool bRotationInvariant_;
 };
 
-Detector *CreateMserDetector(bool bRotationInvariant = false)
-{
+Detector *CreateMserDetector(bool bRotationInvariant = false) {
   return new MserDetector(bRotationInvariant);
 }
 
-} //namespace detector
-} //namespace libmv
+}  // namespace detector
+}  // namespace libmv

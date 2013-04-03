@@ -40,7 +40,7 @@ TEST(Homography2DTest, Rotation45AndTranslationXY) {
 
   Mat x2 = x1;
   // Transform point from ground truth matrix
-  for(int i = 0; i < x2.cols(); ++i)
+  for (int i = 0; i < x2.cols(); ++i)
     x2.col(i) = m * x1.col(i);
 
   Mat3 homography_mat;
@@ -67,7 +67,7 @@ TEST(Homography2DTest, AffineGeneral4) {
        0,  0,  1;
 
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i) {
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = m * x1.col(i);
   }
 
@@ -100,7 +100,7 @@ TEST(Homography2DTest, AffineGeneral5) {
          0,  0,  1;
 
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i)
+  for (int i = 0; i < x2.cols(); ++i)
     x2.col(i) = m * x1.col(i);
 
   Mat3 homography_mat;
@@ -133,7 +133,7 @@ TEST(Homography2DTest, HomographyGeneral) {
          1, -3,  1;
 
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i)
+  for (int i = 0; i < x2.cols(); ++i)
     x2.col(i) = m * x1.col(i);
 
   Mat3 homography_mat;
@@ -180,7 +180,7 @@ TEST(Homography3DTest, RotationAndTranslationXYZ) {
           0,           0,          0, 1;
   M *= rot;
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i) {
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = M * x1.col(i);
   }
 
@@ -205,7 +205,7 @@ TEST(Homography3DTest, AffineGeneral) {
          0,  0,  0,  1;
 
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i) {
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = m * x1.col(i);
   }
 
@@ -223,13 +223,13 @@ TEST(Homography3DTest, HomographyGeneral) {
         0, 2, 0, 1, 5,
         1, 1, 1, 1, 1;
   Mat4 m;
-  m <<  3, -1,  4, 1,
-        6, -2, -3,-6,
-        1,  0,  1, 2,
-       -3,  1,  0, 1;
+  m <<  3, -1,  4,  1,
+        6, -2, -3, -6,
+        1,  0,  1,  2,
+       -3,  1,  0,  1;
 
   Mat x2 = x1;
-  for(int i = 0; i < x2.cols(); ++i) {
+  for (int i = 0; i < x2.cols(); ++i) {
     x2.col(i) = m * x1.col(i);
   }
 

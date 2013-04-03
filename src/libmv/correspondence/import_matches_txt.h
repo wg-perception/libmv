@@ -26,10 +26,10 @@
 
 namespace libmv {
 // Imports the matches from a TXT format file
-// Each line corresponds to a correspondence. 
+// Each line corresponds to a correspondence.
 // The output format of point features is:
 // <ImageID> <TrackID> <x> <y>
-void ImportMatchesFromTxt(const std::string &input_file, 
+void ImportMatchesFromTxt(const std::string &input_file,
                           Matches *matches,
                           FeatureSet *feature_set);
 }  // namespace libmv

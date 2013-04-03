@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -68,7 +68,7 @@ TEST(TinyMatrix, CopyToDenseMatrixView) {
   A(1, 1) = 4.0;
 
   // Confusingly, matrices are 1-indexed by default, and use inclusive slices.
-  Mat B(3,3);
+  Mat B(3, 3);
   B.setZero();
   B.block(0, 0, 2, 2) = A;
   EXPECT_EQ(B(0, 0), 1.0);
@@ -83,7 +83,7 @@ TEST(TinyMatrix, CopyToDenseMatrixView) {
 }
 
 TEST(TinyMatrix, CopyFromDenseMatrixView) {
-  Mat B(3,3);
+  Mat B(3, 3);
   B.setZero();
   B(0, 0) = 1.0;
   B(0, 1) = 2.0;
@@ -206,7 +206,7 @@ TEST(Matrix, SingleColumnMatrixListInitialization1) {
   Mat x(2, 1);
   x << 1, 2;
   EXPECT_EQ(1, x(0, 0));
-  EXPECT_EQ(2, x(1 ,0));
+  EXPECT_EQ(2, x(1, 0));
 }
 
 TEST(Matrix, SingleColumnMatrixListInitialization2) {

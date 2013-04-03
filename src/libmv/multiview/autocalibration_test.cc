@@ -1,15 +1,15 @@
 // Copyright (c) 2007, 2008 libmv authors.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,7 +45,7 @@ TEST(AutoCalibration, K_From_AbsoluteConic_SignedDiagonal) {
   K << 10,   1, 30,
         0, -20, 40,
         0,   0,  -1;
-  Kpositive << 10, -1, -30,  // K with column signs changed so that the 
+  Kpositive << 10, -1, -30,  // K with column signs changed so that the
                 0, 20, -40,  // diagonal is positive.
                 0,  0,   1;
 
@@ -58,7 +58,7 @@ TEST(AutoCalibration, K_From_AbsoluteConic_SignedDiagonal) {
 TEST(AutoCalibrationLinear, MetricTransformation_MetricInput) {
   double width = 1000, height = 800;
   Mat3 K;
-  K << width,     0,  width / 2, // 1000x800 image with 35mm equiv focal length.
+  K << width,     0,  width / 2,  // 1000x800 image with 35mm equiv focal length.
            0, width, height / 2,
            0,     0,          1;
 
@@ -76,7 +76,7 @@ TEST(AutoCalibrationLinear, MetricTransformation_MetricInput) {
     P_From_KRt(K, R, t, &P);
     a.AddProjection(P, width, height);
   }
-  
+
   // Compute metric update transformation.
   Mat H = a.MetricTransformation();
 
@@ -96,7 +96,7 @@ TEST(AutoCalibrationLinear, RandomInput) {
   const int num_cams = 10;
   double width = 1000, height = 800;
   Mat3 K;
-  K << width,     0,  width / 2, // 1000x800 image with 35mm equiv focal length.
+  K << width,     0,  width / 2,  // 1000x800 image with 35mm equiv focal length.
            0, width, height / 2,
            0,     0,          1;
 
@@ -122,20 +122,19 @@ TEST(AutoCalibrationLinear, RandomInput) {
     Ps[i] = P_metric * H_real.inverse();  // Distort cameras.
     a.AddProjection(Ps[i], width, height);
   }
-  
+
   // Compute metric update transformation.
   Mat H_computed = a.MetricTransformation();
-  
+
   for (int i = 0; i < num_cams; ++i) {
     Mat34 P_metric = Ps[i] * H_computed;  // Undistort cameras.
     Mat3 K_computed, R;
     Vec3 t;
     KRt_From_P(P_metric, &K_computed, &R, &t);
-    
+
     EXPECT_MATRIX_NEAR(K, K_computed, 10);
     LOG(INFO) << "K_computed\n" << K_computed;
   }
 }
 
-
-} // namespace
+}  // namespace

@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "euclidean_resection.h"
+#include "libmv/multiview/euclidean_resection.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
@@ -45,7 +45,7 @@ void CreateCameraSystem(const Mat3& KK,
   // Create normalized camera coordinates to be used as an input to the PnP
   // function, instead of using NormalizeColumnVectors(&x_unit_cam).
   *x_camera = x_unit_cam.block(0, 0, 2, num_points);
-  for (int i = 0; i < num_points; ++i){
+  for (int i = 0; i < num_points; ++i) {
     x_unit_cam.col(i).normalize();
   }
 
@@ -65,7 +65,7 @@ void CreateCameraSystem(const Mat3& KK,
 
   // Create the expected result for comparison.
   *R_expected = R_input.transpose();
-  *T_expected = *R_expected * ( - T_input);
+  *T_expected = *R_expected * (-T_input);
 };
 
 TEST(AbsoluteOrientation, QuaternionSolution) {
@@ -96,7 +96,7 @@ TEST(AbsoluteOrientation, QuaternionSolution) {
   Mat3 R;
   Vec3 t;
 
-  AbsoluteOrientation(X,Xp,&R,&t);
+  AbsoluteOrientation(X, Xp, &R, &t);
 
   EXPECT_MATRIX_NEAR(t, t_input, 1e-6);
   EXPECT_MATRIX_NEAR(R, R_input, 1e-8);
@@ -146,13 +146,13 @@ TEST(EuclideanResection, Points4KnownImagePointsRandomTranslationRotation) {
   // Finally, run the code under test.
   Mat3 R_output;
   Vec3 T_output;
-  EuclideanResection(x_camera, X_world, 
+  EuclideanResection(x_camera, X_world,
                      &R_output, &T_output,
                      RESECTION_ANSAR_DANIILIDIS);
- 
+
   EXPECT_MATRIX_NEAR(T_output, T_expected, 1e-5);
   EXPECT_MATRIX_NEAR(R_output, R_expected, 1e-7);
-  
+
   // For now, the EPnP doesn't have a non-linear optimization step and so is
   // not precise enough with only 4 points.
   //
@@ -160,8 +160,8 @@ TEST(EuclideanResection, Points4KnownImagePointsRandomTranslationRotation) {
 #if 0
   R_output.setIdentity();
   T_output.setZero();
-  
-  EuclideanResection(x_camera, X_world, 
+
+  EuclideanResection(x_camera, X_world,
                      &R_output, &T_output,
                      RESECTION_EPNP);
 
@@ -211,7 +211,7 @@ TEST(EuclideanResection, Points6AllRandomInput) {
   {
     Mat3 R_output;
     Vec3 T_output;
-    EuclideanResection(x_camera, X_world, 
+    EuclideanResection(x_camera, X_world,
                        &R_output, &T_output,
                        RESECTION_ANSAR_DANIILIDIS);
     EXPECT_MATRIX_NEAR(T_output, T_expected, 1e-5);
@@ -220,7 +220,7 @@ TEST(EuclideanResection, Points6AllRandomInput) {
   {
     Mat3 R_output;
     Vec3 T_output;
-    EuclideanResection(x_camera, X_world, 
+    EuclideanResection(x_camera, X_world,
                        &R_output, &T_output,
                        RESECTION_EPNP);
     EXPECT_MATRIX_NEAR(T_output, T_expected, 1e-5);

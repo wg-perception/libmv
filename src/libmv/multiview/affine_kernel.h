@@ -37,7 +37,7 @@ struct ThreePointSolver {
 };
 
 typedef two_view::kernel::Kernel<
-        affine2D::kernel::ThreePointSolver, 
+        affine2D::kernel::ThreePointSolver,
         homography::homography2D::AsymmetricError, Mat3>
   UnnormalizedKernel;
 

@@ -48,9 +48,9 @@ int WritePngStream(const ByteImage &, FILE *);
 int ReadJpg(const char *, ByteImage *);
 int ReadJpg(const char *, FloatImage *);
 int ReadJpgStream(FILE *, ByteImage *);
-int WriteJpg(const ByteImage &, const char *, int quality=90);
-int WriteJpg(const FloatImage &, const char *, int quality=90);
-int WriteJpgStream(const ByteImage &, FILE *, int quality=90);
+int WriteJpg(const ByteImage &, const char *, int quality = 90);
+int WriteJpg(const FloatImage &, const char *, int quality = 90);
+int WriteJpgStream(const ByteImage &, FILE *, int quality = 90);
 
 int ReadPnm(const char *filename, ByteImage *im);
 int ReadPnm(const char *filename, FloatImage *im);

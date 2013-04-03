@@ -39,10 +39,10 @@ void TwoPointSolver::Solve(const Mat &x1, const Mat &x2, vector<Mat3> *Hs) {
     K1(2, 2) = 1.0;
 
     Mat3 R;
-    GetR_FixedCameraCenter( x1h, x2h, fs[i], &R);
-    R/=R(2,2);
+    GetR_FixedCameraCenter(x1h, x2h, fs[i], &R);
+    R /= R(2, 2);
 
-    (*Hs).push_back( K1 * R * K1.inverse() );
+    (*Hs).push_back(K1 * R * K1.inverse());
   }
 }
 

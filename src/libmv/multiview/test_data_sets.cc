@@ -18,12 +18,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/test_data_sets.h"
+
 #include <cmath>
 
 #include "libmv/numeric/numeric.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/fundamental.h"
-#include "libmv/multiview/test_data_sets.h"
 
 namespace libmv {
 
@@ -58,11 +59,10 @@ TwoViewDataSet TwoRealisticCameras(bool same_K) {
   return d;
 }
 
-nViewDatasetConfigator::nViewDatasetConfigator( int fx ,  int fy,
-                                                int cx,   int cy,
-                                                double distance,
-                                                double jitter_amount)
-{
+nViewDatasetConfigator::nViewDatasetConfigator(int fx ,  int fy,
+                                               int cx,   int cy,
+                                               double distance,
+                                               double jitter_amount) {
   _fx = fx;
   _fy = fy;
   _cx = cx;
@@ -81,11 +81,11 @@ NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
   d.C.resize(nviews);
   d.x.resize(nviews);
   d.x_ids.resize(nviews);
-   
+
   d.X.resize(3, npoints);
   d.X.setRandom();
   d.X *= 0.6;
-  
+
   Vecu all_point_ids(npoints);
   for (size_t j = 0; j < npoints; ++j)
     all_point_ids[j] = j;
@@ -114,7 +114,7 @@ NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
 }
 
 
-NViewDataSet NRealisticCamerasSparse(int nviews, int npoints, 
+NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
                                      float view_ratio, unsigned min_projections,
                                      const nViewDatasetConfigator config) {
   assert(view_ratio <= 1.0);
@@ -128,11 +128,11 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
   d.C.resize(nviews);
   d.x.resize(nviews);
   d.x_ids.resize(nviews);
-   
+
   d.X.resize(3, npoints);
   d.X.setRandom();
   d.X *= 0.6;
-  
+
   Mat visibility(nviews, npoints);
   visibility.setZero();
   Mat randoms(nviews, npoints);
@@ -152,14 +152,14 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
       for (size_t j = 0; j < npoints && num_projections_to_add > 0; ++j) {
         if (!visibility(i, j)) {
           num_projections_to_add--;
-        }          
+        }
       }
       num_visibles += num_projections_to_add;
-    }      
+    }
     d.x_ids[i].resize(num_visibles);
     d.x[i].resize(2, num_visibles);
   }
-  
+
   size_t j_visible = 0;
   Vec3 X;
   for (size_t i = 0; i < nviews; ++i) {
@@ -182,8 +182,8 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
     j_visible = 0;
     for (size_t j = 0; j < npoints; j++) {
       if (visibility(i, j)) {
-        X =  d.X.col(j); 
-        d.x[i].col(j_visible) = Project(d.P(i),X);
+        X =  d.X.col(j);
+        d.x[i].col(j_visible) = Project(d.P(i), X);
         d.x_ids[i][j_visible] = j;
         j_visible++;
       }

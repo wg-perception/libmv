@@ -26,10 +26,9 @@
 using namespace libmv;
 
 TEST(Image_Converter, Rgb2Gray) {
-
   // Gray value must be kept
-  for(double i = 0.0; i < 255.0; i += 1.0)
-    EXPECT_NEAR( i , RGB2GRAY(i, i, i), 1e-2);
+  for (double i = 0.0; i < 255.0; i += 1.0)
+    EXPECT_NEAR(i , RGB2GRAY(i, i, i), 1e-2);
 
   // Assert validity of the formula
   // (Conversion function must give a better response for the Green channel)
@@ -38,11 +37,10 @@ TEST(Image_Converter, Rgb2Gray) {
   unsigned char r = RGB2GRAY(255, 0, 0);
   unsigned char g = RGB2GRAY(0, 255, 0);
   unsigned char b = RGB2GRAY(0, 0, 255);
-  EXPECT_EQ( true , g > r &&  r > b);
+  EXPECT_EQ(true , g > r &&  r > b);
 }
 
 TEST(Image_Converter, ImaConvert_RGB2Uchar) {
-
   const int w = 10, h = 10;
   Array3Du imageGray;
   Array3Du imageColor(h, w, 3);
@@ -55,15 +53,14 @@ TEST(Image_Converter, ImaConvert_RGB2Uchar) {
   EXPECT_EQ(w , imageGray.Width());
   EXPECT_EQ(h , imageGray.Height());
 
-  for(int j = 0; j < h; ++j)
-  for(int i = 0; i < w; ++i)  {
-    EXPECT_EQ(127, imageGray(j,i));
-  }
+  for (int j = 0; j < h; ++j)
+    for (int i = 0; i < w; ++i)  {
+      EXPECT_EQ(127, imageGray(j, i));
+    }
   // Do not test color conversion code since it is yet tested.
 }
 
 TEST(Image_Converter, ImaConvert_RGBFloat_2_GrayUchar) {
-
   const int w = 10, h = 10;
   Array3Du imageGray;
   Array3Df imageColor(h, w, 3);
@@ -76,10 +73,10 @@ TEST(Image_Converter, ImaConvert_RGBFloat_2_GrayUchar) {
   EXPECT_EQ(w , imageGray.Width());
   EXPECT_EQ(h , imageGray.Height());
 
-  for(int j = 0; j < h; ++j)
-  for(int i = 0; i < w; ++i)  {
-    EXPECT_EQ(127, imageGray(j,i));
-  }
+  for (int j = 0; j < h; ++j)
+    for (int i = 0; i < w; ++i)  {
+      EXPECT_EQ(127, imageGray(j, i));
+    }
   // Do not test color conversion code since it is yet tested.
 }
 

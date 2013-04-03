@@ -32,7 +32,7 @@
 namespace libmv {
 
 class Tracker {
-public:
+ public:
   Tracker() {}
   /*!
       Construct a tracker to track the pattern centered in \a image1.
@@ -54,9 +54,12 @@ public:
   */
   bool Track(const FloatImage &image2, float *x2, float *y2);
 
-private:
+ private:
   void MakePyramid(const FloatImage &image, float** pyramid) const;
-  bool TrackImage(const float* image1, const float* image2, int size, int half_pattern_size,
+  bool TrackImage(const float* image1,
+                  const float* image2,
+                  int size,
+                  int half_pattern_size,
                   float x1, float y1, float *x2, float *y2) const;
 
   int half_pattern_size;
@@ -70,7 +73,7 @@ private:
   float sigma;
   float lambda;
   float* pyramid1[8];
-  float x1,y1;
+  float x1, y1;
 };
 
 }  // namespace libmv
@@ -78,7 +81,12 @@ private:
 #else
 
 class Tracker;
-Tracker* NewTracker(const float *image1, float x, float y, int half_pattern_size, int search_size, int num_levels);
+Tracker* NewTracker(const float *image1,
+                    float x,
+                    float y,
+                    int half_pattern_size,
+                    int search_size,
+                    int num_levels);
 bool Track(const float *image2, float *x2, float *y2);
 
 #endif

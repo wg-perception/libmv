@@ -18,10 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-
+#include "libmv/detector/fast_detector.h"
 #include "libmv/correspondence/feature.h"
 #include "libmv/detector/detector.h"
-#include "libmv/detector/fast_detector.h"
 #include "libmv/detector/orientation_detector.h"
 #include "libmv/image/image.h"
 #include "libmv/logging/logging.h"
@@ -34,17 +33,16 @@ namespace detector {
 
 // Compute fast9 score for a list of keypoint.
 // Return a vector of pair (pointer to the keypoint and associated score).
-void fast9_scoreMap(const unsigned char* i, // Image byte array.
-  int stride, // Step to go to the next line.
-  xy* corners, // Corners coords.
-  int num_corners, // Number of corners in corners array.
-  int b, // Barrier (Threshold to determine darker/lighter)
-  vector< std::pair<xy*,int> > * vec_ScorePerCoords // Filled output array.
-  )
-{
-  assert(vec_ScorePerCoords!=NULL);
+void fast9_scoreMap(const unsigned char* i,  // Image byte array.
+  int stride,  // Step to go to the next line.
+  xy* corners,  // Corners coords.
+  int num_corners,  // Number of corners in corners array.
+  int b,  // Barrier (Threshold to determine darker/lighter)
+  vector< std::pair<xy*, int> > * vec_ScorePerCoords  // Filled output array.
+  ) {
+  assert(vec_ScorePerCoords != NULL);
   // Build fast ring index
-	int pixel[16];
+  int pixel[16];
   pixel[0] = 0 + stride * 3;
   pixel[1] = 1 + stride * 3;
   pixel[2] = 2 + stride * 2;
@@ -72,8 +70,8 @@ void fast9_scoreMap(const unsigned char* i, // Image byte array.
 }
 
 // Allow to sort the an array of fast keypoint pair.
-static bool compareFASTPairScore(const std::pair<xy*,int> & objA,
-                            const std::pair<xy*,int> & objB){
+static bool compareFASTPairScore(const std::pair<xy*, int> & objA,
+                                 const std::pair<xy*, int> & objB) {
   return (objA.second > objB.second);
 }
 
@@ -107,7 +105,7 @@ class FastDetectorLimited : public Detector {
       xy* nonmax = nonmax_suppression(corners, scores, num_corners,
         &ret_num_corners);
 
-      vector< std::pair<xy*,int> > ptScores(ret_num_corners);
+      vector< std::pair<xy*, int> > ptScores(ret_num_corners);
       fast9_scoreMap(byte_image->Data(),
         byte_image->Width(), nonmax, ret_num_corners, threshold_, & ptScores);
 
@@ -116,7 +114,7 @@ class FastDetectorLimited : public Detector {
       free(scores);
       free(corners);
 
-      for (int i = 0; i < std::min(expectedFeatureNumber_,ret_num_corners);
+      for (int i = 0; i < std::min(expectedFeatureNumber_, ret_num_corners);
           ++i) {
         PointFeature *f = new PointFeature(ptScores[i].first->x,
                             ptScores[i].first->y);
@@ -124,13 +122,12 @@ class FastDetectorLimited : public Detector {
         f->orientation = 0.0;
         features->push_back(f);
       }
-      free( nonmax );
+      free(nonmax);
 
       if (bRotationInvariant_) {
-        fastRotationEstimation(*byte_image,*features);
+        fastRotationEstimation(*byte_image, *features);
       }
-    }
-    else  {
+    } else {
       LOG(ERROR) << "Invalid input image type for FastDetectorLimited detector";
     }
 
@@ -142,9 +139,9 @@ class FastDetectorLimited : public Detector {
   }
 
  private:
-  int threshold_; // Threshold called barrier in Fast paper (cf. [1]).
+  int threshold_;  // Threshold called barrier in Fast paper (cf. [1]).
   bool bRotationInvariant_;
-  int expectedFeatureNumber_; // Max number of detected feature
+  int expectedFeatureNumber_;  // Max number of detected feature
 };
 
 Detector *CreateFastDetectorLimited(int threshold,

@@ -56,8 +56,8 @@ class BipartiteGraph {
     left_to_right_[left].erase(right);
     right_to_left_[right].erase(left);
   }
-  void DeleteRight(const RightT right) { assert(0); } // XXX
-  void DeleteLeft(const LeftT left) { assert(0); } // XXX
+  void DeleteRight(const RightT right) { assert(0); }  // XXX
+  void DeleteLeft(const LeftT left) { assert(0); }  // XXX
 
   bool GetEdge(const LeftT left, const RightT right, EdgeT *edge) const {
     typename LeftToRightMap::const_iterator lt = left_to_right_.find(left);
@@ -73,14 +73,14 @@ class BipartiteGraph {
     *edge = rt->second;
     return true;
   }
-  
+
   class LeftEdgeIterator;
   class RightEdgeIterator;
-  
+
   // Iterate over all the edges in the graph.
   // TODO(keir): Is this iterator even useful?
   class EdgeIterator {
-   friend class BipartiteGraph<LeftT, EdgeT, RightT>;
+    friend class BipartiteGraph<LeftT, EdgeT, RightT>;
    public:
     LeftT         left()       const { return iter_->second.first; }
     RightT        right()      const { return iter_->second.second; }
@@ -99,7 +99,7 @@ class BipartiteGraph {
   // For iterating over the left nodes.
   template<typename NodeT, typename IteratorT, typename EdgeIteratorT>
   class NodeIterator {
-   friend class BipartiteGraph<LeftT, EdgeT, RightT>;
+    friend class BipartiteGraph<LeftT, EdgeT, RightT>;
    public:
     NodeT operator*()  const { return iter_->first; }
     void operator++()        { iter_++; }
@@ -124,9 +124,9 @@ class BipartiteGraph {
 
   // Iterates over the edges incident to a left node.
   class LeftEdgeIterator {
-   friend class NodeIterator<LeftT,
-                             typename LeftToRightMap::const_iterator,
-                             LeftEdgeIterator>;
+    friend class NodeIterator<LeftT,
+                              typename LeftToRightMap::const_iterator,
+                              LeftEdgeIterator>;
    public:
     LeftT  left()        const { return left_;         }
     RightT right()       const { return iter_->first;  }
@@ -173,9 +173,9 @@ class BipartiteGraph {
 
   // Iterates over the edges incident to a right node.
   class RightEdgeIterator {
-   friend class NodeIterator<RightT,
-                             typename RightToLeftMap::const_iterator,
-                             RightEdgeIterator>;
+    friend class NodeIterator<RightT,
+                              typename RightToLeftMap::const_iterator,
+                              RightEdgeIterator>;
    public:
     RightT right()     const { return right_;        }
     LeftT  left()      const { return iter_->first;  }

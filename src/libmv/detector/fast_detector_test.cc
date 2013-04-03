@@ -38,13 +38,13 @@ namespace {
 void DrawRing(int x, int y, Array3Du *image) {
   // Draw a white "corner". The "corner" is a white circle in this case. Fast
   // detects arcs around a given point.
-  for(int j = 0; j < 16; ++j) {
+  for (int j = 0; j < 16; ++j) {
     (*image)(y + indY[j], x + indX[j]) = 255;
   }
 }
 
 TEST(FastDetector, Localisation) {
-  Array3Du image(20,20);
+  Array3Du image(20, 20);
   image.fill(0);
 
   int x = 15, y = 10;
@@ -66,7 +66,7 @@ TEST(FastDetector, Localisation) {
 }
 
 TEST(FastDetector, Localisation2) {
-  Array3Du image(20,20);
+  Array3Du image(20, 20);
   image.fill(0);
 
   // Create two fast circles that intersect and assert that 4 points are found.
@@ -78,8 +78,8 @@ TEST(FastDetector, Localisation2) {
   scoped_ptr<Detector> detector(CreateFastDetector(9, 20));
 
   vector<Feature *> features;
-  Image im( new Array3Du(image) );
-  detector->Detect( im, &features, NULL);
+  Image im(new Array3Du(image));
+  detector->Detect(im, &features, NULL);
 
   ASSERT_EQ(4, features.size());
 

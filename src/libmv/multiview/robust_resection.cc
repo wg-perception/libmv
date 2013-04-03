@@ -18,15 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/multiview/robust_resection.h"
+
 #include "libmv/multiview/resection_kernel.h"
 #include "libmv/multiview/robust_estimation.h"
-#include "libmv/multiview/robust_resection.h"
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
 // Estimate robustly the the projection matrix of a uncalibrated
 // camera from 6 or more 3D points and their images.
-double ResectionRobust(const Mat2X &x_image, 
+double ResectionRobust(const Mat2X &x_image,
                        const Mat4X &X_world,
                        double max_error,
                        Mat34 *P,
@@ -37,12 +38,12 @@ double ResectionRobust(const Mat2X &x_image,
   double best_score = HUGE_VAL;
   typedef libmv::resection::kernel::Kernel Kernel;
   Kernel kernel(x_image, X_world);
-  *P = Estimate(kernel, MLEScorer<Kernel>(threshold), inliers, 
+  *P = Estimate(kernel, MLEScorer<Kernel>(threshold), inliers,
                 &best_score, outliers_probability);
   if (best_score == HUGE_VAL)
     return HUGE_VAL;
   else
-    return std::sqrt(best_score / 2.0);  
+    return std::sqrt(best_score / 2.0);
 }
 
 }  // namespace libmv

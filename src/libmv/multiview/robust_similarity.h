@@ -28,11 +28,11 @@ namespace libmv {
 
 
 /** Robust 2D similarity transformation estimation
- * 
- * This function estimates robustly the 2d similarity matrix between two dataset 
- * of 2D point (image coords space). The 2d similarity solver relies on the 2 
- * points solution. 
- * 
+ *
+ * This function estimates robustly the 2d similarity matrix between two dataset
+ * of 2D point (image coords space). The 2d similarity solver relies on the 2
+ * points solution.
+ *
  * \param[in] x1 The first 2xN matrix of euclidean points
  * \param[in] x2 The second 2xN matrix of euclidean points
  * \param[in] max_error maximum error (in pixels)
@@ -47,10 +47,10 @@ namespace libmv {
  * The number of iterations is controlled using the following equation:
  *    n_iter = log(outliers_prob) / log(1.0 - pow(inlier_ratio, min_samples)))
  * The more this value is high, the less the function selects ramdom samples.
- * 
+ *
  * \return the best error found (in pixels), associated to the solution H
- * 
- * \note The function needs at least 2 points 
+ *
+ * \note The function needs at least 2 points
  * \note The overall iteration limit is 1000
  */
 double Similarity2DFromCorrespondences2PointRobust(
@@ -61,6 +61,6 @@ double Similarity2DFromCorrespondences2PointRobust(
     vector<int> *inliers = NULL,
     double outliers_probability = 1e-2);
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_ROBUST_SIMILARITY_H_

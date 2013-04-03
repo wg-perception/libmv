@@ -159,4 +159,4 @@ TEST(Fundamental, MotionFromEssentialAndCorrespondence) {
   EXPECT_LE(DistanceL2(t_estimated, t), 1e-8);
 }
 
-} // namespace
+}  // namespace

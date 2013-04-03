@@ -41,7 +41,7 @@ inline void BlobResponse(const TImage &integral_image,
                          int scale,
                          TBlobResponse *blob_response) {
   typedef typename TBlobResponse::Scalar Scalar;
-  
+
   // Scalar must be floating point.
   assert(double(Scalar(0.5)) == 0.5);
 

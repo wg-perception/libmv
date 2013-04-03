@@ -29,11 +29,11 @@
 namespace libmv {
 
 struct TwoViewDataSet {
-  Mat3 K1, K2;  // Internal parameters.
-  Mat3 R1, R2;  // Rotation.
-  Vec3 t1, t2;  // Translation.
-  Mat34 P1, P2; // Projection matrix, P = K(R|t)
-  Mat3 F;       // Fundamental matrix.
+  Mat3 K1, K2;   // Internal parameters.
+  Mat3 R1, R2;   // Rotation.
+  Vec3 t1, t2;   // Translation.
+  Mat34 P1, P2;  // Projection matrix, P = K(R|t)
+  Mat3 F;        // Fundamental matrix.
   Mat3X X;        // 3D points.
   Mat2X x1, x2;   // Projected points.
 };
@@ -51,7 +51,7 @@ struct NViewDataSet {
   vector<Vec3> C;   // Camera centers.
   Mat3X X;     // 3D points.
   vector<Mat2X> x;  // Projected points; may have noise added.
-  vector<Vecu>  x_ids;// Indexes of points corresponding to the projections
+  vector<Vecu>  x_ids;  // Indexes of points corresponding to the projections
 
   int n;  // Actual number of cameras.
 
@@ -72,8 +72,7 @@ struct NViewDataSet {
   // TODO(keir): Add gaussian jitter functions.
 };
 
-struct nViewDatasetConfigator
-{
+struct nViewDatasetConfigator {
   /// Internal camera parameters
   int _fx;
   int _fy;
@@ -84,10 +83,10 @@ struct nViewDatasetConfigator
   double _dist;
   double _jitter_amount;
 
-  nViewDatasetConfigator( int fx = 1000,  int fy = 1000,
-                          int cx = 500,   int cy  = 500,
-                          double distance = 1.5,
-                          double jitter_amount = 0.01 );
+  nViewDatasetConfigator(int fx = 1000,  int fy = 1000,
+                         int cx = 500,   int cy  = 500,
+                         double distance = 1.5,
+                         double jitter_amount = 0.01);
 };
 
 NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
@@ -101,6 +100,6 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
                                      const nViewDatasetConfigator
                                        config = nViewDatasetConfigator());
 
-} // namespace libmv
+}  // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_TEST_DATA_SETS_H_
