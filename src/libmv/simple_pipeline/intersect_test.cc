@@ -25,19 +25,20 @@
 #include "testing/testing.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
+#include "libmv/logging/logging.h"
 
 namespace {
 using namespace libmv;
 
 TEST(Intersect, EuclideanIntersect) {
-  Mat3 K1;
-  K1 << 320, 0, 160,
-        0, 320, 120,
-        0,   0,   1;
-  Mat3 K2;
-  K2 << 360, 0, 170,
-        0, 360, 110,
-        0,   0,   1;
+  Mat3 K1 = Mat3::Identity();
+  // K1 << 320, 0, 160,
+  //        0, 320, 120,
+  //        0,   0,   1;
+  Mat3 K2 = Mat3::Identity();
+  //  K2 << 360, 0, 170,
+  //        0, 360, 110,
+  //        0,   0,   1;
   Mat3 R1 = RotationAroundZ(-0.1);
   Mat3 R2 = RotationAroundX(-0.1);
   Vec3 t1; t1 <<  1,  1, 10;
@@ -52,14 +53,14 @@ TEST(Intersect, EuclideanIntersect) {
   X.resize(3, 30);
   X.setRandom();
 
-  Mat2X x1, x2;
-  Project(P1, X, &x1);
-  Project(P2, X, &x2);
+  Mat2X X1, X2;
+  Project(P1, X, &X1);
+  Project(P2, X, &X2);
 
   for (int i = 0; i < X.cols(); ++i) {
     Vec2 x1, x2;
-    MatrixColumn(x1, i, &x1);
-    MatrixColumn(x2, i, &x2);
+    MatrixColumn(X1, i, &x1);
+    MatrixColumn(X2, i, &x2);
     Vec3 expected;
     MatrixColumn(X, i, &expected);
 
