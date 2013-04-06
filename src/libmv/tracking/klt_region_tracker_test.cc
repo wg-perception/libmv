@@ -40,6 +40,7 @@ TEST(KltRegionTracker, Track) {
   double y1 = y0;
 
   KltRegionTracker tracker;
+  tracker.half_window_size = 6;
   EXPECT_TRUE(tracker.Track(image1, image2, x0, y0, &x1, &y1));
 
   EXPECT_NEAR(x1, x0 + dx, 0.001);
