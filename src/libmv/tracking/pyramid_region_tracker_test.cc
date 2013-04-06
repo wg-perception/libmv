@@ -45,14 +45,14 @@ TEST(PyramidKltRegionTracker, Track) {
   image2(y2 + 1, x2 + 0) = 1.0f;
   image2(y2 + 1, x2 + 1) = 1.0f;
 
-  double x2_actual = x1;
-  double y2_actual = y1;
-
   // Use a small 5x5 tracking region.
   int half_window_size = 3;
 
   // Ensure that the track doesn't work with one level of KLT.
   {
+    double x2_actual = x1;
+    double y2_actual = y1;
+
     KltRegionTracker tracker;
     tracker.half_window_size = half_window_size;
     EXPECT_FALSE(tracker.Track(image1, image2, x1, y1,
@@ -61,6 +61,9 @@ TEST(PyramidKltRegionTracker, Track) {
 
   // Verify that it works with the pyramid tracker.
   {
+    double x2_actual = x1;
+    double y2_actual = y1;
+
     KltRegionTracker *klt_tracker = new KltRegionTracker;
     klt_tracker->half_window_size = half_window_size;
 
