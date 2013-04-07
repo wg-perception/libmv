@@ -27,7 +27,7 @@
 #include <cstdio>
 #include <string>
 
-#include "third_party/gflags/gflags.h"
+#include "third_party/gflags/gflags/gflags.h"
 #include "third_party/glog/src/glog/logging.h"
 
 namespace libmv {

@@ -1,11 +1,36 @@
 # define the source files
-SET(MULTIVIEW_SRC projection.cc
-                  fundamental.cc
-                  triangulation.cc
-                  euclidean_resection.cc
+SET(MULTIVIEW_SRC affine.cc
+                  affine_kernel.cc
+                  autocalibration.cc
+                  bundle.cc
                   conditioning.cc
+                  essential_kernel.cc
+                  euclidean.cc
+                  euclidean_kernel.cc
+                  euclidean_resection.cc
+                  five_point.cc
+                  focal_from_fundamental.cc
+                  fundamental.cc
+                  fundamental_kernel.cc
                   homography.cc
-                  panography.cc)
+                  homography_kernel.cc
+                  panography.cc
+                  panography_kernel.cc
+                  projection.cc
+                  robust_affine.cc
+                  robust_estimation.cc
+                  robust_euclidean.cc
+                  robust_euclidean_resection.cc
+                  robust_fundamental.cc
+                  robust_homography.cc
+                  robust_resection.cc
+                  robust_similarity.cc
+                  similarity.cc
+                  similarity_kernel.cc
+                  sixpointnview.cc
+                  structure.cc
+                  triangulation.cc
+                  twoviewtriangulation.cc)
 
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB MULTIVIEW_HDRS *.h)

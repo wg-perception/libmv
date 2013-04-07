@@ -21,6 +21,8 @@
 #ifndef LIBMV_IMAGE_PYRAMID_SEQUENCE_H_
 #define LIBMV_IMAGE_PYRAMID_SEQUENCE_H_
 
+#include "libmv/image/image_sequence.h"
+
 namespace libmv {
 
 class ImagePyramid;

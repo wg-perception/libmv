@@ -10,7 +10,17 @@ IF(WIN32)
 ENDIF(WIN32)
 
 # define the source files
-SET(IMAGE_SRC image.cc convolve.cc array_nd.cc)
+SET(IMAGE_SRC array_nd.cc
+              convolve.cc
+              filtered_sequence.cc
+              image.cc
+              image_io.cc
+              image_pyramid.cc
+              image_sequence.cc
+              image_sequence_filters.cc
+              image_sequence_io.cc
+              image_transform_linear.cc
+              pyramid_sequence.cc)
 
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB IMAGE_HDRS *.h)

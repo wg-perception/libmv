@@ -30,6 +30,8 @@ TARGET_LINK_LIBRARIES(tracker
                       fast
                       daisy
                       reconstruction
+                      png
+                      jpeg
                       )
 LIBMV_INSTALL_EXE(tracker)
 
@@ -45,6 +47,8 @@ TARGET_LINK_LIBRARIES(nViewMatching
                       descriptor
                       multiview
                       daisy
+                      png
+                      jpeg
                       )
 LIBMV_INSTALL_EXE(nViewMatching)
 
@@ -75,6 +79,8 @@ TARGET_LINK_LIBRARIES(undistort
                       glog
                       gflags
                       flann
+                      png
+                      jpeg
                       )
 LIBMV_INSTALL_EXE(reconstruct_video)
 

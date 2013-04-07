@@ -3,8 +3,9 @@ SET(DETECTOR_SRC fast_detector.cc
                  surf_detector.cc
                  star_detector.cc
                  fast_detector_limited.cc
+                 mser_detector.cc
                  detector_factory.cc)
-               
+
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB DETECTOR_HDRS *.h)
 

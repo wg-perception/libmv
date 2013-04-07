@@ -21,6 +21,8 @@
 #ifndef LIBMV_IMAGE_IMAGE_SEQUENCE_H_
 #define LIBMV_IMAGE_IMAGE_SEQUENCE_H_
 
+#include "libmv/image/image.h"
+
 namespace libmv {
 
 class Image;

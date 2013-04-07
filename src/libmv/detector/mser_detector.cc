@@ -71,7 +71,7 @@ class MserDetector : public Detector {
   bool bRotationInvariant_;
 };
 
-Detector *CreateMserDetector(bool bRotationInvariant = false) {
+Detector *CreateMserDetector(bool bRotationInvariant) {
   return new MserDetector(bRotationInvariant);
 }
 

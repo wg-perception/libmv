@@ -66,7 +66,7 @@ class StarDetector : public Detector {
   bool bRotationInvariant_;
 };
 
-Detector *CreateStarDetector(bool bRotationInvariant = false) {
+Detector *CreateStarDetector(bool bRotationInvariant) {
   return new StarDetector(bRotationInvariant);
 }
 
