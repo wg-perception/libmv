@@ -58,13 +58,13 @@ TEST(RobustFundamental, FundamentalFromCorrespondences8PointRobust) {
   // F should be 0, 0,  0,
   //             0, 0, -1,
   //             0, 1,  0
-  EXPECT_NEAR(0. 0, F(0, 0), 1e-8);
-  EXPECT_NEAR(0. 0, F(0, 1), 1e-8);
-  EXPECT_NEAR(0. 0, F(0, 2), 1e-8);
-  EXPECT_NEAR(0. 0, F(1, 0), 1e-8);
-  EXPECT_NEAR(0. 0, F(1, 1), 1e-8);
-  EXPECT_NEAR(0. 0, F(2, 0), 1e-8);
-  EXPECT_NEAR(0. 0, F(2, 2), 1e-8);
+  EXPECT_NEAR(0.0, F(0, 0), 1e-8);
+  EXPECT_NEAR(0.0, F(0, 1), 1e-8);
+  EXPECT_NEAR(0.0, F(0, 2), 1e-8);
+  EXPECT_NEAR(0.0, F(1, 0), 1e-8);
+  EXPECT_NEAR(0.0, F(1, 1), 1e-8);
+  EXPECT_NEAR(0.0, F(2, 0), 1e-8);
+  EXPECT_NEAR(0.0, F(2, 2), 1e-8);
   EXPECT_NEAR(F(1, 2), -F(2, 1), 1e-8);
 
   EXPECT_EQ(n - 1, inliers.size());

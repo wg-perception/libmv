@@ -24,6 +24,7 @@
 #include <vector>
 #include "libmv/multiview/fundamental_kernel.h"
 #include "libmv/multiview/two_view_kernel.h"
+#include "libmv/multiview/fundamental.h"
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
