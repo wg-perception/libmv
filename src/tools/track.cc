@@ -32,7 +32,7 @@
 #include "libmv/image/image_sequence_io.h"
 #include "libmv/image/cached_image_sequence.h"
 #include "libmv/image/pyramid_sequence.h"
-#include "third_party/gflags/gflags.h"
+#include "third_party/gflags/gflags/gflags.h"
 
 DEFINE_bool(debug_images, true, "Output debug images.");
 DEFINE_double(sigma, 0.9, "Blur filter strength.");
