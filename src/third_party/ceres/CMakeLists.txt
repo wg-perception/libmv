@@ -451,9 +451,18 @@ OPTION(LINE_SEARCH_MINIMIZER
        ON)
 
 IF (NOT ${LINE_SEARCH_MINIMIZER})
- ADD_DEFINITIONS(-DCERES_NO_LINE_SEARCH_MINIMIZER)
- MESSAGE("-- Disabling line search minimizer")
+  ADD_DEFINITIONS(-DCERES_NO_LINE_SEARCH_MINIMIZER)
+  MESSAGE("-- Disabling line search minimizer")
 ENDIF (NOT ${LINE_SEARCH_MINIMIZER})
+
+OPTION(CUSTOM_BLAS
+       "Use handcoded BLAS routines (usually faster) instead of Eigen."
+       ON)
+
+IF (NOT ${CUSTOM_BLAS})
+  ADD_DEFINITIONS(-DCERES_NO_CUSTOM_BLAS)
+  MESSAGE("-- Disabling custom blas")
+ENDIF (NOT ${CUSTOM_BLAS})
 
 # Multithreading using OpenMP
 OPTION(OPENMP
@@ -603,7 +612,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "Release")
       ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     ENDIF (${BUILD_ANDROID})
   ENDIF (CMAKE_COMPILER_IS_GNUCXX)
-  SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CERES_CXX_FLAGS}")
+  SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CERES_CXX_FLAGS}")
 ENDIF (CMAKE_BUILD_TYPE STREQUAL "Release")
 
 # After the tweaks for the compile settings, disable some warnings on MSVC.
@@ -633,6 +642,9 @@ IF (MSVC)
   # which results in linker warnings. This is irrelevant for Ceres, so ignore
   # the warnings.
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4049")
+
+  # Tuple sizes of 10 are used by Gtest.
+  ADD_DEFINITIONS("-D_VARIADIC_MAX=10")
 ENDIF (MSVC)
 
 # GCC is not strict enough by default, so enable most of the warnings.
@@ -641,9 +653,13 @@ IF ("${UNIX}")
       "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter")
 ENDIF ("${UNIX}")
 
-# We can be even stricter when using CLang
+# Use a larger inlining threshold for Clang, since it hobbles Eigen,
+# resulting in an unreasonably slow version of the blas routines. The
+# -Qunused-arguments is needed because CMake passes the inline
+# threshold to the linker and clang complains about it and dies.
 IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type-c-linkage")
+  SET(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Qunused-arguments -mllvm -inline-threshold=600 -Wno-return-type-c-linkage")
 ENDIF()
 
 ADD_SUBDIRECTORY(internal/ceres)
