@@ -241,12 +241,13 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
     ADD_TEST(NAME ${NAME}_test
              COMMAND ${LIBMV_TESTS_OUTPUT_DIR}/ceres/${NAME}_test
              --test_srcdir
-             ${CMAKE_SOURCE_DIR}/data)
+             ${CERES_TESTS_DATA})
   ENDMACRO (CERES_TEST)
 
   CERES_TEST(array_utils)
   CERES_TEST(autodiff)
   CERES_TEST(autodiff_cost_function)
+  CERES_TEST(autodiff_local_parameterization)
   CERES_TEST(blas)
   CERES_TEST(block_random_access_dense_matrix)
   CERES_TEST(block_random_access_sparse_matrix)
