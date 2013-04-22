@@ -30,6 +30,8 @@
 namespace libmv {
 
 TEST(ModalSolver, SyntheticCubeSceneMotion) {
+  double kTolerance = 1e-12;
+
   CameraIntrinsics intrinsics;
   intrinsics.SetFocalLength(658.286, 658.286);
   intrinsics.SetPrincipalPoint(480.0, 270.0);
@@ -66,8 +68,11 @@ TEST(ModalSolver, SyntheticCubeSceneMotion) {
                       -0.16875286001759, 0.97665299913606, -0.13293378620359,
                       -0.08307743323957, 0.12029450291547,  0.98925596922871;
 
-  EXPECT_TRUE(Mat3::Identity().isApprox(reconstruction.CameraForImage(1)->R));
-  EXPECT_TRUE(expected_rotation.isApprox(reconstruction.CameraForImage(2)->R));
+  Mat3 &first_camera_R = reconstruction.CameraForImage(1)->R;
+  Mat3 &second_camera_R = reconstruction.CameraForImage(2)->R;
+
+  EXPECT_TRUE(Mat3::Identity().isApprox(first_camera_R, kTolerance));
+  EXPECT_TRUE(expected_rotation.isApprox(second_camera_R, kTolerance));
 }
 
 }  // namespace libmv
