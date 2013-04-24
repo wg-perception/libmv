@@ -9,6 +9,7 @@ SET(SIMPLE_PIPELINE_SRC
     modal_solver.cc
     pipeline.cc
     reconstruction.cc
+    reconstruction_scale.cc
     camera_intrinsics.cc
     tracks.cc
     uncalibrated_reconstructor.cc
