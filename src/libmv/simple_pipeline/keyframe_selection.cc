@@ -267,9 +267,7 @@ Mat pseudoInverse(const Mat &matrix) {
   Mat D = eigenSolver.pseudoEigenvalueMatrix();
   Mat V = eigenSolver.pseudoEigenvectors();
 
-  double epsilon = std::numeric_limits<double>::epsilon() *
-                   std::max(matrix.rows(), matrix.cols()) *
-                   D.array().abs().maxCoeff();
+  double epsilon = std::numeric_limits<double>::epsilon();
 
   for (int i = 0; i < D.cols(); ++i) {
     if (D(i, i) > epsilon)
@@ -311,6 +309,7 @@ void SelectkeyframesBasedOnGRICAndVariance(const Tracks &tracks,
   Mat3 N_inverse = N.inverse();
 
   double Sc_best = std::numeric_limits<double>::max();
+  double success_intersects_factor_best = 0.0f;
 
   while (next_keyframe != -1) {
     int current_keyframe = next_keyframe;
@@ -446,6 +445,7 @@ void SelectkeyframesBasedOnGRICAndVariance(const Tracks &tracks,
       reconstruction.InsertCamera(candidate_image, R, t);
 
       // Reconstruct 3D points
+      int intersects_total = 0, intersects_success = 0;
       for (int i = 0; i < tracked_markers.size(); i++) {
         if (!reconstruction.PointForTrack(tracked_markers[i].track)) {
           vector<Marker> reconstructed_markers;
@@ -467,12 +467,28 @@ void SelectkeyframesBasedOnGRICAndVariance(const Tracks &tracks,
             }
           }
 
-          if (EuclideanIntersect(reconstructed_markers, &reconstruction))
+          intersects_total++;
+
+          if (EuclideanIntersect(reconstructed_markers, &reconstruction)) {
             LG << "Ran Intersect() for track " << track;
-          else
+            intersects_success++;
+          } else {
             LG << "Filed to intersect track " << track;
+          }
         }
       }
+
+      double success_intersects_factor =
+          (double) intersects_success / intersects_total;
+
+      if (success_intersects_factor < success_intersects_factor_best) {
+        LG << "Skip keyframe candidate because of "
+              "lower successful intersections ratio";
+
+        continue;
+      }
+
+      success_intersects_factor_best = success_intersects_factor;
 
       Tracks two_frames_tracks(tracked_markers);
       CameraIntrinsics empty_intrinsics;
