@@ -28,6 +28,8 @@
 #include "libmv/simple_pipeline/intersect.h"
 #include "libmv/simple_pipeline/bundle.h"
 
+#include <Eigen/Eigenvalues>
+
 #include <iomanip>
 
 namespace libmv {
@@ -250,33 +252,28 @@ double GRIC(const Vec &e, int d, int k, int r) {
   return gric_result;
 }
 
-// Based on code from http://eigen.tuxfamily.org/index.php?title=FAQ
 Mat pseudoInverse(const Mat &matrix) {
-  typedef Eigen::JacobiSVD<Mat> JacobiSVD;
-  typedef JacobiSVD::SingularValuesType SingularValuesType;
-
-  JacobiSVD jacobiSvd(matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  const SingularValuesType singularValues = jacobiSvd.singularValues();
-  SingularValuesType singularValues_inv = singularValues;
+  Eigen::EigenSolver<Mat> eigenSolver(matrix);
+  Mat D = eigenSolver.pseudoEigenvalueMatrix();
+  Mat V = eigenSolver.pseudoEigenvectors();
 
   double epsilon = std::numeric_limits<double>::epsilon() *
                    std::max(matrix.rows(), matrix.cols()) *
-                   singularValues.array().abs().maxCoeff();
+                   D.array().abs().maxCoeff();
 
-  for (int i = 0; i < singularValues.rows(); i++) {
-    if (singularValues(i) > epsilon)
-      singularValues_inv(i) = 1.0 / singularValues(i);
+  for (int i = 0; i < D.cols(); ++i) {
+    if (D(i, i) > epsilon)
+      D(i, i) = 1.0 / D(i, i);
     else
-      singularValues_inv(i) = 0.0;
+      D(i, i) = 0.0;
   }
 
   // Zero last 7 (which corresponds to smallest eigen values).
   // 7 equals to the number of gauge freedoms.
-  singularValues_inv.tail<7>() = Eigen::Matrix<double, 1, 7>::Zero();
+  for (int i = D.cols() - 7; i < D.cols(); ++i)
+    D(i, i) = 0.0;
 
-  return jacobiSvd.matrixV() *
-         singularValues_inv.asDiagonal() *
-         jacobiSvd.matrixU().transpose();
+  return V * D * V.inverse();
 }
 
 // TODO(sergey): move this to generic logging header
