@@ -52,7 +52,7 @@ TEST(KeyframeSelection, SyntheticNeighborFrame) {
   }
 
   vector<int> keyframes;
-  SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
+  SelectkeyframesBasedOnGRICAndVariance(tracks, intrinsics, keyframes);
 
   // Synthetic second frame shouldn't be considered a keyframe
   EXPECT_EQ(0, keyframes.size());
@@ -95,7 +95,7 @@ TEST(KeyframeSelection, FabrikEingangNeighborFrames) {
   }
 
   vector<int> keyframes;
-  SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
+  SelectkeyframesBasedOnGRICAndVariance(tracks, intrinsics, keyframes);
 
   EXPECT_EQ(0, keyframes.size());
 }
@@ -130,7 +130,7 @@ TEST(KeyframeSelection, FabrikEingangFarFrames) {
   }
 
   vector<int> keyframes;
-  SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
+  SelectkeyframesBasedOnGRICAndVariance(tracks, intrinsics, keyframes);
 
   EXPECT_EQ(2, keyframes.size());
 }
@@ -165,7 +165,7 @@ TEST(KeyframeSelection, CopterManualKeyFrames) {
   }
 
   vector<int> keyframes;
-  SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
+  SelectkeyframesBasedOnGRICAndVariance(tracks, intrinsics, keyframes);
 
   EXPECT_EQ(2, keyframes.size());
 }
@@ -236,7 +236,7 @@ TEST(KeyframeSelection, ElevatorManualKeyframesFrames) {
   }
 
   vector<int> keyframes;
-  SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
+  SelectkeyframesBasedOnGRICAndVariance(tracks, intrinsics, keyframes);
 
   EXPECT_EQ(2, keyframes.size());
 }
@@ -295,7 +295,7 @@ TEST(KeyframeSelection, ElevatorReconstructionVarianceTest) {
   }
 
   vector<int> keyframes;
-  SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
+  SelectkeyframesBasedOnGRICAndVariance(tracks, intrinsics, keyframes);
 
   EXPECT_EQ(2, keyframes.size());
   if (keyframes.size() == 2) {

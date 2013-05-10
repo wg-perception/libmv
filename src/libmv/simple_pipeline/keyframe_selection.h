@@ -31,14 +31,21 @@ namespace libmv {
 // camera reconstruction. Based on GRIC criteria and uses Pollefeys'
 // approach for correspondence ratio constraint.
 //
+// As an additional, additional criteria based on reconstruction
+// variance is used. This means if correspondence and GRIC criteria
+// are passed, two-frames reconstruction using candidate keyframes
+// happens. After reconstruction variance of 3D points is calculating
+// and if expected error estimation is too large, keyframe candidate
+// is rejecting.
+//
 // \param tracks contains all tracked correspondences between frames
 //        expected to be undistorted and normalized
 // \param intrinsics is camera intrinsics
 // \param keyframes will contain all images number which are considered
 //        good to be used for reconstruction
-void SelectkeyframesBasedOnGRIC(const Tracks &tracks,
-                                CameraIntrinsics &intrinsics,
-                                vector<int> &keyframes);
+void SelectkeyframesBasedOnGRICAndVariance(const Tracks &tracks,
+                                           CameraIntrinsics &intrinsics,
+                                           vector<int> &keyframes);
 
 }  // namespace libmv
 

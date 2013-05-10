@@ -30,8 +30,6 @@
 
 #include <Eigen/Eigenvalues>
 
-#include <iomanip>
-
 namespace libmv {
 namespace {
 
@@ -103,6 +101,8 @@ void ComputeHomographyFromCorrespondences(const Mat &x1, const Mat &x2,
   Homography2DFromCorrespondencesLinear(x1, x2, H, 1e-12);
 
   // Refine matrix using Ceres minimizer
+
+  // TODO(sergey): look into refinement in pixel space.
   ceres::Problem problem;
 
   for (int i = 0; i < x1.cols(); i++) {
@@ -175,6 +175,8 @@ void ComputeFundamentalFromCorrespondences(const Mat &x1, const Mat &x2,
   NormalizedEightPointSolver(x1, x2, F);
 
   // Refine matrix using Ceres minimizer
+
+  // TODO(sergey): look into refinement in pixel space.
   ceres::Problem problem;
 
   for (int i = 0; i < x1.cols(); i++) {
@@ -224,8 +226,8 @@ void ComputeFundamentalFromCorrespondences(const Mat &x1, const Mat &x2,
 //     (r = 4 for 2D correspondences between two frames)
 double GRIC(const Vec &e, int d, int k, int r) {
   int n = e.rows();
-  double lambda1 = log((double) r);
-  double lambda2 = log((double) r * n);
+  double lambda1 = log(static_cast<double>(r));
+  double lambda2 = log(static_cast<double>(r * n));
 
   // lambda3 limits the residual error, and this paper
   // http://elvera.nue.tu-berlin.de/files/0990Knorr2006.pdf
@@ -252,6 +254,14 @@ double GRIC(const Vec &e, int d, int k, int r) {
   return gric_result;
 }
 
+// Compute a generalized inverse using eigen value decomposition.
+// It'll actually also zero 7 last eigen values to deal with
+// gauges, since this function is used to compute variance of
+// reconstructed 3D points.
+//
+// TODO(sergey): Could be generalized by making it so number
+//               of values to be zeroed is passed by an argument
+//               and moved to numeric module.
 Mat pseudoInverse(const Mat &matrix) {
   Eigen::EigenSolver<Mat> eigenSolver(matrix);
   Mat D = eigenSolver.pseudoEigenvalueMatrix();
@@ -275,50 +285,11 @@ Mat pseudoInverse(const Mat &matrix) {
 
   return V * D * V.inverse();
 }
-
-// TODO(sergey): move this to generic logging header
-void PrintStructure(const Mat &M) {
-  for (int i = 0; i < M.rows(); i++) {
-    for (int j = 0; j < M.cols(); j++) {
-      if (M(i, j) != 0.0f)
-        std::cout << "X";
-      else
-        std::cout << ".";
-    }
-    std::cout << std::endl;
-  }
-}
-
-// So we don't have weirdo formation of matrices
-// TODO(sergey): move this to generic logging header
-template<typename T, int Rows, int Cols>
-std::ostream& operator <<(std::ostream &os,
-                          const Eigen::Matrix<T, Rows, Cols> &M) {
-  const int width = 12;
-  const int precision = 6;
-
-  for (int i = 0; i < M.rows(); i++) {
-    for (int j = 0; j < M.cols(); j++) {
-      os << std::setiosflags(std::ios::fixed)
-         << std::setw(width)
-         << std::setprecision(precision)
-         << std::setfill(' ')
-         << M(i, j);
-
-      if (j != M.cols())
-        os << " ";
-    }
-    os << std::endl;
-  }
-
-  return os;
-}
-
 }  // namespace
 
-void SelectkeyframesBasedOnGRIC(const Tracks &tracks,
-                                CameraIntrinsics &intrinsics,
-                                vector<int> &keyframes) {
+void SelectkeyframesBasedOnGRICAndVariance(const Tracks &tracks,
+                                           CameraIntrinsics &intrinsics,
+                                           vector<int> &keyframes) {
   // Mirza Tahir Ahmed, Matthew N. Dailey
   // Robust key frame extraction for 3D reconstruction from video streams
   //
@@ -377,7 +348,7 @@ void SelectkeyframesBasedOnGRIC(const Tracks &tracks,
       // STEP 1: Correspondence ratio constraint
       int Tc = tracked_markers.size();
       int Tf = all_markers.size();
-      double Rc = (double) Tc / (double) Tf;
+      double Rc = static_cast<double>(Tc) / Tf;
 
       LG << "Correspondence between " << current_keyframe
          << " and " << candidate_image
@@ -540,7 +511,7 @@ void SelectkeyframesBasedOnGRIC(const Tracks &tracks,
       int I = evaluation.num_points;
       int A = 12;
 
-      double Sc = (double)(I + A) / Square(3 * I) * Sigma_P.trace();
+      double Sc = static_cast<double>(I + A) / Square(3 * I) * Sigma_P.trace();
 
       LG << "Expected estimation error between "
          << current_keyframe << " and "
@@ -574,6 +545,11 @@ void SelectkeyframesBasedOnGRIC(const Tracks &tracks,
     } else {
       // New pair's expected reconstruction error is lower
       // than existing pair's one.
+      //
+      // For now let's store just one candidate, easy to
+      // store more candidates but needs some thoughts
+      // how to choose best one automatically from them
+      // (or allow user to choose pair manually).
       if (Sc_best > Sc_best_candidate) {
         keyframes.clear();
         keyframes.push_back(current_keyframe);
@@ -582,9 +558,6 @@ void SelectkeyframesBasedOnGRIC(const Tracks &tracks,
       }
     }
   }
-
-  //for (int i =  0; i < keyframes.size(); i++)
-  //  std::cout << keyframes[i] << std::endl;
 }
 
 }  // namespace libmv
