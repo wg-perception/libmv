@@ -124,8 +124,8 @@ enum BundleConstraints {
   BUNDLE_NO_TRANSLATION = 1,
 };
 void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
-                                     int bundle_intrinsics,
-                                     int bundle_constraints,
+                                     const int bundle_intrinsics,
+                                     const int bundle_constraints,
                                      EuclideanReconstruction *reconstruction,
                                      CameraIntrinsics *intrinsics,
                                      BundleEvaluation *evaluation);
@@ -142,7 +142,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     The cameras and bundles (homogeneous 3D points) are refined in-place.
 
     \note This assumes an outlier-free set of markers.
-    \note This assumes that radial distortion is already corrected for, but 
+    \note This assumes that radial distortion is already corrected for, but
           does not assume that that other intrinsics are.
 
     \sa ProjectiveResect, ProjectiveIntersect, ProjectiveReconstructTwoFrames
