@@ -54,6 +54,11 @@ enum {
 
 namespace {
 
+// Cost functor which computes reprojection error of 3D point X
+// on camera defined by angle-axis rotation and it's translation
+// (which are in the same block due to optimization reasons).
+//
+// This functor uses a radial distortion model.
 struct OpenCVReprojectionError {
   OpenCVReprojectionError(const double observed_x, const double observed_y)
       : observed_x(observed_x), observed_y(observed_y) {}
@@ -83,8 +88,9 @@ struct OpenCVReprojectionError {
     x[2] += R_t[5];
 
     // Prevent points from going behind the camera.
-    if (x[2] < T(0))
+    if (x[2] < T(0)) {
       return false;
+    }
 
     // Compute normalized coordinates: x /= x[2].
     T xn = x[0] / x[2];
@@ -108,7 +114,6 @@ struct OpenCVReprojectionError {
     // The error is the difference between the predicted and observed position.
     residuals[0] = predicted_x - T(observed_x);
     residuals[1] = predicted_y - T(observed_y);
-
     return true;
   }
 
@@ -116,38 +121,29 @@ struct OpenCVReprojectionError {
   const double observed_y;
 };
 
+// Print a message to the log which camera intrinsics are gonna to be optimixed.
 void BundleIntrinsicsLogMessage(const int bundle_intrinsics) {
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
-    LG << "Bundling only camera positions.";
-  } else if (bundle_intrinsics == BUNDLE_FOCAL_LENGTH) {
-    LG << "Bundling f.";
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_PRINCIPAL_POINT)) {
-    LG << "Bundling f, px, py.";
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_PRINCIPAL_POINT |
-                                   BUNDLE_RADIAL)) {
-    LG << "Bundling f, px, py, k1, k2.";
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_PRINCIPAL_POINT |
-                                   BUNDLE_RADIAL |
-                                   BUNDLE_TANGENTIAL)) {
-    LG << "Bundling f, px, py, k1, k2, p1, p2.";
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_RADIAL |
-                                   BUNDLE_TANGENTIAL)) {
-    LG << "Bundling f, px, py, k1, k2, p1, p2.";
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_RADIAL)) {
-    LG << "Bundling f, k1, k2.";
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_RADIAL_K1)) {
-    LG << "Bundling f, k1.";
-  } else if (bundle_intrinsics == (BUNDLE_RADIAL_K1 |
-                                   BUNDLE_RADIAL_K2)) {
-    LG << "Bundling k1, k2.";
+    LOG(INFO) << "Bundling only camera positions.";
   } else {
-    LOG(FATAL) << "Unsupported bundle combination.";
+    std::string bundling_message = "";
+
+#define APPEND_BUNDLING_INTRINSICS(name, flag) \
+    if (bundle_intrinsics & flag) { \
+      if (!bundling_message.empty()) { \
+        bundling_message += ", "; \
+      } \
+      bundling_message += name; \
+    } (void)0
+
+    APPEND_BUNDLING_INTRINSICS("f",      BUNDLE_FOCAL_LENGTH);
+    APPEND_BUNDLING_INTRINSICS("px, py", BUNDLE_PRINCIPAL_POINT);
+    APPEND_BUNDLING_INTRINSICS("k1",     BUNDLE_RADIAL_K1);
+    APPEND_BUNDLING_INTRINSICS("k2",     BUNDLE_RADIAL_K2);
+    APPEND_BUNDLING_INTRINSICS("p1",     BUNDLE_TANGENTIAL_P1);
+    APPEND_BUNDLING_INTRINSICS("p2",     BUNDLE_TANGENTIAL_P2);
+
+    LOG(INFO) << "Bundling " << bundling_message << ".";
   }
 }
 
@@ -183,13 +179,13 @@ void UnpackIntrinsicsFromArray(const double ceres_intrinsics[8],
 }
 
 // Get a vector of camera's rotations denoted by angle axis
-// conjuncted with translations into single block.
+// conjuncted with translations into single block
 //
 // Element with index i matches to a rotation+translation for
 // camera at image i.
 vector<Vec6> PackCamerasRotationAndTranslation(
-                                 const Tracks &tracks,
-                                 const EuclideanReconstruction &reconstruction) {
+    const Tracks &tracks,
+    const EuclideanReconstruction &reconstruction) {
   vector<Vec6> all_cameras_R_t;
   int max_image = tracks.MaxImage();
 
@@ -198,29 +194,30 @@ vector<Vec6> PackCamerasRotationAndTranslation(
   for (int i = 0; i <= max_image; i++) {
     const EuclideanCamera *camera = reconstruction.CameraForImage(i);
 
-    if (!camera)
+    if (!camera) {
       continue;
+    }
 
     ceres::RotationMatrixToAngleAxis(&camera->R(0, 0),
                                      &all_cameras_R_t[i](0));
     all_cameras_R_t[i].tail<3>() = camera->t;
   }
-
   return all_cameras_R_t;
 }
 
 // Convert cameras rotations fro mangle axis back to rotation matrix.
 void UnpackCamerasRotationAndTranslation(
-                                  const Tracks &tracks,
-                                  const vector<Vec6> &all_cameras_R_t,
-                                  EuclideanReconstruction *reconstruction) {
+    const Tracks &tracks,
+    const vector<Vec6> &all_cameras_R_t,
+    EuclideanReconstruction *reconstruction) {
   int max_image = tracks.MaxImage();
 
   for (int i = 0; i <= max_image; i++) {
     EuclideanCamera *camera = reconstruction->CameraForImage(i);
 
-    if (!camera)
+    if (!camera) {
       continue;
+    }
 
     ceres::AngleAxisToRotationMatrix(&all_cameras_R_t[i](0),
                                      &camera->R(0, 0));
@@ -249,6 +246,68 @@ void CRSMatrixToEigenMatrix(const ceres::CRSMatrix &crs_matrix,
       (*eigen_matrix)(row, col) = value;
     }
   }
+}
+
+void EuclideanBundlerPerformEvaluation(const Tracks &tracks,
+                                       EuclideanReconstruction *reconstruction,
+                                       vector<Vec6> *all_cameras_R_t,
+                                       ceres::Problem *problem,
+                                       BundleEvaluation *evaluation) {
+    int max_track = tracks.MaxTrack();
+    // Number of camera rotations equals to number of translation,
+    int num_cameras = all_cameras_R_t->size();
+    int num_points = 0;
+
+    for (int i = 0; i <= max_track; i++) {
+      const EuclideanPoint *point = reconstruction->PointForTrack(i);
+      if (point) {
+        num_points++;
+      }
+    }
+
+    LG << "Number of cameras " << num_cameras;
+    LG << "Number of points " << num_points;
+
+    evaluation->num_cameras = num_cameras;
+    evaluation->num_points = num_points;
+
+    if (evaluation->evaluate_jacobian) {
+      // Evaluate jacobian matrix.
+      ceres::CRSMatrix evaluated_jacobian;
+      ceres::Problem::EvaluateOptions eval_options;
+
+      // Cameras goes first in the ordering.
+      int max_image = tracks.MaxImage();
+      bool is_first_camera = true;
+      for (int i = 0; i <= max_image; i++) {
+        const EuclideanCamera *camera = reconstruction->CameraForImage(i);
+        if (camera) {
+          double *current_camera_R_t = &(*all_cameras_R_t)[i](0);
+
+          // All cameras are variable now.
+          if (is_first_camera) {
+            problem->SetParameterBlockVariable(current_camera_R_t);
+            is_first_camera = false;
+          }
+
+          eval_options.parameter_blocks.push_back(current_camera_R_t);
+        }
+      }
+
+      // Points goes at the end of ordering,
+      for (int i = 0; i <= max_track; i++) {
+        EuclideanPoint *point = reconstruction->PointForTrack(i);
+        if (point) {
+          eval_options.parameter_blocks.push_back(&point->X(0));
+        }
+      }
+
+      problem->Evaluate(eval_options,
+                        NULL, NULL, NULL,
+                        &evaluated_jacobian);
+
+      CRSMatrixToEigenMatrix(evaluated_jacobian, &evaluation->jacobian);
+    }
 }
 
 }  // namespace
@@ -329,8 +388,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
         current_camera_R_t,
         &point->X(0));
 
-    // We lock first camera for better deal with
-    // scene orientation ambiguity.
+    // We lock the first camera to better deal with scene orientation ambiguity.
     if (!have_locked_camera) {
       problem.SetParameterBlockConstant(current_camera_R_t);
       have_locked_camera = true;
@@ -353,11 +411,12 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   BundleIntrinsicsLogMessage(bundle_intrinsics);
 
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
-    // No camera intrinsics are refining,
+    // No camera intrinsics are being refined,
     // set the whole parameter block as constant for best performance.
     problem.SetParameterBlockConstant(ceres_intrinsics);
   } else {
-    // Set intrinsics not being bundles as constant.
+    // Set the camera intrinsics that are not to be bundled as
+    // constant using some macro trickery.
 
     std::vector<int> constant_intrinsics;
 #define MAYBE_SET_CONSTANT(bundle_enum, offset) \
@@ -413,57 +472,8 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   LG << "Final intrinsics: " << *intrinsics;
 
   if (evaluation) {
-    int max_track = tracks.MaxTrack();
-    // Number of camera rotations equals to number of translation,
-    int num_cameras = all_cameras_R_t.size();
-    int num_points = 0;
-
-    for (int i = 0; i <= max_track; i++) {
-      EuclideanPoint *point = reconstruction->PointForTrack(i);
-      if (point)
-        num_points++;
-    }
-
-    LG << "Number of cameras " << num_cameras;
-    LG << "Number of points " << num_points;
-
-    evaluation->num_cameras = num_cameras;
-    evaluation->num_points = num_points;
-
-    if (evaluation->evaluate_jacobian) {
-      // Evaluate jacobian matrix.
-      ceres::CRSMatrix evaluated_jacobian;
-      ceres::Problem::EvaluateOptions eval_options;
-
-      // Cameras goes first in the ordering.
-      int max_image = tracks.MaxImage();
-      bool is_first_camera = true;
-      for (int i = 0; i <= max_image; i++) {
-        EuclideanCamera *camera = reconstruction->CameraForImage(i);
-        if (camera) {
-          // All cameras are variable now.
-          if (is_first_camera) {
-            problem.SetParameterBlockVariable(&all_cameras_R_t[i](0));
-            is_first_camera = false;
-          }
-
-          eval_options.parameter_blocks.push_back(&all_cameras_R_t[i](0));
-        }
-      }
-
-      // Points goes at the end of ordering,
-      for (int i = 0; i <= max_track; i++) {
-        EuclideanPoint *point = reconstruction->PointForTrack(i);
-        if (point)
-          eval_options.parameter_blocks.push_back(&point->X(0));
-      }
-
-      problem.Evaluate(eval_options,
-                       NULL, NULL, NULL,
-                       &evaluated_jacobian);
-
-      CRSMatrixToEigenMatrix(evaluated_jacobian, &evaluation->jacobian);
-    }
+    EuclideanBundlerPerformEvaluation(tracks, reconstruction, &all_cameras_R_t,
+                                      &problem, evaluation);
   }
 }
 

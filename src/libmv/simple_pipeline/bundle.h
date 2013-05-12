@@ -87,15 +87,6 @@ void EuclideanBundle(const Tracks &tracks,
 
     The cameras, bundles, and intrinsics are refined in-place.
 
-    The only supported combinations of bundle parameters are:
-
-    BUNDLE_NO_INTRINSICS
-    BUNDLE_FOCAL_LENGTH
-    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT
-    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL
-    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL | BUNDLE_TANGENTIAL
-    BUNDLE_RADIAL
-
     Constraints denotes which blocks to keep constant during bundling.
     For example it is useful to keep camera translations constant
     when bundling tripod motions.
@@ -128,7 +119,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
                                      const int bundle_constraints,
                                      EuclideanReconstruction *reconstruction,
                                      CameraIntrinsics *intrinsics,
-                                     BundleEvaluation *evaluation);
+                                     BundleEvaluation *evaluation = NULL);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.
