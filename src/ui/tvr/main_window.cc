@@ -22,6 +22,12 @@
 #include <QFileDialog>
 #include <QtGui>
 
+#ifdef __APPLE__
+    #include <OpenGL/glu.h>
+#else
+    #include <GL/glu.h>
+#endif
+
 #include <opencv2/features2d/features2d.hpp>
 
 #include "libmv/base/vector.h"

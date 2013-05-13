@@ -21,8 +21,14 @@
 #include "ui/tvr/3D_viewer.h"
 
 #include <QtGui>
+
+#ifdef __APPLE__
+    #include <OpenGL/glu.h>
+#else
+    #include <GL/glu.h>
+#endif
+
 #include <QtOpenGL>
-#include <GL/glu.h>
 
 using namespace libmv::scene;
 
