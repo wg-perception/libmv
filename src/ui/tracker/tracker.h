@@ -41,7 +41,7 @@ static const int kPatternSize = kHalfPatternSize * 2;
 static const int kHalfSearchSize = 31;
 static const int kSearchSize = kHalfSearchSize * 2;
 static const int kMaxIterations = 100;
-static const int kMinimumCorrelation = 0.76;
+static const double kMinimumCorrelation = 0.76;
 
 // KLT tracker settings
 //static const int kPyramidLevelCount = 2;
