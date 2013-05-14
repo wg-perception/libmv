@@ -591,6 +591,7 @@ ELSE (NOT CMAKE_BUILD_TYPE)
     MESSAGE("\n-- Build type: Debug. Performance will be terrible!")
     MESSAGE("-- Add -DCMAKE_BUILD_TYPE=Release to the CMake command line to get an optimized build.")
     MESSAGE("\n=================================================================================")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
   ENDIF (CMAKE_BUILD_TYPE STREQUAL "Debug")
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
