@@ -147,12 +147,12 @@ void ProjectionChangeAspectRatio(const Mat34 &P,
 }
 
 void HomogeneousToEuclidean(const Mat &H, Mat *X) {
-  int d = H.rows() - 1;
-  int n = H.cols();
+  unsigned int d = H.rows() - 1;
+  unsigned int n = H.cols();
   X->resize(d, n);
   for (size_t i = 0; i < n; ++i) {
     double h = H(d, i);
-    for (int j = 0; j < d; ++j) {
+    for (unsigned int j = 0; j < d; ++j) {
       (*X)(j, i) = H(j, i) / h;
     }
   }
