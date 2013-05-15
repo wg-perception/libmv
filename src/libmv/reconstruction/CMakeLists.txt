@@ -8,6 +8,7 @@ SET(RECONSTRUCTION_SRC euclidean_reconstruction.cc
               optimization.cc
               projective_reconstruction.cc
               reconstruction.cc
+              motion.cc
               tools.cc)
                
 # define the header files (make the headers appear in IDEs.)

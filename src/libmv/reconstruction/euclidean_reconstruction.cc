@@ -34,6 +34,7 @@
 #include "libmv/reconstruction/mapping.h"
 #include "libmv/reconstruction/optimization.h"
 #include "libmv/reconstruction/tools.h"
+#include "libmv/reconstruction/motion.h"
 
 
 namespace libmv {
@@ -111,66 +112,26 @@ bool InitialReconstructionTwoViews(const Matches &matches,
                                    const Vec2u &image_size1,
                                    const Vec2u &image_size2,
                                    Reconstruction *recons) {
-  assert(image1 != image2);
-  bool is_good = true;
-  uint num_new_points = 0;
-  Matches matches_inliers;
-  
   VLOG(2) << " -- Initial Motion Estimation --  " << std::endl;
   double epipolar_threshold = 1;// epipolar error in pixels
   double outliers_probability = 1e-3;// epipolar error in pixels
-  vector<Mat> xs(2);
-  vector<Matches::TrackID> tracks;
-  vector<Matches::ImageID> images;
-  images.push_back(image1);
-  images.push_back(image2);
-  PointMatchMatrices(matches, images, &tracks, &xs);
-  // TODO(julien) Also remove structures that are on the same location
-  if (xs[0].cols() < 7) {
-    LOG(ERROR) << "Error: there are not enough common matches ("
-               << xs[0].cols()<< "<7).";
-    return false;
-  }
-  
-  Mat &x0 = xs[0];
-  Mat &x1 = xs[1];
-  vector<int> feature_inliers;
-  Mat3 F;
-  // Computes fundamental matrix
-  // TODO(julien) For the calibrated case, we can squeeze the fundamental using
-  // directly the 5 points algorithm
-  FundamentalFromCorrespondences7PointRobust(x0,x1,
-                                             epipolar_threshold,
-                                             &F, &feature_inliers,
-                                             outliers_probability);
-  // Only inliers are selected in order to estimation the relative motion
-  Mat2X v0(2, feature_inliers.size());
-  Mat2X v1(2, feature_inliers.size());
-  size_t index_inlier = 0;
-  for (size_t c = 0; c < feature_inliers.size(); ++c) {
-    index_inlier = feature_inliers[c];
-    v0.col(c) = x0.col(index_inlier);
-    v1.col(c) = x1.col(index_inlier);
-  }  
-  Mat3 E;
-  // Computes essential matrix
-  EssentialFromFundamental(F, K1, K2, &E);
-  
+
   Mat3 dR;
   Vec3 dt;
-  // Recover motion between the two images
-  bool is_motion_ok = MotionFromEssentialAndCorrespondence(E, K1, v0.col(0), 
-                                                           K2, v1.col(0),       
-                                                           &dR, &dt);
-  if (!is_motion_ok) {
-    LOG(ERROR) << "Error: the motion cannot be estimated.";
-    return false;
+  vector<Matches::TrackID> feature_inliers;
+  // TODO K1 overwrites pcamera if pcamera is specified.
+  if(!CameraMotionTwoViews(matches, image1, image2, K1, K2, epipolar_threshold,
+                             outliers_probability, &dR, &dt,&feature_inliers))
+  {
+      LOG(ERROR) << "Error: the motion cannot be estimated.";
+      return false;
   }
-  
+
   Mat3 R;
   Vec3 t;
   PinholeCamera * pcamera = NULL;
   pcamera = dynamic_cast<PinholeCamera *>(recons->GetCamera(image1));
+
   // If the first image has no associated camera, we choose the center of the 
   // coordinate frame
   if (!pcamera) {
@@ -199,22 +160,20 @@ bool InitialReconstructionTwoViews(const Matches &matches,
            
   //Adds only inliers matches into 
   const Feature * feature = NULL;
+  Matches matches_inliers;
   for (size_t s = 0; s < feature_inliers.size(); ++s) {
-    feature = matches.Get(image1, tracks[feature_inliers[s]]);
-    matches_inliers.Insert(image1, tracks[feature_inliers[s]], feature);
-    feature = matches.Get(image2, tracks[feature_inliers[s]]);
-    matches_inliers.Insert(image2, tracks[feature_inliers[s]], feature);
+    feature = matches.Get(image1, feature_inliers[s]);
+    matches_inliers.Insert(image1, feature_inliers[s], feature);
+    feature = matches.Get(image2, feature_inliers[s]);
+    matches_inliers.Insert(image2, feature_inliers[s], feature);
   }
   // TODO(julien) remove outliers from matches using matches_inliers.
-  if (!is_good) {
-    return false;                        
-  }
   
   SetImageSize(*recons, image1, image_size1);
   SetImageSize(*recons, image2, image_size2);
   
   VLOG(2) << " -- Initial Intersection --  " << std::endl;
-  num_new_points = PointStructureTriangulationCalibrated(matches_inliers, 
+  uint num_new_points = PointStructureTriangulationCalibrated(matches_inliers, 
                                                          image1,
                                                          2,
                                                          recons);
@@ -229,7 +188,8 @@ bool InitialReconstructionTwoViews(const Matches &matches,
     ExportToBlenderScript(*recons, "init-ba.py");
     // TODO(julien) Remove outliers RemoveOutliers() + BA again
   }
-  return is_good;
+
+  return true;
 }
 
 bool IncrementalReconstructionKeyframes(const Matches &matches,
