@@ -43,6 +43,16 @@ class PointFeature : public Feature {
     orientation = 0.0;
   }
 
+  PointFeature &operator=(const PointFeature &other)
+  {
+    if (this == &other)
+      return *this;
+    scale = other.scale;
+    orientation = other.orientation;
+    coords = other.coords;
+    return *this;
+  }
+
   PointFeature(const cv::KeyPoint & keypoint) {
     coords[0] = keypoint.pt.x;
     coords[1] = keypoint.pt.y;
