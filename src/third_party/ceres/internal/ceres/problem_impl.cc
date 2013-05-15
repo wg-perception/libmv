@@ -84,7 +84,7 @@ void CheckForNoAliasing(double* existing_block,
       << "Aliasing detected between existing parameter block at memory "
       << "location " << existing_block
       << " and has size " << existing_block_size << " with new parameter "
-      << "block that has memory adderss " << new_block << " and would have "
+      << "block that has memory address " << new_block << " and would have "
       << "size " << new_block_size << ".";
 }
 
@@ -710,6 +710,26 @@ int ProblemImpl::NumResidualBlocks() const {
 int ProblemImpl::NumResiduals() const {
   return program_->NumResiduals();
 }
+
+int ProblemImpl::ParameterBlockSize(double* parameter_block) const {
+  return FindParameterBlockOrDie(parameter_block_map_, parameter_block)->Size();
+};
+
+int ProblemImpl::ParameterBlockLocalSize(double* parameter_block) const {
+  return FindParameterBlockOrDie(parameter_block_map_,
+                                 parameter_block)->LocalSize();
+};
+
+void ProblemImpl::GetParameterBlocks(vector<double*>* parameter_blocks) const {
+  CHECK_NOTNULL(parameter_blocks);
+  parameter_blocks->resize(0);
+  for (ParameterMap::const_iterator it = parameter_block_map_.begin();
+       it != parameter_block_map_.end();
+       ++it) {
+    parameter_blocks->push_back(it->first);
+  }
+}
+
 
 }  // namespace internal
 }  // namespace ceres

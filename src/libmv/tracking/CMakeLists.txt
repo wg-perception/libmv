@@ -15,13 +15,13 @@ FILE(GLOB TRACKING_HDRS *.h)
 
 ADD_LIBRARY(tracking ${TRACKING_SRC} ${TRACKING_HDRS})
 
-TARGET_LINK_LIBRARIES(tracking image glog multiview)
+TARGET_LINK_LIBRARIES(tracking image glog)
 
 # Make the name of debug libraries end in _d.
 SET_TARGET_PROPERTIES(tracking PROPERTIES DEBUG_POSTFIX "_d")
 
 LIBMV_INSTALL_LIB(tracking)
 
-#LIBMV_TEST(klt "correspondence;image;numeric")
+LIBMV_TEST(brute_region_tracker "tracking;image;numeric")
 LIBMV_TEST(klt_region_tracker "tracking;image;numeric")
 LIBMV_TEST(pyramid_region_tracker "tracking;image;numeric")

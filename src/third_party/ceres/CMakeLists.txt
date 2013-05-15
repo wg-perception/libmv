@@ -43,7 +43,7 @@ IF (EXISTS ${CMAKE_SOURCE_DIR}/.git)
   # Git Bash (shipped with msysgit)
   SET (LOCAL_GIT_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
 ELSE (EXISTS ${CMAKE_SOURCE_DIR}/.git)
-  # TODO(keir) Add proper windows support
+  # TODO(keir) Add proper Windows support
 ENDIF (EXISTS ${CMAKE_SOURCE_DIR}/.git)
 
 IF (EXISTS ${LOCAL_GIT_DIRECTORY})
@@ -451,9 +451,18 @@ OPTION(LINE_SEARCH_MINIMIZER
        ON)
 
 IF (NOT ${LINE_SEARCH_MINIMIZER})
- ADD_DEFINITIONS(-DCERES_NO_LINE_SEARCH_MINIMIZER)
- MESSAGE("-- Disabling line search minimizer")
+  ADD_DEFINITIONS(-DCERES_NO_LINE_SEARCH_MINIMIZER)
+  MESSAGE("-- Disabling line search minimizer")
 ENDIF (NOT ${LINE_SEARCH_MINIMIZER})
+
+OPTION(CUSTOM_BLAS
+       "Use handcoded BLAS routines (usually faster) instead of Eigen."
+       ON)
+
+IF (NOT ${CUSTOM_BLAS})
+  ADD_DEFINITIONS(-DCERES_NO_CUSTOM_BLAS)
+  MESSAGE("-- Disabling custom blas")
+ENDIF (NOT ${CUSTOM_BLAS})
 
 # Multithreading using OpenMP
 OPTION(OPENMP
@@ -462,14 +471,34 @@ OPTION(OPENMP
 
 IF (${OPENMP})
   FIND_PACKAGE(OpenMP)
-  IF(${OPENMP_FOUND})
-    MESSAGE("-- Found OpenMP.")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    ADD_DEFINITIONS(-DCERES_USE_OPENMP)
-  ELSE(${OPENMP_FOUND})
-    MESSAGE("-- Can't find OpenMP. Continuing without it.")
-  ENDIF(${OPENMP_FOUND})
 ENDIF (${OPENMP})
+
+IF(${OPENMP_FOUND})
+  MESSAGE("-- Found OpenMP.")
+  ADD_DEFINITIONS(-DCERES_USE_OPENMP)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  IF ("${UNIX}")
+    # At least on Linux, we need pthreads to be enabled for mutex to
+    # compile.  This may not work on Windows or Android.
+    FIND_PACKAGE(Threads REQUIRED)
+    SET(STATIC_LIBRARY_FLAGS
+        "${STATIC_LIBRARY_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+    SET(CMAKE_SHARED_LINKER_FLAGS
+        "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+    ADD_DEFINITIONS(-DCERES_HAVE_PTHREAD)
+    ADD_DEFINITIONS(-DCERES_HAVE_RWLOCK)
+  ENDIF ("${UNIX}")
+ELSE(${OPENMP_FOUND})
+  MESSAGE("-- Can't find OpenMP. Disabling multithreading.")
+  ADD_DEFINITIONS(-DCERES_NO_THREADS)
+ENDIF(${OPENMP_FOUND})
+
+# Disable threads in mutex.h. Someday, after there is OpenMP support in
+# Android, this can get removed. Also turn on a workaround for an NDK bug.
+IF (${BUILD_ANDROID})
+  ADD_DEFINITIONS(-DCERES_NO_THREADS)
+  ADD_DEFINITIONS(-DCERES_WORK_AROUND_ANDROID_NDK_COMPILER_BUG)
+ENDIF (${BUILD_ANDROID})
 
 # Protocol buffers
 OPTION(PROTOBUF
@@ -487,25 +516,6 @@ IF (${PROTOBUF})
 ELSE (${PROTOBUF})
   ADD_DEFINITIONS(-DCERES_NO_PROTOCOL_BUFFERS)
 ENDIF (${PROTOBUF})
-
-
-# Use threads but not on Android, where there is no support for OpenMP yet.
-IF ("${UNIX}" AND NOT ${BUILD_ANDROID})
-  # At least on Linux, we need pthreads to be enabled for mutex to compile.
-  # This may not work on windows or android.
-  FIND_PACKAGE(Threads REQUIRED)
-  SET(STATIC_LIBRARY_FLAGS "${STATIC_LIBRARY_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
-  SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
-  ADD_DEFINITIONS(-DCERES_HAVE_PTHREAD)
-  ADD_DEFINITIONS(-DCERES_HAVE_RWLOCK)
-ENDIF ("${UNIX}" AND NOT ${BUILD_ANDROID})
-
-# Disable threads in mutex.h. Someday, after there is OpenMP support in
-# Android, this can get removed. Also turn on a workaround for an NDK bug.
-IF (${BUILD_ANDROID})
-  ADD_DEFINITIONS(-DCERES_NO_THREADS)
-  ADD_DEFINITIONS(-DCERES_WORK_AROUND_ANDROID_NDK_COMPILER_BUG)
-ENDIF (${BUILD_ANDROID})
 
 OPTION(DISABLE_TR1
        "Don't use TR1. This replaces some hash tables with sets. Slower."
@@ -603,9 +613,12 @@ IF (CMAKE_BUILD_TYPE STREQUAL "Release")
       ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     ENDIF (${BUILD_ANDROID})
   ENDIF (CMAKE_COMPILER_IS_GNUCXX)
-  SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CERES_CXX_FLAGS}"
-       CACHE STRING "Release mode flags to the C++ Compiler" FORCE)
+  IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    SET(CERES_CXX_FLAGS "${CERES_CXX_FLAGS} -O4")
+  ENDIF()
 ENDIF (CMAKE_BUILD_TYPE STREQUAL "Release")
+
+SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CERES_CXX_FLAGS}")
 
 # After the tweaks for the compile settings, disable some warnings on MSVC.
 IF (MSVC)
@@ -634,6 +647,9 @@ IF (MSVC)
   # which results in linker warnings. This is irrelevant for Ceres, so ignore
   # the warnings.
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4049")
+
+  # Tuple sizes of 10 are used by Gtest.
+  ADD_DEFINITIONS("-D_VARIADIC_MAX=10")
 ENDIF (MSVC)
 
 # GCC is not strict enough by default, so enable most of the warnings.
@@ -642,9 +658,13 @@ IF ("${UNIX}")
       "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter")
 ENDIF ("${UNIX}")
 
-# We can be even stricter when using CLang
+# Use a larger inlining threshold for Clang, since it hobbles Eigen,
+# resulting in an unreasonably slow version of the blas routines. The
+# -Qunused-arguments is needed because CMake passes the inline
+# threshold to the linker and clang complains about it and dies.
 IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type-c-linkage")
+  SET(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Qunused-arguments -mllvm -inline-threshold=600 -Wno-return-type-c-linkage")
 ENDIF()
 
 ADD_SUBDIRECTORY(internal/ceres)

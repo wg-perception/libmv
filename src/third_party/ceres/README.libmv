@@ -21,3 +21,7 @@ Local modifications:
   conflict bewteen libmv's jet test and ceres's jet test. Change their
   path to ${LIBMV_TESTS_OUTPUT_DIR}/ceres. Alsotweaked path to data
   files.
+
+- Do not modify cache's CMAKE_CXX_FLAGS_RELEASE and only update it
+  for Ceres subfolder. Otherwise you'll have infinite appending of
+  Ceres-specific flags on every saving of any CmakeLists.txt.

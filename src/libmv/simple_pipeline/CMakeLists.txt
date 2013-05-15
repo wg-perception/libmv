@@ -9,6 +9,7 @@ SET(SIMPLE_PIPELINE_SRC
     modal_solver.cc
     pipeline.cc
     reconstruction.cc
+    reconstruction_scale.cc
     camera_intrinsics.cc
     tracks.cc
     uncalibrated_reconstructor.cc
@@ -35,3 +36,4 @@ SIMPLE_PIPELINE_TEST(camera_intrinsics)
 SIMPLE_PIPELINE_TEST(resect)
 SIMPLE_PIPELINE_TEST(intersect)
 SIMPLE_PIPELINE_TEST(keyframe_selection)
+SIMPLE_PIPELINE_TEST(modal_solver)

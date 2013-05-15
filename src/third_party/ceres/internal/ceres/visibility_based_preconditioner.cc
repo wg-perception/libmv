@@ -421,18 +421,8 @@ bool VisibilityBasedPreconditioner::Factorize() {
 
   // Symbolic factorization is computed if we don't already have one handy.
   if (factor_ == NULL) {
-    if (options_.use_block_amd) {
-      factor_ = ss_.BlockAnalyzeCholesky(lhs, block_size_, block_size_);
-    } else {
-      factor_ = ss_.AnalyzeCholesky(lhs);
-    }
-
-    if (VLOG_IS_ON(2)) {
-      cholmod_print_common(const_cast<char*>("Symbolic Analysis"), ss_.mutable_cc());
-    }
+    factor_ = ss_.BlockAnalyzeCholesky(lhs, block_size_, block_size_);
   }
-
-  CHECK_NOTNULL(factor_);
 
   bool status = ss_.Cholesky(lhs, factor_);
   ss_.Free(lhs);
