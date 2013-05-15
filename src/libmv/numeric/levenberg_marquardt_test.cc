@@ -46,7 +46,8 @@ TEST(LevenbergMarquardt, SimpleCase) {
   F f;
   LevenbergMarquardt<F>::SolverParameters params;
   LevenbergMarquardt<F> lm(f);
-  LevenbergMarquardt<F>::Results results = lm.minimize(params, &x);
+  /* TODO(sergey): Better error handling. */
+  /* LevenbergMarquardt<F>::Results results = */ lm.minimize(params, &x);
   Vec3 expected_min_x(2, 5, 0);
 
   EXPECT_MATRIX_NEAR(expected_min_x, x, 1e-5);

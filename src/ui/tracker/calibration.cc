@@ -44,17 +44,17 @@ Calibration::Calibration(QString path, QSize size) : CameraIntrinsics(), path_(p
 
   const int kCount = 11;
   const Parameter parameters[kCount] = {
-    {"ImageWidth",      "Real Image Width",          "px", 0,  size.width()*2,  size.width()    },
-    {"ImageHeight",     "Real Image Height",         "px", 0,  size.height()*2, size.height()   },
-    {"FocalLengthX",    "Focal Length (X)",          "px", 0,  size.width()*4,  size.width()*2  },
-    {"FocalLengthY",    "Focal Length (Y)",          "px", 0,  size.width()*4,  size.width()*2  },
-    {"PrincipalPointX", "Principal Point (X)",       "px", 0,  size.width(),    size.width()/2  },
-    {"PrincipalPointY", "Principal Point (Y)",       "px", 0,  size.height(),   size.height()/2 },
-    {"k1",              "1st Radial Distortion",     "",  -1,  1,               0               },
-    {"k2",              "2nd Radial Distortion",     "",  -1,  1,               0               },
-    {"k3",              "3rd Radial Distortion",     "",  -1,  1,               0               },
-    {"p1",              "1st Tangential Distortion", "",  -1,  1,               0               },
-    {"p2",              "2nd Tangential Distortion", "",  -1,  1,               0               },
+    {"ImageWidth",      "Real Image Width",          "px", 0,  size.width()*2.0,      (double)size.width()  },
+    {"ImageHeight",     "Real Image Height",         "px", 0,  size.height()*2.0,     (double)size.height() },
+    {"FocalLengthX",    "Focal Length (X)",          "px", 0,  size.width()*4.0,      size.width()*2.0      },
+    {"FocalLengthY",    "Focal Length (Y)",          "px", 0,  size.width()*4.0,      size.width()*2.0      },
+    {"PrincipalPointX", "Principal Point (X)",       "px", 0,  (double)size.width(),  size.width()/2.0      },
+    {"PrincipalPointY", "Principal Point (Y)",       "px", 0,  (double)size.height(), size.height()/2.0     },
+    {"k1",              "1st Radial Distortion",     "",  -1,  1,                     0                     },
+    {"k2",              "2nd Radial Distortion",     "",  -1,  1,                     0                     },
+    {"k3",              "3rd Radial Distortion",     "",  -1,  1,                     0                     },
+    {"p1",              "1st Tangential Distortion", "",  -1,  1,                     0                     },
+    {"p2",              "2nd Tangential Distortion", "",  -1,  1,                     0                     },
   };
   QFormLayout* layout = new QFormLayout(this);
   for (int i = 0; i < kCount; i++) {

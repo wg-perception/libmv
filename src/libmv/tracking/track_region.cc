@@ -58,6 +58,8 @@ struct JetOps {
   }
   static void ScaleDerivative(double scale_by, T *value) {
     // For double, there is no derivative to scale.
+    (void) scale_by; // Ignored.
+    (void) value;  // Ignored.
   }
 };
 
@@ -84,6 +86,8 @@ struct Chain {
                            const ArgumentType x[kNumArgs]) {
     // In the default case of scalars, there's nothing to do since there are no
     // derivatives to propagate. 
+    (void) dfdx;  // Ignored.
+    (void) x;  // Ignored.
     return f;
   }
 };
@@ -1037,6 +1041,9 @@ struct HomographyWarp {
 void PickSampling(const double *x1, const double *y1,
                   const double *x2, const double *y2,
                   int *num_samples_x, int *num_samples_y) {
+  (void) x2;  // Ignored.
+  (void) y2;  // Ignored.
+
   Vec2 a0(x1[0], y1[0]);
   Vec2 a1(x1[1], y1[1]);
   Vec2 a2(x1[2], y1[2]);
@@ -1072,6 +1079,10 @@ void PickSampling(const double *x1, const double *y1,
 bool SearchAreaTooBigForDescent(const cv::Mat_<cv::Vec3f> &image2,
                                 const double *x2, const double *y2) {
   // TODO(keir): Check the bounds and enable only when it makes sense.
+  (void) image2;  // Ignored.
+  (void) x2;  // Ignored.
+  (void) y2;  // Ignored.
+
   return true;
 }
 
@@ -1394,7 +1405,7 @@ void TemplatedTrackRegion(const cv::Mat_<cv::Vec3f> &image1,
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
+  solver_options.linear_solver_type = ceres::DENSE_QR;
   solver_options.max_num_iterations = options.max_iterations;
   solver_options.update_state_every_iteration = true;
   solver_options.parameter_tolerance = 1e-16;

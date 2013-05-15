@@ -114,7 +114,7 @@ void ComputeHomographyFromCorrespondences(Mat &x1, Mat &x2, CameraIntrinsics &in
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
+  solver_options.linear_solver_type = ceres::DENSE_QR;
   solver_options.max_num_iterations = 50;
   solver_options.update_state_every_iteration = true;
   solver_options.parameter_tolerance = 1e-16;

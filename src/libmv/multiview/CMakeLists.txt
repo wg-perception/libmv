@@ -29,7 +29,9 @@ SET(MULTIVIEW_SRC projection.cc
                   similarity_kernel.cc
                   euclidean.cc
                   euclidean_kernel.cc
-                  robust_euclidean.cc)
+                  robust_euclidean.cc
+                  homography.cc
+                  panography.cc)
 
 # define the header files (make the headers appear in IDEs.)
 FILE(GLOB MULTIVIEW_HDRS *.h)

@@ -139,9 +139,8 @@ struct SnavelyReprojectionError {
     // Compute the center of distortion. The sign change comes from
     // the camera model that Noah Snavely's Bundler assumes, whereby
     // the camera coordinate system has a negative z axis.
-    const T& focal = camera[6];
-    T xp = - focal * p[0] / p[2];
-    T yp = - focal * p[1] / p[2];
+    T xp = - p[0] / p[2];
+    T yp = - p[1] / p[2];
 
     // Apply second and fourth order radial distortion.
     const T& l1 = camera[7];
@@ -150,14 +149,23 @@ struct SnavelyReprojectionError {
     T distortion = T(1.0) + r2  * (l1 + l2  * r2);
 
     // Compute final projected point position.
-    T predicted_x = distortion * xp;
-    T predicted_y = distortion * yp;
+    const T& focal = camera[6];
+    T predicted_x = focal * distortion * xp;
+    T predicted_y = focal * distortion * yp;
 
     // The error is the difference between the predicted and observed position.
     residuals[0] = predicted_x - T(observed_x);
     residuals[1] = predicted_y - T(observed_y);
 
     return true;
+  }
+
+  // Factory to hide the construction of the CostFunction object from
+  // the client code.
+  static ceres::CostFunction* Create(const double observed_x,
+                                     const double observed_y) {
+    return (new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
+                new SnavelyReprojectionError(observed_x, observed_y)));
   }
 
   double observed_x;
@@ -177,6 +185,8 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  const double* observations = bal_problem.observations();
+
   // Create residuals for each observation in the bundle adjustment problem. The
   // parameters for cameras and points are added automatically.
   ceres::Problem problem;
@@ -184,12 +194,10 @@ int main(int argc, char** argv) {
     // Each Residual block takes a point and a camera as input and outputs a 2
     // dimensional residual. Internally, the cost function stores the observed
     // image location and compares the reprojection against the observation.
-    ceres::CostFunction* cost_function =
-        new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
-            new SnavelyReprojectionError(
-                bal_problem.observations()[2 * i + 0],
-                bal_problem.observations()[2 * i + 1]));
 
+    ceres::CostFunction* cost_function =
+        SnavelyReprojectionError::Create(observations[2 * i + 0],
+                                         observations[2 * i + 1]);
     problem.AddResidualBlock(cost_function,
                              NULL /* squared loss */,
                              bal_problem.mutable_camera_for_observation(i),
@@ -201,7 +209,6 @@ int main(int argc, char** argv) {
   // for standard bundle adjustment problems.
   ceres::Solver::Options options;
   options.linear_solver_type = ceres::DENSE_SCHUR;
-  options.ordering_type = ceres::SCHUR;
   options.minimizer_progress_to_stdout = true;
 
   ceres::Solver::Summary summary;

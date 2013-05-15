@@ -56,7 +56,7 @@ TEST(KeyframeSelection, SyntheticNeighborFrame) {
   SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
 
   // Synthetic second frame shouldn't be considered a keyframe
-  EXPECT_EQ(keyframes.size(), 0);
+  EXPECT_EQ(0, keyframes.size());
 }
 
 // Frames 1 and 2 of FabrikEingang footage
@@ -98,7 +98,7 @@ TEST(KeyframeSelection, FabrikEingangNeighborFrames) {
   vector<int> keyframes;
   SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
 
-  EXPECT_EQ(keyframes.size(), 0);
+  EXPECT_EQ(0, keyframes.size());
 }
 
 // Frames 120 and 200 from FabrikEingang footage
@@ -133,7 +133,7 @@ TEST(KeyframeSelection, FabrikEingangFarFrames) {
   vector<int> keyframes;
   SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
 
-  EXPECT_EQ(keyframes.size(), 2);
+  EXPECT_EQ(2, keyframes.size());
 }
 
 // Manually selected keyframes from copter footage from Sebastian
@@ -168,7 +168,7 @@ TEST(KeyframeSelection, CopterManualKeyFrames) {
   vector<int> keyframes;
   SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
 
-  EXPECT_EQ(keyframes.size(), 2);
+  EXPECT_EQ(2, keyframes.size());
 }
 
 // Used old friend elevator scene MMI_2366 with automatic feature selection
@@ -239,7 +239,7 @@ TEST(KeyframeSelection, ElevatorManualKeyframesFrames) {
   vector<int> keyframes;
   SelectkeyframesBasedOnGRIC(tracks, intrinsics, keyframes);
 
-  EXPECT_EQ(keyframes.size(), 2);
+  EXPECT_EQ(2, keyframes.size());
 }
 
 } // namespace libmv
