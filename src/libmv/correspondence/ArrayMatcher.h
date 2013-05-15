@@ -27,9 +27,10 @@ namespace libmv {
 namespace correspondence  {
 
 template < typename Scalar = float >
-class ArrayMatcher {
- public:
-  virtual ~ArrayMatcher() {}
+class ArrayMatcher
+{
+  public:
+  virtual ~ArrayMatcher() {};
 
   /**
    * Build the matching structure
@@ -40,7 +41,7 @@ class ArrayMatcher {
    *
    * \return True if success.
    */
-  virtual bool build(const Scalar * dataset, int nbRows, int dimension) = 0;
+  virtual bool build( const Scalar * dataset, int nbRows, int dimension)=0;
 
   /**
    * Search the nearest Neighbour of the scalar array query.
@@ -52,9 +53,7 @@ class ArrayMatcher {
    *
    * \return True if success.
    */
-  virtual bool searchNeighbour(const Scalar * query,
-                               int * indice,
-                               Scalar * distance) = 0;
+  virtual bool searchNeighbour( const Scalar * query, int * indice, Scalar * distance)=0;
 
 
 /**
@@ -68,11 +67,11 @@ class ArrayMatcher {
    *
    * \return True if success.
    */
-  virtual bool searchNeighbours(const Scalar * query, int nbQuery,
-    vector<int> * indice, vector<Scalar> * distance, int NN) = 0;
+  virtual bool searchNeighbours( const Scalar * query, int nbQuery,
+    vector<int> * indice, vector<Scalar> * distance, int NN)=0;
 };
 
-}  // namespace correspondence
-}  // namespace libmv
+} // namespace correspondence
+} // namespace libmv
 
-#endif  // LIBMV_CORRESPONDENCE_ARRAYMATCHER_H_
+#endif // LIBMV_CORRESPONDENCE_ARRAYMATCHER_H_

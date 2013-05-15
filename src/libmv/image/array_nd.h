@@ -57,13 +57,9 @@ class ArrayND : public BaseArray {
 
   ArrayND(int s0) : data_(NULL), own_data(true) { Resize(s0); }
   ArrayND(int s0, int s1) : data_(NULL), own_data(true) { Resize(s0, s1); }
-  ArrayND(int s0, int s1, int s2) : data_(NULL), own_data(true) {
-     Resize(s0, s1, s2);
-  }
+  ArrayND(int s0, int s1, int s2) : data_(NULL), own_data(true) { Resize(s0, s1, s2); }
 
-  ArrayND(T* data, int s0, int s1, int s2) : data_(data), own_data(false) {
-    Resize(s0, s1, s2);
-  }
+  ArrayND(T* data, int s0, int s1, int s2) : data_(data), own_data(false) { Resize(s0, s1, s2); }
 
   /// Destructor deletes pixel data.
   ~ArrayND() {
@@ -97,7 +93,7 @@ class ArrayND : public BaseArray {
     for (int i = N - 1; i > 0; --i) {
       strides_(i - 1) = strides_(i) * shape_(i);
     }
-    if (own_data) {
+    if(own_data) {
       delete [] data_;
       data_ = NULL;
       if (Size() > 0) {
@@ -107,7 +103,7 @@ class ArrayND : public BaseArray {
   }
 
   template<typename D>
-  void ResizeLike(const ArrayND<D, N> &other) {
+  void ResizeLike(const ArrayND<D,N> &other) {
     Resize(other.Shape());
   }
 
@@ -140,12 +136,12 @@ class ArrayND : public BaseArray {
   /// Resize a 3D array to shape (s0,s1,s2).
   void Resize(int s0, int s1, int s2) {
     assert(N == 3);
-    int shape[] = {s0, s1, s2};
+    int shape[] = {s0,s1,s2};
     Resize(shape);
   }
 
   template<typename D>
-  void CopyFrom(const ArrayND<D, N> &other) {
+  void CopyFrom(const ArrayND<D,N> &other) {
     ResizeLike(other);
     T *data = Data();
     const D *other_data = other.Data();
@@ -242,7 +238,7 @@ class ArrayND : public BaseArray {
   T &operator()(int i0, int i1) {
     assert(0 <= i0 && i0 < Shape(0));
     assert(0 <= i1 && i1 < Shape(1));
-    return *(Data() + Offset(i0, i1));
+    return *( Data() + Offset(i0,i1) );
   }
 
   /// 3D specialization.
@@ -250,29 +246,29 @@ class ArrayND : public BaseArray {
     assert(0 <= i0 && i0 < Shape(0));
     assert(0 <= i1 && i1 < Shape(1));
     assert(0 <= i2 && i2 < Shape(2));
-    return *(Data() + Offset(i0, i1, i2));
+    return *( Data() + Offset(i0,i1,i2) );
   }
 
   /// Return a constant reference to the element at position index.
   const T &operator()(const Index &index) const {
-    return *(Data() + Offset(index));
+    return *( Data() + Offset(index) );
   }
 
   /// 1D specialization.
   const T &operator()(int i0) const {
-    return *(Data() + Offset(i0));
+    return *( Data() + Offset(i0) );
   }
 
   /// 2D specialization.
   const T &operator()(int i0, int i1) const {
     assert(0 <= i0 && i0 < Shape(0));
     assert(0 <= i1 && i1 < Shape(1));
-    return *(Data() + Offset(i0, i1));
+    return *( Data() + Offset(i0,i1) );
   }
 
   /// 3D specialization.
   const T &operator()(int i0, int i1, int i2) const {
-    return *(Data() + Offset(i0, i1, i2));
+    return *( Data() + Offset(i0,i1,i2) );
   }
 
   /// True if index is inside array.
@@ -347,14 +343,14 @@ class Array3D : public ArrayND<T, 3> {
   Array3D()
       : Base() {
   }
-  Array3D(int height, int width, int depth = 1)
+  Array3D(int height, int width, int depth=1)
       : Base(height, width, depth) {
   }
-  Array3D(T* data, int height, int width, int depth = 1)
+  Array3D(T* data, int height, int width, int depth=1)
       : Base(data, height, width, depth) {
   }
 
-  void Resize(int height, int width, int depth = 1) {
+  void Resize(int height, int width, int depth=1) {
     Base::Resize(height, width, depth);
   }
 
@@ -380,12 +376,12 @@ class Array3D : public ArrayND<T, 3> {
   T &operator()(int i0, int i1, int i2 = 0) {
     assert(0 <= i0 && i0 < Height());
     assert(0 <= i1 && i1 < Width());
-    return Base::operator()(i0, i1, i2);
+    return Base::operator()(i0,i1,i2);
   }
   const T &operator()(int i0, int i1, int i2 = 0) const {
     assert(0 <= i0 && i0 < Height());
     assert(0 <= i1 && i1 < Width());
-    return Base::operator()(i0, i1, i2);
+    return Base::operator()(i0,i1,i2);
   }
 };
 
@@ -417,13 +413,13 @@ void ByteArrayToScaledFloatArray(const Array3Du &byte_array,
                                  Array3Df *float_array);
 
 template <typename AArrayType, typename BArrayType, typename CArrayType>
-void MultiplyElements(const AArrayType &a,
+void MultiplyElements( const AArrayType &a,
            const BArrayType &b,
-           CArrayType *c) {
+           CArrayType *c ) {
   // This function does an element-wise multiply between
   // the two Arrays A and B, and stores the result in C.
   // A and B must have the same dimensions.
-  assert(a.Shape() == b.Shape());
+  assert( a.Shape() == b.Shape() );
   c->ResizeLike(a);
 
   // To perform the multiplcation, a "current" index into the N-dimensions of

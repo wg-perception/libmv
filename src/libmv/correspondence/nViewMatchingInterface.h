@@ -30,8 +30,9 @@ namespace correspondence  {
   using namespace std;
 
 class nViewMatchingInterface {
- public:
-  virtual ~nViewMatchingInterface() {}
+
+  public:
+  virtual ~nViewMatchingInterface() {};
 
   /**
    * Compute the data and store it in the class map<string,T>
@@ -61,10 +62,10 @@ class nViewMatchingInterface {
   *
   * \return True if success (and any matches was found).
   */
-  virtual bool computeCrossMatch(const libmv::vector<string> & vec_data)=0;
+  virtual bool computeCrossMatch( const libmv::vector<string> & vec_data)=0;
 };
 
-}  // using namespace correspondence
-}  // using namespace libmv
+} // using namespace correspondence
+} // using namespace libmv
 
 #endif  // LIBMV_CORRESPONDENCE_N_VIEW_MATCHING_INTERFACE_H_

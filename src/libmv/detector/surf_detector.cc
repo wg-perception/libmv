@@ -18,8 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/detector/surf_detector.h"
-
 #include "libmv/logging/logging.h"
 #include "libmv/detector/detector.h"
 #include "libmv/correspondence/feature.h"
@@ -39,7 +37,7 @@ class SurfDetector : public Detector {
                       vector<Feature *> *features,
                       DetectorData **data) {
     ByteImage *byte_image = image.AsArray3Du();
-    // TODO(pmoulon) Assert that byte_image is valid.
+    //TODO(pmoulon) Assert that byte_image is valid.
 
     Matu integral_image;
     IntegralImage(*byte_image, &integral_image);
@@ -55,8 +53,7 @@ class SurfDetector : public Detector {
       features->push_back(f);
     }
 
-    // data can contain the integral image that can be use
-    // for descriptor computation
+    //data can contain the integral image that can be use for descriptor computation
     if (data) {
       *data = NULL;
     }

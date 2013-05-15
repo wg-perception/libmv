@@ -22,18 +22,19 @@
 #include "libmv/correspondence/feature_matching_FLANN.h"
 #include "third_party/flann/src/cpp/flann.h"
 
-// -- Small Wrapper to use Flann library :
+//-- Small Wrapper to use Flann library :
 // http://www.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
 // David G. Lowe and Marius Muja
 
-bool FLANN_Wrapper_LINEAR(const FLANN_Data & testSet, const FLANN_Data & dataSet,
+bool FLANN_Wrapper_LINEAR(const FLANN_Data & testSet,const FLANN_Data & dataSet,
                   vector<int> * resultIndices, vector<float> * resultDistances,
-                  int NumberOfNeighbours) {
-  // -- Check data length compatibility :
+                  int NumberOfNeighbours)
+{
+  //-- Check data length compatibility :
   if (testSet.cols != dataSet.cols)
     return false;
 
-  // -- Check if resultIndices is allocated
+  //-- Check if resultIndices is allocated
   resultIndices->resize(testSet.rows * NumberOfNeighbours);
   resultDistances->resize(testSet.rows * NumberOfNeighbours);
 
@@ -42,7 +43,7 @@ bool FLANN_Wrapper_LINEAR(const FLANN_Data & testSet, const FLANN_Data & dataSet
   p.algorithm = LINEAR;
   p.log_destination = NULL;
   p.log_level = LOG_INFO;
-  p.target_precision = -1.f;
+   p.target_precision = -1.f;
   // compute the NumberOfNeighbours nearest-neighbors of each point in the testset
   int * resultPTR = &((*resultIndices)[0]);
   float * distancePTR = &(*resultDistances)[0];
@@ -51,14 +52,15 @@ bool FLANN_Wrapper_LINEAR(const FLANN_Data & testSet, const FLANN_Data & dataSet
     resultPTR, distancePTR, NumberOfNeighbours, &p));
 }
 
-bool FLANN_Wrapper_KDTREE(const FLANN_Data & testSet, const FLANN_Data & dataSet,
+bool FLANN_Wrapper_KDTREE(const FLANN_Data & testSet,const FLANN_Data & dataSet,
                   vector<int> * resultIndices, vector<float> * resultDistances,
-                  int NumberOfNeighbours) {
-  // -- Check data length compatibility :
+                  int NumberOfNeighbours)
+{
+  //-- Check data length compatibility :
   if (testSet.cols != dataSet.cols)
     return false;
 
-  // -- Check if resultIndices is allocated
+  //-- Check if resultIndices is allocated
   resultIndices->resize(testSet.rows * NumberOfNeighbours);
   resultDistances->resize(testSet.rows * NumberOfNeighbours);
 
@@ -68,32 +70,21 @@ bool FLANN_Wrapper_KDTREE(const FLANN_Data & testSet, const FLANN_Data & dataSet
 
   // Force KDTREE
   p.algorithm = KDTREE;
-  p.checks = 32;     // Maximum number of leaf checked in one search
-  p.trees = 8;       // number of randomized trees to use
-  p.branching = 32;  // branching factor
-  p.iterations = 7;  // max iterations to perform in one kmeans
-                     // clustering (kmeans tree)
+  p.checks = 32;    // Maximum number of leaf checked in one search
+  p.trees = 8;      // number of randomized trees to use
+  p.branching = 32; // branching factor
+  p.iterations = 7; // max iterations to perform in one kmeans clustering (kmeans tree)
   p.target_precision = -1.0f;
 
-  // -- Build FLANN index
+  //-- Build FLANN index
   float fspeedUp;
-  FLANN_INDEX index_id = flann_build_index(dataSet.array,
-                                           dataSet.rows,
-                                           dataSet.cols,
-                                           &fspeedUp,
-                                           &p);
+  FLANN_INDEX index_id = flann_build_index(dataSet.array, dataSet.rows, dataSet.cols, &fspeedUp, &p);
 
-  // compute the NumberOfNeighbours nearest-neighbors of each point in the testset
+   // compute the NumberOfNeighbours nearest-neighbors of each point in the testset
   int * resultPTR = &((*resultIndices)[0]);
   float * distancePTR = &(*resultDistances)[0];
-  int iRet = flann_find_nearest_neighbors_index(index_id,
-                                                testSet.array,
-                                                testSet.rows,
-                                                resultPTR,
-                                                distancePTR,
-                                                NumberOfNeighbours,
-                                                p.checks,
-                                                &p);
+  int iRet = flann_find_nearest_neighbors_index(index_id, testSet.array, testSet.rows,
+   resultPTR, distancePTR, NumberOfNeighbours, p.checks, &p);
 
   flann_free_index(index_id, &p);
   return (iRet == 0);
@@ -118,8 +109,8 @@ void FindSymmetricCandidateMatches_FLANN(const FeatureSet &left,
   float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  FLANN_Data dataA = {arrayA, left.features.size(), descriptorSize};
-  FLANN_Data dataB = {arrayB, right.features.size(), descriptorSize};
+  FLANN_Data dataA={arrayA,left.features.size(),descriptorSize};
+  FLANN_Data dataB={arrayB,right.features.size(),descriptorSize};
 
   // Perform ANN search from A to B. And B to A.
   // Use returned indices to keep only symetric matches
@@ -136,8 +127,9 @@ void FindSymmetricCandidateMatches_FLANN(const FeatureSet &left,
   delete [] arrayB;
 
   // From putative matches get symmetric matches.
-  if (breturn) {
-    // TODO(pmoulon) clear previous matches.
+  if (breturn)
+  {
+    //TODO(pmoulon) clear previous matches.
     int max_track_number = 0;
     for (size_t i = 0; i < indices.size(); ++i) {
       // Add the matche only if we have a symetric result.
@@ -147,16 +139,18 @@ void FindSymmetricCandidateMatches_FLANN(const FeatureSet &left,
         ++max_track_number;
       }
     }
-  } else {
+  }
+  else  {
     LOG(INFO) << "Cannot compute symmetric matches.";
   }
 }
 
-void FindCandidateMatchesDistanceRatio_FLANN(const FeatureSet &left,
-                                             const FeatureSet &right,
-                                             Matches *matches,
-                                             float fRatio) {
-  if (left.features.size() == 0) {
+void FindCandidateMatchesDistanceRatio_FLANN( const FeatureSet &left,
+                                              const FeatureSet &right,
+                                              Matches *matches,
+                                              float fRatio) {
+
+  if (left.features.size() == 0)  {
     return;
   }
   int descriptorSize = left.features[0].descriptor.coords.size();
@@ -164,25 +158,27 @@ void FindCandidateMatchesDistanceRatio_FLANN(const FeatureSet &left,
   float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
   float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
 
-  FLANN_Data dataA = {arrayA, left.features.size(), descriptorSize};
-  FLANN_Data dataB = {arrayB, right.features.size(), descriptorSize};
+  FLANN_Data dataA={arrayA,left.features.size(),descriptorSize};
+  FLANN_Data dataB={arrayB,right.features.size(),descriptorSize};
 
   libmv::vector<int> indices;
   libmv::vector<float> distances;
   const int NN = 2;
-  bool breturn = FLANN_Wrapper_KDTREE(dataA, dataB, &indices, &distances, NN);
+  bool breturn = FLANN_Wrapper_KDTREE(dataA,dataB, &indices, &distances, NN);
 
   delete [] arrayA;
   delete [] arrayB;
 
-  if (breturn) {
-    // TODO(pmoulon) clear previous matches.
+  if (breturn)
+  {
+    //TODO(pmoulon) clear previous matches.
     int max_track_number = 0;
     for (size_t i = 0; i < left.features.size(); ++i) {
       // Test distance ratio :
       float distance0 = distances[i*NN];
       float distance1 = distances[i*NN+NN-1];
-      if (distance0 < fRatio * distance1) {
+      if (distance0 < fRatio * distance1)
+      {
         matches->Insert(0, max_track_number, &left.features[i]);
         matches->Insert(1, max_track_number, &right.features[indices[i*NN]]);
         max_track_number++;

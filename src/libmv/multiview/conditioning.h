@@ -54,6 +54,7 @@ struct UnnormalizerT {
   static void Unnormalize(const Mat3 &T1, const Mat3 &T2, Mat3 *H);
 };
 
-}  // namespace libmv
+} //namespace libmv
 
-#endif  // LIBMV_MULTIVIEW_CONDITIONNING_H_
+
+#endif // LIBMV_MULTIVIEW_CONDITIONNING_H_

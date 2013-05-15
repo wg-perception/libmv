@@ -18,30 +18,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/reconstruction/mapping.h"
-
 #include "libmv/multiview/conditioning.h"
 #include "libmv/multiview/nviewtriangulation.h"
+#include "libmv/reconstruction/mapping.h"
 #include "libmv/reconstruction/tools.h"
 
 namespace libmv {
 
 uint PointStructureTriangulationCalibrated(
-    const Matches &matches,
-    CameraID image_id,
-    size_t minimum_num_views,
-    Reconstruction *reconstruction,
-    vector<StructureID> *new_structures_ids) {
+   const Matches &matches, 
+   CameraID image_id, 
+   size_t minimum_num_views, 
+   Reconstruction *reconstruction,
+   vector<StructureID> *new_structures_ids) {
   // Checks that the camera is in reconstruction
   if (!reconstruction->ImageHasCamera(image_id)) {
-      VLOG(1)   << "Error: the image " << image_id
+      VLOG(1)   << "Error: the image " << image_id 
                 << " has no camera." << std::endl;
     return 0;
   }
   vector<StructureID> structures_ids;
   Mat2X x_image;
-  vector<Mat34> Ps;  // Contains the projection matrices
-  vector<Vec2> xs;
+  vector<Mat34> Ps; // Contains the projection matrices
+  vector<Vec2> xs; 
   Vec2 x;
   // Selects only the unreconstructed tracks observed in the image
   SelectNonReconstructedPointStructures(matches, image_id, *reconstruction,
@@ -51,7 +50,7 @@ uint PointStructureTriangulationCalibrated(
   Mat3 precond;
   IsotropicPreconditionerFromPoints(x_image, &precond);
   // Selects the point structures that are observed at least in
-  // minimum_num_views images (images that have an already localized camera)
+  // minimum_num_views images (images that have an already localized camera) 
   Mat41 X_world;
   uint number_new_structure = 0;
   if (new_structures_ids)
@@ -66,7 +65,7 @@ uint PointStructureTriangulationCalibrated(
       camera = dynamic_cast<PinholeCamera *>(
         reconstruction->GetCamera(fp.image()));
       if (camera) {
-        Ps.push_back(precond * camera->projection_matrix());
+        Ps.push_back(precond * camera->projection_matrix()); 
         x << fp.feature()->x(), fp.feature()->y();
         xs.push_back(x);
       }
@@ -85,12 +84,12 @@ uint PointStructureTriangulationCalibrated(
       if (isnan(X_world.sum()))
         is_inlier = false;
       // Let's remove the point if it is at infinity
-      if (X_world(3, 0) == 0)
-        is_inlier = false;
+      if (X_world(3,0) == 0)
+        is_inlier = false;   
       // Let's remove the point if it is reconstructed behind one camera
       for (int cam = 0; cam < Ps.size(); ++cam) {
         if (!isInFrontOfCamera(Ps[cam], X_world)) {
-          is_inlier = false;
+          is_inlier = false;   
           break;
         }
         /* TODO(julien) Check the reprojection error?
@@ -123,20 +122,20 @@ uint PointStructureTriangulationCalibrated(
 }
 
 uint PointStructureRetriangulationCalibrated(
-    const Matches &matches,
-    CameraID image_id,
-    Reconstruction *reconstruction) {
+   const Matches &matches, 
+   CameraID image_id,  
+   Reconstruction *reconstruction) {
   // Checks that the camera is in reconstruction
   // Checks that the camera is in reconstruction
   if (!reconstruction->ImageHasCamera(image_id)) {
-      VLOG(1)   << "Error: the image " << image_id
+      VLOG(1)   << "Error: the image " << image_id 
                 << " has no camera." << std::endl;
     return 0;
   }
   vector<StructureID> structures_ids;
   Mat2X x_image;
-  vector<Mat34> Ps;  // Contains the projection matrices
-  vector<Vec2> xs;
+  vector<Mat34> Ps; // Contains the projection matrices
+  vector<Vec2> xs; 
   Vec2 x;
   // Selects only the reconstructed structures observed in the image
   SelectExistingPointStructures(matches, image_id, *reconstruction,
@@ -157,7 +156,7 @@ uint PointStructureRetriangulationCalibrated(
       camera = dynamic_cast<PinholeCamera *>(
         reconstruction->GetCamera(fp.image()));
       if (camera) {
-        Ps.push_back(camera->projection_matrix());
+        Ps.push_back(camera->projection_matrix()); 
         x << fp.feature()->x(), fp.feature()->y();
         xs.push_back(x);
       }
@@ -173,12 +172,12 @@ uint PointStructureRetriangulationCalibrated(
     bool is_inlier = true;
     if (isnan(X_world.sum()))
       is_inlier = false;
-    if (X_world(3, 0) == 0)
+    if (X_world(3,0) == 0)
       is_inlier = false;
     // Let's remove the point if it is reconstructed behind one camera
     for (int cam = 0; cam < Ps.size(); ++cam) {
       if (!isInFrontOfCamera(Ps[cam], X_world)) {
-        is_inlier = false;
+        is_inlier = false;   
         break;
       }
       /* TODO(julien) Check the reprojection error?
@@ -200,7 +199,7 @@ uint PointStructureRetriangulationCalibrated(
       VLOG(4)   << "Point structure updated ["
                 << structures_ids[t] <<"] "
                 << pstructure->coords().transpose() << " ("
-                << pstructure->coords().transpose() / pstructure->coords()[3]
+                << pstructure->coords().transpose() / pstructure->coords()[3] 
                 << ")" << std::endl;
     }
   }
@@ -208,21 +207,21 @@ uint PointStructureRetriangulationCalibrated(
 }
 
 uint PointStructureTriangulationUncalibrated(
-    const Matches &matches,
-    CameraID image_id,
-    size_t minimum_num_views,
-    Reconstruction *reconstruction,
-    vector<StructureID> *new_structures_ids) {
+   const Matches &matches, 
+   CameraID image_id, 
+   size_t minimum_num_views, 
+   Reconstruction *reconstruction,
+   vector<StructureID> *new_structures_ids) {
   // Checks that the camera is in reconstruction
   if (!reconstruction->ImageHasCamera(image_id)) {
-      VLOG(1)   << "Error: the image " << image_id
+      VLOG(1)   << "Error: the image " << image_id 
                 << " has no camera." << std::endl;
     return 0;
   }
   vector<StructureID> structures_ids;
   Mat2X x_image;
-  vector<Mat34> Ps;  // Contains the projection matrices
-  vector<Vec2> xs;
+  vector<Mat34> Ps; // Contains the projection matrices
+  vector<Vec2> xs; 
   Vec2 x;
   // Selects only the unreconstructed tracks observed in the image
   SelectNonReconstructedPointStructures(matches, image_id, *reconstruction,
@@ -232,7 +231,7 @@ uint PointStructureTriangulationUncalibrated(
   Mat3 precond;
   IsotropicPreconditionerFromPoints(x_image, &precond);
   // Selects the point structures that are observed at least in
-  // minimum_num_views images (images that have an already localized camera)
+  // minimum_num_views images (images that have an already localized camera) 
   Mat41 X_world;
   uint number_new_structure = 0;
   if (new_structures_ids)
@@ -247,7 +246,7 @@ uint PointStructureTriangulationUncalibrated(
       camera = dynamic_cast<PinholeCamera *>(
         reconstruction->GetCamera(fp.image()));
       if (camera) {
-        Ps.push_back(precond * camera->projection_matrix());
+        Ps.push_back(precond * camera->projection_matrix()); 
         x << fp.feature()->x(), fp.feature()->y();
         xs.push_back(x);
       }
@@ -267,7 +266,7 @@ uint PointStructureTriangulationUncalibrated(
         is_inlier = false;
       for (int cam = 0; cam < Ps.size(); ++cam) {
         if (!isInFrontOfCamera(Ps[cam], X_world)) {
-          is_inlier = false;
+          is_inlier = false;   
           break;
         }
       }
@@ -290,20 +289,20 @@ uint PointStructureTriangulationUncalibrated(
 }
 
 uint PointStructureRetriangulationUncalibrated(
-    const Matches &matches,
-    CameraID image_id,
-    Reconstruction *reconstruction) {
+   const Matches &matches, 
+   CameraID image_id,  
+   Reconstruction *reconstruction) {
   // Checks that the camera is in reconstruction
   // Checks that the camera is in reconstruction
   if (!reconstruction->ImageHasCamera(image_id)) {
-      VLOG(1)   << "Error: the image " << image_id
+      VLOG(1)   << "Error: the image " << image_id 
                 << " has no camera." << std::endl;
     return 0;
   }
   vector<StructureID> structures_ids;
   Mat2X x_image;
-  vector<Mat34> Ps;
-  vector<Vec2> xs;
+  vector<Mat34> Ps; 
+  vector<Vec2> xs; 
   Vec2 x;
   // Selects only the reconstructed structures observed in the image
   SelectExistingPointStructures(matches, image_id, *reconstruction,
@@ -324,7 +323,7 @@ uint PointStructureRetriangulationUncalibrated(
       camera = dynamic_cast<PinholeCamera *>(
         reconstruction->GetCamera(fp.image()));
       if (camera) {
-        Ps.push_back(camera->projection_matrix());
+        Ps.push_back(camera->projection_matrix()); 
         x << fp.feature()->x(), fp.feature()->y();
         xs.push_back(x);
       }
@@ -342,7 +341,7 @@ uint PointStructureRetriangulationUncalibrated(
       is_inlier = false;
     for (int cam = 0; cam < Ps.size(); ++cam) {
       if (!isInFrontOfCamera(Ps[cam], X_world)) {
-        is_inlier = false;
+        is_inlier = false;   
         break;
       }
     }
@@ -354,10 +353,10 @@ uint PointStructureRetriangulationUncalibrated(
       number_updated_structure++;
       VLOG(4)   << "Point structure updated ["
                 << structures_ids[t] <<"] "
-                << pstructure->coords().transpose()
+                << pstructure->coords().transpose() 
                 << std::endl;
     }
   }
   return number_updated_structure;
 }
-}  // namespace libmv
+} // namespace libmv

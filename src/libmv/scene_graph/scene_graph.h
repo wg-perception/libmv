@@ -65,26 +65,25 @@ class SGNode {
   virtual SGNode<Object> *GetParent() {
     return NULL;
   }
-
+  
   // AddChild and RemoveChild may result in reallocation of the node,
   // the new node is returned from each function.
   // ie Usage is: some_node = some_node->AddChild(MakeSGNode(obj, "name"));
   // The node will still have the same parents after adding children.
   // If you don't want reallocation use AddChildStable and RemoveChildStable,
-  // although they may fail if for example if you try to add children to a
-  // leaf node.
+  // although they may fail if for example if you try to add children to a leaf node.
   virtual SGNode *AddChild(SGNode<Object> *) = 0;
   virtual SGNode *RemoveChild(SGNode<Object> *) {
     return this;
   }
-
+  
   virtual bool RemoveChildStable(SGNode<Object> *) {
     return false;
   }
   virtual bool AddChildStable(SGNode<Object> *) {
     return false;
   }
-
+  
   virtual const char *GetName() const {
     return NULL;
   }
@@ -93,16 +92,16 @@ class SGNode {
   virtual bool SetName(const char *) {
     return false;
   }
-
+  
   // Returns the matrix for the object which includes effects from parents.
   virtual Mat4 GetMatrix() = 0;
-
+  
   // Returns the matrix for the object which excludes effects from parents.
   virtual Mat4 &GetObjectMatrix() = 0;
-
+  
   // Call this function after modifying the object matrix.
   virtual void UpdateMatrix() {}
-
+  
   virtual bool HasChild(SGNotRoot<Object> *) {
     return false;
   }
@@ -117,24 +116,24 @@ class SGNode {
   virtual int NumChildrenRecursive() {
     return 0;
   }
-
-  virtual void DeleteChildren() {}
-
+  
+  virtual void DeleteChildren() {};
+  
   virtual bool ForeachChild(bool (*)(SGNode<Object> *, void *), void *) {
     return true;
   }
   virtual bool ForeachChildRecursive(bool (*)(SGNode<Object> *, void *), void *) {
     return true;
   }
-
+  
   virtual void DeleteIf(bool (*)(SGNode<Object> *, void *), void *) {}
   virtual void DeleteIfRecursive(bool (*)(SGNode<Object> *, void *), void *) {}
-
+  
   virtual Object *GetObject() {
     return NULL;
   }
   virtual void SetObject(Object *) {}
-
+  
   virtual ~SGNode() {}
  protected:
   virtual void UpdateChildren() {}
@@ -148,11 +147,11 @@ class SGNode {
 template<class Object>
 class SGNotLeaf : public virtual SGNode<Object> {
  public:
-  SGNode<Object> *GetChild(const char *name);
+  SGNode<Object> *GetChild(const char *name);  
   SGNode<Object> *GetAtPath(const char *path) {
     assert(path);
-    while (path[0] == '/')
-      path++;
+    while(path[0] == '/')
+    	path++;
     const char *next_path = strchr(path, '/');
     int next_size;
     if (next_path)
@@ -160,7 +159,7 @@ class SGNotLeaf : public virtual SGNode<Object> {
     else
       next_size = 0;
     int size = strlen(path) - next_size;
-    char *child_name = new char[size+1];
+    char *child_name = new char [size+1];
     strncpy(child_name, path, size);
     child_name[size]='\0';
     SGNode<Object> *child = GetChild(child_name);
@@ -174,18 +173,18 @@ class SGNotLeaf : public virtual SGNode<Object> {
     delete [] child_name;
     return result;
   }
-
+  
   bool ForeachChild(bool (*func)(SGNode<Object> *, void *), void *data) {
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it)
+    for (it=children_.begin(); it!=children_.end(); ++it)
       if (!func(*it, data))
         return false;
     return true;
   }
-
+  
   bool ForeachChildRecursive(bool (*func)(SGNode<Object> *, void *), void *data) {
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it) {
+    for (it=children_.begin(); it!=children_.end(); ++it) {
       if (!func(*it, data))
         return false;
       if (!(*it)->ForeachChildRecursive(func, data))
@@ -193,10 +192,10 @@ class SGNotLeaf : public virtual SGNode<Object> {
     }
     return true;
   }
-
+  
   void DeleteIf(bool (*func)(SGNode<Object> *, void *), void *data) {
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end();) {
+    for (it=children_.begin(); it!=children_.end();) {
       if (func(*it, data)) {
         (*it)->SetParent(NULL);
         delete *it;
@@ -206,10 +205,10 @@ class SGNotLeaf : public virtual SGNode<Object> {
       }
     }
   }
-
+  
   void DeleteIfRecursive(bool (*func)(SGNode<Object> *, void *), void *data) {
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end();) {
+    for (it=children_.begin(); it!=children_.end();) {
       if (func(*it, data)) {
         (*it)->SetParent(NULL);
         delete *it;
@@ -220,45 +219,45 @@ class SGNotLeaf : public virtual SGNode<Object> {
       }
     }
   }
-
+  
   void UpdateChildren();
-
+  
   bool HasChild(SGNode<Object> *node) {
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it)
+    for (it=children_.begin(); it!=children_.end(); ++it)
       if (*it == node)
-        return true;
+      	return true;
     return false;
   }
   int NumChildrenRecursive() {
-    int res = 0;
+    int res=0;
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it) {
+    for (it=children_.begin(); it!=children_.end(); ++it) {
       res++;
       res += (*it)->NumChildrenRecursive();
     }
     return res;
   }
-
+  
   int NumChildren() {
     return children_.size();
   }
   bool HasChildren() {
     return !children_.empty();
   }
-
+  
   void DeleteChildren() {
     typename list<SGNode<Object> *>::iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it) {
+    for (it=children_.begin(); it!=children_.end(); ++it) {
       (*it)->SetParent(NULL);
       delete *it;
     }
     children_.clear();
   }
-
+  
   bool RemoveChildStable(SGNode<Object> *node);
   bool AddChildStable(SGNode<Object> *node);
-
+  
   SGNotLeaf() {}
   // This is not a copy constructor! It moves the children of l to this.
   SGNotLeaf(SGNotLeaf &l) : SGNode<Object>(*(SGNode<Object> *)&l) {
@@ -280,7 +279,7 @@ class SGNotRoot : public virtual SGNode<Object> {
   const char *GetName() const {
     return name_;
   }
-
+  
   char *GetPath() {
     assert(parent_);
     char *parent_path = parent_->GetPath();
@@ -289,7 +288,7 @@ class SGNotRoot : public virtual SGNode<Object> {
       len = strlen(parent_path);
     else
       len = 0;
-    char *res = new char[len + strlen(name_) + 2];
+    char *res = new char [len + strlen(name_) + 2];
     if (parent_path)
       strcpy(res, parent_path);
     res[len] = '/';
@@ -297,56 +296,56 @@ class SGNotRoot : public virtual SGNode<Object> {
     delete [] parent_path;
     return res;
   }
-
+  
   bool SetName(const char *name) {
     int i;
-    for (i = 0; i < strlen(name); i++) {
-      if (!((name[i] >= '0'&&name[i] <= '9')||
-           (name[i] >= 'a'&&name[i] <= 'z')||
-           (name[i] >= 'A'&&name[i] <= 'Z')||
-           name[i] == ' ')) {
-        name_ = NULL;
-        return false;
-      }
+    for (i=0; i<strlen(name); i++) {
+    	if (!((name[i]>='0'&&name[i]<='9')||
+    	     (name[i]>='a'&&name[i]<='z')||
+    	     (name[i]>='A'&&name[i]<='Z')||
+    	     name[i]==' ')) {
+    	  name_=NULL;
+    	  return false;
+    	}
     }
     if (parent_)
       if (parent_->GetChild(name) != NULL)
         return false;
     if (name_)
-      delete name_;
+    	delete name_;
     name_ = new char[strlen(name)+1];
     strcpy(name_, name);
     return true;
   }
-
+  
   Mat4 GetMatrix() {
     return current_;
   }
   Mat4 &GetObjectMatrix() {
     return transform_;
   }
-
+  
   void UpdateMatrix() {
     if (parent_) {
       current_ = parent_->GetMatrix() * transform_;
       this->UpdateChildren();
     }
   }
-
+  
   Object *GetObject() {
     return obj_;
   }
   void SetObject(Object *obj) {
     obj_ = obj;
   }
-
+  
   virtual ~SGNotRoot() {
     delete [] name_;
     delete obj_;
     if (parent_)
       parent_->RemoveChildStable(this);
   }
-
+  
   SGNotRoot() {
     name_ = NULL;
     parent_ = NULL;
@@ -364,7 +363,7 @@ class SGNotRoot : public virtual SGNode<Object> {
     current_ = r.current_;
     obj_ = r.obj_;
     r.obj_ = NULL;
-
+    
     if (parent_) {
       parent_->RemoveChildStable(&r);
       parent_->AddChildStable(this);
@@ -373,13 +372,13 @@ class SGNotRoot : public virtual SGNode<Object> {
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
- protected:
+ protected:  
   SGNode<Object> *parent_;
   char *name_;
-
-  Mat4 transform_;  // This holds the transform incurred by this object.
-  Mat4 current_;  // This holds the transform of this object and all parents.
-
+  
+  Mat4 transform_; // This holds the transform incurred by this object.
+  Mat4 current_; // This holds the transform of this object and all parents.
+  
   Object *obj_;
  private:
   bool SetParent(SGNotLeaf<Object> *node) {
@@ -401,23 +400,23 @@ class SGRootNode : public SGNotLeaf<Object> {
     this->RemoveChildStable(node);
     return this;
   }
-
+  
   Mat4 GetMatrix() {
     return view_;
   }
   Mat4 &GetObjectMatrix() {
     return view_;
   }
-
+  
   SGRootNode() {
     view_.setIdentity();
   }
-  ~SGRootNode() {}
+  ~SGRootNode() {};
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
  private:
-  Mat4 view_;  // store the viewing matrix for the scene in the root node
+  Mat4 view_; //store the viewing matrix for the scene in the root node
 };
 
 template<class Object>
@@ -428,11 +427,11 @@ class SGBranchNode : public SGNotLeaf<Object>, public SGNotRoot<Object> {
     return this;
   }
   SGNode<Object> *RemoveChild(SGNode<Object> *node);
-
+  
   SGBranchNode(SGNotLeaf<Object> *l) : SGNotLeaf<Object>(*l) {}
   SGBranchNode(SGNotRoot<Object> *r) : SGNotRoot<Object>(*r) {}
-  SGBranchNode() {}
-  ~SGBranchNode() {}
+  SGBranchNode() {};
+  ~SGBranchNode() {};
 };
 
 template<class Object>
@@ -448,16 +447,16 @@ class SGLeafNode : public SGNotRoot<Object> {
   SGNode<Object> *RemoveChild(SGNode<Object> *) {
     return this;
   }
-
+  
   SGLeafNode() {}
   SGLeafNode(SGNotRoot<Object> *r) : SGNotRoot<Object>(*r) {}
-  ~SGLeafNode() {}
+  ~SGLeafNode() {};
 };
 
 template<class Object>
 SGNode<Object> *SGNotLeaf<Object>::GetChild(const char *name) {
   typename list<SGNode<Object> *>::iterator it;
-  for (it = children_.begin(); it != children_.end(); ++it) {
+  for (it=children_.begin(); it!=children_.end(); ++it) {
     const char *child_name = (*it)->GetName();
     if (child_name)
       if (!strcmp(name, child_name))
@@ -469,7 +468,7 @@ SGNode<Object> *SGNotLeaf<Object>::GetChild(const char *name) {
 template<class Object>
 void SGNotLeaf<Object>::UpdateChildren() {
   typename list<SGNode<Object> *>::iterator it;
-  for (it = children_.begin(); it != children_.end(); ++it)
+  for (it=children_.begin(); it!=children_.end(); ++it)
     (*it)->UpdateMatrix();
 }
 
@@ -486,11 +485,11 @@ bool SGNotLeaf<Object>::AddChildStable(SGNode<Object> *node) {
   // node will not be reallocated so node->GetName()
   // will reveal whether the name has changed.
   const char *name = node->GetName();
-  char *name_new = new char[strlen(name)+1];
+  char *name_new = new char [strlen(name)+1];
   strcpy(name_new, name);
   while (this->GetChild(name_new)) {
     char *prev = name_new;
-    name_new = new char[strlen(prev) + 2];
+    name_new = new char [strlen(prev) + 2];
     strcpy(name_new, prev);
     name_new[strlen(prev) + 1] = '+';
     name_new[strlen(prev) + 2] = '\0';
@@ -498,7 +497,7 @@ bool SGNotLeaf<Object>::AddChildStable(SGNode<Object> *node) {
   }
   node->SetName(name_new);
   delete name_new;
-
+  
   children_.push_back(node);
   if (!node->SetParent(this)) {
     this->RemoveChildStable(node);
@@ -543,6 +542,6 @@ SGNode<Object> *MakeSGNode(Object *obj, const char *name) {
   return leaf;
 }
 
-}  // namespace libmv
+} // namespace libmv
 
 #endif

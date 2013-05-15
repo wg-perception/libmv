@@ -18,13 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/image/image_sequence.h"
-
 #include <string>
 #include <vector>
 #include <cstdio>
 
 #include "libmv/image/image.h"
+#include "libmv/image/image_sequence.h"
 
 namespace libmv {
 

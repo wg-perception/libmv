@@ -26,7 +26,8 @@ namespace detector {
 
 class Detector;
 
-enum eDetector {
+enum eDetector
+{
   FAST_DETECTOR,
   FAST_LIMITED_DETECTOR,
   SURF_DETECTOR,
@@ -40,7 +41,7 @@ enum eDetector {
  */
 Detector *detectorFactory(eDetector edetector = FAST_LIMITED_DETECTOR);
 
-}  // namespace detector
-}  // namespace libmv
+} // namespace detector
+} // namespace libmv
 
-#endif  // LIBMV_DETECTOR_DETECTOR_FACTORY_H
+#endif //LIBMV_DETECTOR_DETECTOR_FACTORY_H

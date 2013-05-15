@@ -40,7 +40,8 @@ void FindCandidateMatches(const FeatureSet &left,
 
   correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
   correspondence::ArrayMatcher<float> * pArrayMatcherB = NULL;
-  switch (eMatchMethod) {
+  switch (eMatchMethod)
+  {
   case eMATCH_KDTREE:
     {
       // Build the arrays matcher in order to compute matches pair.
@@ -65,6 +66,7 @@ void FindCandidateMatches(const FeatureSet &left,
   };
 
   if (pArrayMatcherA != NULL && pArrayMatcherB != NULL) {
+
     // Paste the necessary data in contiguous arrays.
     float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
     float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
@@ -73,13 +75,14 @@ void FindCandidateMatches(const FeatureSet &left,
     libmv::vector<float> distances, distancesReverse;
 
     bool breturn = false;
-    if (pArrayMatcherA->build(arrayA, left.features.size(), descriptorSize) &&
-        pArrayMatcherB->build(arrayB, right.features.size(), descriptorSize)) {
+    if (pArrayMatcherA->build(arrayA,left.features.size(),descriptorSize) &&
+        pArrayMatcherB->build(arrayB,right.features.size(),descriptorSize) )  {
+
       const int NN = 1;
       breturn =
-        pArrayMatcherB->searchNeighbours(arrayA, left.features.size(),
+        pArrayMatcherB->searchNeighbours(arrayA,left.features.size(),
           &indices, &distances, NN) &&
-        pArrayMatcherA->searchNeighbours(arrayB, right.features.size(),
+        pArrayMatcherA->searchNeighbours(arrayB,right.features.size(),
           &indicesReverse, &distancesReverse, NN);
     }
     delete pArrayMatcherA;
@@ -90,7 +93,7 @@ void FindCandidateMatches(const FeatureSet &left,
 
     // From putative matches get symmetric matches.
     if (breturn)  {
-      // TODO(pmoulon) clear previous matches.
+      //TODO(pmoulon) clear previous matches.
       int max_track_number = 0;
       for (size_t i = 0; i < indices.size(); ++i) {
         // Add the match only if we have a symmetric result.
@@ -100,16 +103,19 @@ void FindCandidateMatches(const FeatureSet &left,
           ++max_track_number;
         }
       }
-    } else {
+    }
+    else  {
       LOG(INFO) << "[FindCandidateMatches] Cannot compute symmetric matches.";
     }
-  } else {
+  }
+  else  {
     LOG(INFO) << "[FindCandidateMatches] Unknown input match method.";
   }
 }
 
 float * FeatureSet::FeatureSetDescriptorsToContiguousArray
-  (const FeatureSet & featureSet) {
+  ( const FeatureSet & featureSet ) {
+
   if (featureSet.features.size() == 0)  {
     return NULL;
   }
@@ -117,7 +123,7 @@ float * FeatureSet::FeatureSetDescriptorsToContiguousArray
   // Allocate and paste the necessary data.
   float * array = new float[featureSet.features.size()*descriptorSize];
 
-  // Paste data in the contiguous array:
+  //-- Paste data in the contiguous array :
   for (int i = 0; i < (int)featureSet.features.size(); ++i) {
     for (int j = 0;j < descriptorSize; ++j)
       array[descriptorSize*i + j] = (float)featureSet.features[i][j];
@@ -131,6 +137,7 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
                           Matches *matches,
                           eLibmvMatchMethod eMatchMethod,
                           float fRatio) {
+
   if (left.features.size() == 0 ||
       right.features.size() == 0 )  {
     return;
@@ -138,7 +145,8 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
   int descriptorSize = left.features[0].descriptor.coords.size();
 
   correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-  switch (eMatchMethod) {
+  switch (eMatchMethod)
+  {
   case eMATCH_KDTREE:
     {
       // Build the arrays matcher in order to compute matches pair.
@@ -162,6 +170,7 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
 
   const int NN = 2;
   if (pArrayMatcherA != NULL) {
+
     // Paste the necessary data in contiguous arrays.
     float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
     float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
@@ -170,9 +179,9 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
     libmv::vector<float> distances;
 
     bool breturn = false;
-    if (pArrayMatcherA->build(arrayB, right.features.size(), descriptorSize)) {
+    if (pArrayMatcherA->build(arrayB,right.features.size(),descriptorSize))  {
       breturn =
-        pArrayMatcherA->searchNeighbours(arrayA, left.features.size(),
+        pArrayMatcherA->searchNeighbours(arrayA,left.features.size(),
           &indices, &distances, NN);
     }
     delete pArrayMatcherA;
@@ -181,7 +190,7 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
 
     // From putative matches get matches that fit the "Ratio" heuristic.
     if (breturn)  {
-      // TODO(pmoulon) clear previous matches.
+      //TODO(pmoulon) clear previous matches.
       int max_track_number = 0;
 
       for (size_t i = 0; i < left.features.size(); ++i) {
@@ -195,10 +204,12 @@ void FindCandidateMatches_Ratio(const FeatureSet &left,
           ++max_track_number;
         }
       }
-    } else {
+    }
+    else  {
       LOG(INFO) << "[FindCandidateMatches_Ratio] Cannot compute matches.";
     }
-  } else {
+  }
+  else  {
     LOG(INFO) << "[FindCandidateMatches_Ratio] Unknow input match method.";
   }
 }
@@ -217,7 +228,8 @@ void FindCorrespondences(const FeatureSet &left,
   int descriptorSize = left.features[0].descriptor.coords.size();
 
   correspondence::ArrayMatcher<float> * pArrayMatcherA = NULL;
-  switch (eMatchMethod) {
+  switch (eMatchMethod)
+  {
   case eMATCH_KDTREE:
     {
       // Build the arrays matcher in order to compute matches pair.
@@ -241,6 +253,7 @@ void FindCorrespondences(const FeatureSet &left,
 
   const int NN = 2;
   if (pArrayMatcherA != NULL) {
+
     // Paste the necessary data in contiguous arrays.
     float * arrayA = FeatureSet::FeatureSetDescriptorsToContiguousArray(left);
     float * arrayB = FeatureSet::FeatureSetDescriptorsToContiguousArray(right);
@@ -249,9 +262,9 @@ void FindCorrespondences(const FeatureSet &left,
     libmv::vector<float> distances;
 
     bool breturn = false;
-    if (pArrayMatcherA->build(arrayB, right.features.size(), descriptorSize)) {
+    if (pArrayMatcherA->build(arrayB,right.features.size(),descriptorSize))  {
       breturn =
-        pArrayMatcherA->searchNeighbours(arrayA, left.features.size(),
+        pArrayMatcherA->searchNeighbours(arrayA,left.features.size(),
           &indices, &distances, NN);
     }
     delete pArrayMatcherA;
@@ -269,10 +282,12 @@ void FindCorrespondences(const FeatureSet &left,
           (*correspondences)[i] = indices[i*NN];
         }
       }
-    } else {
+    }
+    else  {
       LOG(INFO) << "[FindCandidateMatches_Ratio] Cannot compute matches.";
     }
-  } else {
+  }
+  else  {
     LOG(INFO) << "[FindCandidateMatches_Ratio] Unknow input match method.";
   }
 }

@@ -29,8 +29,9 @@ namespace correspondence  {
 
 /// Implement ArrayMatcher as the native KDtree libmv matcher.
 template < typename Scalar >
-class ArrayMatcher_Kdtree : public ArrayMatcher<Scalar> {
- public:
+class ArrayMatcher_Kdtree : public ArrayMatcher<Scalar>
+{
+  public:
   ArrayMatcher_Kdtree() {}
 
   ~ArrayMatcher_Kdtree() {}
@@ -45,12 +46,13 @@ class ArrayMatcher_Kdtree : public ArrayMatcher<Scalar> {
    *
    * \return True if success.
    */
-  bool build(const Scalar * dataset, int nbRows, int dimension) {
+  bool build( const Scalar * dataset, int nbRows, int dimension)  {
+
     _tree.SetDimensions(dimension);
     const Scalar * ptrDataset = dataset;
-    for (int i = 0; i < nbRows; ++i)  {
-      _tree.AddPoint(ptrDataset, i);
-      ptrDataset += dimension;
+    for (int i=0; i < nbRows; ++i)  {
+      _tree.AddPoint( ptrDataset,i);
+      ptrDataset+=dimension;
     }
     _tree.Build(10);
     return true;
@@ -66,13 +68,11 @@ class ArrayMatcher_Kdtree : public ArrayMatcher<Scalar> {
    *
    * \return True if success.
    */
-  bool searchNeighbour(const Scalar * query, int * indice, Scalar * distance) {
+  bool searchNeighbour( const Scalar * query, int * indice, Scalar * distance)
+  {
     Scalar distanceToQuery;
     int nni;
-    _tree.ApproximateNearestNeighborBestBinFirst(query,
-                                                 1000,
-                                                 &nni,
-                                                 &distanceToQuery);
+    _tree.ApproximateNearestNeighborBestBinFirst(query, 1000, &nni, &distanceToQuery);
     *indice = nni;
     *distance = distanceToQuery;
     return true;
@@ -90,33 +90,33 @@ class ArrayMatcher_Kdtree : public ArrayMatcher<Scalar> {
    *
    * \return True if success.
    */
-  bool searchNeighbours(const Scalar * query, int nbQuery,
-    vector<int> * indice, vector<Scalar> * distance, int NN) {
-    if (NN == 1) {
-      const Scalar * ptrQuery = query;
-      for (int i = 0; i < nbQuery; ++i) {
+  bool searchNeighbours( const Scalar * query, int nbQuery,
+    vector<int> * indice, vector<Scalar> * distance, int NN)
+  {
+    if (NN==1)  {
+      const Scalar * ptrQuery =  query;
+      for (int i=0; i < nbQuery; ++i) {
         Scalar distanceToQuery;
         int nni;
-        _tree.ApproximateNearestNeighborBestBinFirst(ptrQuery,
-                                                     1000,
-                                                     &nni,
-                                                     &distanceToQuery);
+        _tree.ApproximateNearestNeighborBestBinFirst(ptrQuery, 1000, &nni, &distanceToQuery);
         distance->push_back(distanceToQuery);
         indice->push_back(nni);
         ptrQuery+=_tree.NumDimension();
       }
       return true;
-    } else {
-      // -- Not yet implemented
+    }
+    else  {
+      //-- Not yet implemented
       return false;
     }
   }
 
   private :
   KdTree<Scalar> _tree;
+
 };
 
-}  // namespace correspondence
-}  // namespace libmv
+} // namespace correspondence
+} // namespace libmv
 
-#endif  // LIBMV_CORRESPONDENCE_ARRAYMATCHER_KDTREE_H_
+#endif // LIBMV_CORRESPONDENCE_ARRAYMATCHER_KDTREE_H_
