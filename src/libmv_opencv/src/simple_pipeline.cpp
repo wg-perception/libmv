@@ -88,7 +88,7 @@ libmv_solveReconstruction( const libmv::Tracks &tracks,
 
     if (refine_intrinsics)
     {
-        libmv::EuclideanBundleCommonIntrinsics( tracks, refine_intrinsics, reconstruction, intrinsics );
+        libmv::EuclideanBundleCommonIntrinsics( tracks, refine_intrinsics,libmv::BUNDLE_NO_CONSTRAINTS, reconstruction, intrinsics);
     }
 
     libmv_reconstruction.tracks = tracks;
