@@ -35,14 +35,24 @@ using namespace libmv;
 /// Define the description of a feature described by :
 /// A PointFeature (x,y,scale,orientation),
 /// And a descriptor (a vector of floats).
-struct KeypointFeature : public ::PointFeature {
-  cv::Mat descriptor;
+class KeypointFeature : public ::PointFeature {
+  public:
+  virtual ~KeypointFeature(){};
+
+  void set(const PointFeature &feature,const cv::Mat &descriptor)
+  {
+    PointFeature::operator=(feature);
+    descriptor.copyTo(this->descriptor);
+  }
+
   // Match kdtree traits: with this, the Feature can act as a kdtree point.
   float operator[](int i) const {
     if (descriptor.depth() != CV_32F)
       std::cerr << "KeypointFeature does not contain floats" << std::endl;
     return descriptor.at<float>(i);
   }
+
+  cv::Mat descriptor;
 };
 
 /// FeatureSet : Store an array of KeypointFeature ( Keypoint and descriptor).
