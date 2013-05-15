@@ -39,10 +39,11 @@ bool Tracker::Track(const cv::Mat &image1,
 
   features1.resize(features1_cv.size());
   features2.resize(features2_cv.size());
-  for(size_t i=0; i<features1.size(); ++i) {
+  for(size_t i=0; i<features1.size(); ++i)
     features1[i] = new PointFeature(features1_cv[i]);
+
+  for(size_t i=0; i<features2.size(); ++i)
     features2[i] = new PointFeature(features2_cv[i]);
-  }
 
   // we compute the feature descriptors on every feature
   cv::Mat descriptors1_cv, descriptors2_cv;
