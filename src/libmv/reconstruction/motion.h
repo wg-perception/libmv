@@ -2,6 +2,7 @@
 #ifndef LIBMV_RECONSTRUCTION_MOTION_H_
 #define LIBMV_RECONSTRUCTION_MOTION_H_
 
+#include <opencv2/core/core.hpp>
 #include "libmv/correspondence/matches.h"
 #include "libmv/numeric/numeric.h"
 

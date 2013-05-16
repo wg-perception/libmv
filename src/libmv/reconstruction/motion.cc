@@ -12,7 +12,8 @@
 #include <algorithm>
 #include <string>
 #include <stdexcept>
-//#include <vector>
+
+#include <opencv2/core/eigen.hpp>
 
 using namespace libmv;
 
@@ -20,13 +21,10 @@ using namespace libmv;
 cv::Matx33d
 MatToMatx(const Mat3 & mat3)
 {
-  cv::Matx33d matx;
-  for (char j = 0; j < 3; ++j)
-    for (char i = 0; i < 3; ++i)
-      matx(j, i) = mat3(j, i);
-  return matx;
+    cv::Matx33d mat;
+    eigen2cv(mat3,mat);
+    return mat;
 }
-
 
 void libmv::EuclideanMatricesFromVideo(const Matches &matches,
         vector<cv::Matx33d> *Es,
@@ -48,7 +46,7 @@ void libmv::EuclideanMatricesFromVideo(const Matches &matches,
                     &E, NULL, 
                     outliers_prob);
             Es->push_back(MatToMatx(E));
-            VLOG(2) << "E = " << std::endl << cv::Mat(MatToMatx(E)) << std::endl;
+            VLOG(2) << "E = " << std::endl << E << std::endl;
         } // TODO(julien) what to do when no enough points?
         ++prev_image_iter;
     }
@@ -74,7 +72,7 @@ void libmv::SimilarityMatricesFromVideo(const Matches &matches,
                     &S, NULL, 
                     outliers_prob);
             Ss->push_back(MatToMatx(S));
-            VLOG(2) << "S = " << std::endl << cv::Mat(MatToMatx(S)) << std::endl;
+            VLOG(2) << "S = " << std::endl << S << std::endl;
         } // TODO(julien) what to do when no enough points?
         ++prev_image_iter;
     }
@@ -100,7 +98,7 @@ void libmv::AffineMatricesFromVideo(const Matches &matches,
                     &A, NULL, 
                     outliers_prob);
             As->push_back(MatToMatx(A));
-            VLOG(2) << "A = " << std::endl << cv::Mat(MatToMatx(A)) << std::endl;
+            VLOG(2) << "A = " << std::endl << A << std::endl;
         } // TODO(julien) what to do when no enough points?
         ++prev_image_iter;
     }
@@ -126,7 +124,7 @@ void libmv::HomographyMatricesFromVideo(const Matches &matches,
                     &H, NULL, 
                     outliers_prob);
             Hs->push_back(MatToMatx(H));
-            VLOG(2) << "H = " << std::endl << cv::Mat(MatToMatx(H)) << std::endl;
+            VLOG(2) << "H = " << std::endl << H << std::endl;
         } // TODO(julien) what to do when no enough points?
         ++prev_image_iter;
     }
