@@ -71,9 +71,20 @@ namespace libmv {
             double max_error_2d = 1);
 
     /**
-     * Computes the camera motion relative to the first image
+     * Computes the camera motion relative to the first image.
      *
      * \param matches The 2D features matches
+     * \param image1 The image ID of the first image
+     * \param image2 The image ID of the second image
+     * \param K1 The camera parameter of the first image
+     * \param K2 The camera parameter of the second image
+     * \param epipolar_threshold The maximal epipolar error in pixel.
+     * \param outliers_probability The maximal outlier probability.
+     *
+     * \note
+     * example parameter values:
+     *          epipolar_threshold = 1
+     *          outliers_probability = 1e-3
      */
     bool CameraMotionTwoViews(const libmv::Matches &matches,
             Matches::ImageID image1,
