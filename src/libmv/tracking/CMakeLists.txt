@@ -15,7 +15,7 @@ FILE(GLOB TRACKING_HDRS *.h)
 
 ADD_LIBRARY(tracking ${TRACKING_SRC} ${TRACKING_HDRS})
 
-TARGET_LINK_LIBRARIES(tracking image glog multiview)
+TARGET_LINK_LIBRARIES(tracking image glog multiview ceres)
 
 # Make the name of debug libraries end in _d.
 SET_TARGET_PROPERTIES(tracking PROPERTIES DEBUG_POSTFIX "_d")
