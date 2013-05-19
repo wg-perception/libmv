@@ -225,6 +225,7 @@ IF (${BUILD_TESTING} AND ${GFLAGS})
               test_util.cc)
 
   TARGET_LINK_LIBRARIES(gmock_gtest ${GFLAGS_LIB} ${GLOG_LIB})
+  TARGET_LINK_LIBRARIES(test_util ${GFLAGS_LIB} ${GLOG_LIB} ceres gmock_gtest)
 
   MACRO (CERES_TEST NAME)
     get_filename_component(CERES_TESTS_DATA
