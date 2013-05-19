@@ -38,22 +38,22 @@ PROJECT(CERES C CXX)
 
 # Set up the git hook to make Gerrit Change-Id: lines in commit messages.
 SET (LOCAL_GIT_DIRECTORY)
-IF (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+IF (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   # .git directory can be found on Unix based system, or on Windows with
   # Git Bash (shipped with msysgit)
-  SET (LOCAL_GIT_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
-ELSE (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+  SET (LOCAL_GIT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+ELSE (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   # TODO(keir) Add proper Windows support
-ENDIF (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+ENDIF (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 IF (EXISTS ${LOCAL_GIT_DIRECTORY})
   IF (NOT EXISTS ${LOCAL_GIT_DIRECTORY}/hooks/commit-msg)
     # Download the hook only if it is not already present
     FILE(DOWNLOAD https://ceres-solver-review.googlesource.com/tools/hooks/commit-msg
-         ${CMAKE_BINARY_DIR}/commit-msg)
+         ${CMAKE_CURRENT_BINARY_DIR}/commit-msg)
 
     # Make the downloaded file executable, since it is not by default.
-    FILE(COPY ${CMAKE_BINARY_DIR}/commit-msg
+    FILE(COPY ${CMAKE_CURRENT_BINARY_DIR}/commit-msg
          DESTINATION ${LOCAL_GIT_DIRECTORY}/hooks/
          FILE_PERMISSIONS
            OWNER_READ OWNER_WRITE OWNER_EXECUTE
@@ -547,10 +547,10 @@ INCLUDE_DIRECTORIES(
   ${EIGEN_INCLUDE}
   )
 
-FILE(GLOB CERES_HDRS ${CMAKE_SOURCE_DIR}/include/ceres/*.h)
+FILE(GLOB CERES_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/ceres/*.h)
 INSTALL(FILES ${CERES_HDRS} DESTINATION include/ceres)
 
-FILE(GLOB CERES_PUBLIC_INTERNAL_HDRS ${CMAKE_SOURCE_DIR}/include/ceres/internal/*.h)
+FILE(GLOB CERES_PUBLIC_INTERNAL_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/include/ceres/internal/*.h)
 INSTALL(FILES ${CERES_PUBLIC_INTERNAL_HDRS} DESTINATION include/ceres/internal)
 
 IF (${SUITESPARSE})
@@ -678,7 +678,7 @@ IF (${BUILD_DOCUMENTATION})
   MESSAGE("-- Documentation building is enabled")
 
   # Make CMake aware of the cmake folder, in order to find 'FindSphinx.cmake'
-  SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+  SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
   # Generate the User's Guide (html).
   # The corresponding target is UserGuide, but is included in ALL.
@@ -694,14 +694,14 @@ ELSE (${BUILD_EXAMPLES})
   MESSAGE("-- Do not build any example.")
 ENDIF (${BUILD_EXAMPLES})
 
-IF (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
+IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   # Add an uninstall target to remove all installed files.
-  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake.in"
-                 "${CMAKE_BINARY_DIR}/cmake/uninstall.cmake"
+  CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/uninstall.cmake.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/cmake/uninstall.cmake"
                  IMMEDIATE @ONLY)
 
   ADD_CUSTOM_TARGET(uninstall
-                    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/cmake/uninstall.cmake)
+                    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/uninstall.cmake)
 
   # Set up install directories. INCLUDE_INSTALL_DIR and LIB_INSTALL_DIR
   # must not be absolute paths.
@@ -731,19 +731,19 @@ IF (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
   # Create a CeresConfig.cmake file. <name>Config.cmake files are searched by
   # FIND_PACKAGE() automatically. We configure that file so that we can put any
   # information we want in it, e.g. version numbers, include directories, etc.
-  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/cmake/CeresConfig.cmake.in"
+  CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CeresConfig.cmake.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/CeresConfig.cmake" @ONLY)
 
   # Additionally, when CMake has found a CeresConfig.cmake, it can check for a
   # CeresConfigVersion.cmake in the same directory when figuring out the version
   # of the package when a version has been specified in the FIND_PACKAGE() call,
   # e.g. FIND_PACKAGE(Ceres [1.4.2] REQUIRED). The version argument is optional.
-  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/cmake/CeresConfigVersion.cmake.in"
+  CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CeresConfigVersion.cmake.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/CeresConfigVersion.cmake" @ONLY)
 
   # Install these two files into the same directory as the generated exports-file.
   INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/CeresConfig.cmake"
                 "${CMAKE_CURRENT_BINARY_DIR}/CeresConfigVersion.cmake"
-                "${CMAKE_SOURCE_DIR}/cmake/depend.cmake"
+                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/depend.cmake"
           DESTINATION ${CMAKECONFIG_INSTALL_DIR})
-ENDIF(EXISTS "${CMAKE_SOURCE_DIR}/cmake")
+ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
