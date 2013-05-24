@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <opencv2/features2d/features2d.hpp>
 
 #include "libmv/base/vector.h"
 // TODO(julien) use the bipartite_graph_new.h now
@@ -78,6 +79,11 @@ class Matches {
   Features<T> InTrack(TrackID track) const {
     return Features<T>(graph_.ToRight(track));
   }
+
+  void PointFeatures2KeyPoints(Features<PointFeature> features,std::vector<cv::KeyPoint> &keypoints)const;
+  void KeyPoints(ImageID image,std::vector<cv::KeyPoint> &keypoints)const;
+  void MatchesTwo(ImageID image1,ImageID image2,std::vector<cv::DMatch> &matches)const;
+  void DrawMatches(ImageID image_id1,const cv::Mat &image1,ImageID image_id2,const cv::Mat &image2, cv::Mat &out)const;
 
   // Does not take ownership of feature.
   void Insert(ImageID image, TrackID track, const Feature *feature) {
@@ -198,6 +204,7 @@ class Matches {
   int NumFeatureTrack(TrackID track_id) const {
     return graph_.NumLeftRight(track_id);
   }
+
     
   size_t NumTracks() const { return tracks_.size(); }
   size_t NumImages() const { return images_.size(); }
