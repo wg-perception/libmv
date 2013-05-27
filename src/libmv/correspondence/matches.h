@@ -189,7 +189,9 @@ class Matches {
     }
     return max_tracks;
   }
-  
+
+  int GetNumberOfMatches(ImageID id1,ImageID id2) const;
+
   const std::set<ImageID> &get_images() const {
     return images_;
   }

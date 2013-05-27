@@ -36,6 +36,26 @@ void DeleteMatchFeatures(Matches *matches) {
   */
 }
 
+int Matches::GetNumberOfMatches(ImageID id1,ImageID id2) const
+{
+    Features<Feature> features1 = InImage<Feature>(id1);
+    Features<Feature> features2 = InImage<Feature>(id2);
+    int count = 0;
+    for(int i1=0;features1;++features1,++i1)
+    {
+        Features<Feature> temp = features2;
+        for(int i2=0;temp;++temp,++i2)
+        {
+            if(features1.track() == temp.track())
+            {
+                ++count;
+                break;
+            }
+        }
+    }
+    return count;
+}
+
 void Matches::DrawMatches(ImageID image_id1,const cv::Mat &image1,ImageID image_id2,const cv::Mat &image2, cv::Mat &out)const
 {
     std::vector<cv::KeyPoint> points1;
