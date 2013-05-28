@@ -30,13 +30,14 @@ bool Tracker::Track(const cv::Mat &image1,
                     FeaturesGraph *new_features_graph,
                     bool keep_single_feature) {
   // we detect good features to track
-  vector<PointFeature *> features1;
   std::vector<cv::KeyPoint> features1_cv, features2_cv;
   detector_->detect(image1, features1_cv);
-        
-  vector<PointFeature *> features2;
   detector_->detect(image2, features2_cv);
+  if(features1_cv.size() < 4 || features2_cv.size() < 4)
+      return false;
 
+  vector<PointFeature *> features1;
+  vector<PointFeature *> features2;
   features1.resize(features1_cv.size());
   features2.resize(features2_cv.size());
   for(size_t i=0; i<features1.size(); ++i)
