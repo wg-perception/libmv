@@ -84,7 +84,7 @@ namespace cv
         if ( has_outliers )
         {
           double max_error = 0.1;
-          vector<int> inliers;
+          std::vector<int> inliers;
           fundamentalFromCorrespondences8PointRobust(pts2d[0], pts2d[1], max_error, F, inliers);
         }
         else
