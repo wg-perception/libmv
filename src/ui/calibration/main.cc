@@ -20,6 +20,7 @@
 
 #include "main.h"
 
+#include "opencv2/core/types_c.h" // CV_TERMCRIT_EPS
 #include "opencv2/imgproc/imgproc.hpp" //cvFindCornerSubPix
 #include "opencv2/calib3d/calib3d.hpp" //cvFindChessboardCorners
 
