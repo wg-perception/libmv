@@ -26,7 +26,6 @@ TARGET_LINK_LIBRARIES(nview
                       fast
                       multiview
                       reconstruction
-                            ${OpenCV_INCLUDE_DIRS}
 )
 
 LIBMV_INSTALL_EXE(nview)
