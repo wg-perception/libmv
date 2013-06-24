@@ -20,8 +20,10 @@
 
 #include "main.h"
 
-#include "opencv2/imgproc/imgproc.hpp" //cvFindCornerSubPix
-#include "opencv2/calib3d/calib3d.hpp" //cvFindChessboardCorners
+#include <opencv2/core/core.hpp> //cvFindCornerSubPix
+#include <opencv2/imgproc/imgproc.hpp> //cvFindCornerSubPix
+#include <opencv2/calib3d/calib3d.hpp> //cvFindChessboardCorners
+//#include <opencv2/calib3d/calib3d_c.h> //cvFindChessboardCorners
 
 #include <QApplication>
 #include <QFileDialog>
@@ -386,7 +388,7 @@ void MainWindow::process() {
   if (found)
   {
     cv::cornerSubPix(cv_image, corners, cv::Size(11, 11), cv::Size(-1, -1),
-                       cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+                       cv::TermCriteria(cv::TermCriteria::EPS, 30, 0.1));
     for (int i = 0; i < board.width * board.height; i++)
       image.distorted_corners << QPointF(corners.at<cv::Point2f>(i).x, corners.at<cv::Point2f>(i).y);
   }

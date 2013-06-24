@@ -49,7 +49,7 @@ TEST(Sfm_projection, homogeneousToEuclidean)
     Matx23f XEuclidean;
     homogeneousToEuclidean(X,XEuclidean);
 
-    EXPECT_EQ( X.rows-1, XEuclidean.rows );
+    EXPECT_EQ((int) X.rows-1,(int) XEuclidean.rows );
 
     for(int y=0;y<X.rows-1;++y)
         for(int x=0;x<X.cols;++x)
@@ -67,9 +67,9 @@ TEST(Sfm_projection, euclideanToHomogeneous)
     Matx43f XHomogeneous;
     euclideanToHomogeneous(x,XHomogeneous);
 
-    EXPECT_EQ( x.rows+1, XHomogeneous.rows );
+    EXPECT_EQ((int) x.rows+1,(int)XHomogeneous.rows );
     for(int i=0;i<x.cols;++i)
-        EXPECT_EQ( 1, XHomogeneous(x.rows,i) );
+        EXPECT_EQ( 1,(int) XHomogeneous(x.rows,i) );
 
     
     // Testing with doubles
@@ -78,7 +78,7 @@ TEST(Sfm_projection, euclideanToHomogeneous)
 
     euclideanToHomogeneous(x2,X2);
 
-    EXPECT_EQ( x2.rows+1, X2.rows );
+    EXPECT_EQ((int) x2.rows+1,(int)X2.rows );
     EXPECT_EQ( 4, X2(0) );
     EXPECT_EQ( 3, X2(1) );
     EXPECT_EQ( 1, X2(2) );

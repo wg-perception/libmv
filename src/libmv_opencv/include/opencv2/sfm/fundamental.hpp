@@ -101,8 +101,8 @@ motionFromEssential(const Matx33d &E, std::vector<Matx33d> &Rs, std::vector<Vec3
  * \return index of the right solution or -1 if no solution.
  */
 CV_EXPORTS
-int motionFromEssentialChooseSolution( const vector<Matx33d> &Rs,
-                                       const vector<Vec3d> &ts,
+int motionFromEssentialChooseSolution( const std::vector<Matx33d> &Rs,
+                                       const std::vector<Vec3d> &ts,
                                        const Matx33d &K1,
                                        const Vec2d &x1,
                                        const Matx33d &K2,

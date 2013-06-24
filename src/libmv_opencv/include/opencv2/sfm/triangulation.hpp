@@ -76,7 +76,7 @@ triangulateDLT( const Vec2d &xl, const Vec2d &xr,
 CV_EXPORTS
 void
 nViewTriangulate( const Mat_<double> &x,
-                  const vector<Matx34d> &Ps,
+                  const std::vector<Matx34d> &Ps,
                   Vec3d &points3d );
 
 

@@ -53,7 +53,7 @@ fundamentalFromCorrespondences8PointRobust( const Mat_<double> &x1,
                                             const Mat_<double> &x2,
                                             double max_error,
                                             Matx33d &F,
-                                            vector<int> &inliers,
+                                            std::vector<int> &inliers,
                                             double outliers_probability = 1e-2 );
 
 } /* namespace cv */

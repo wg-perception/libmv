@@ -28,8 +28,8 @@ namespace cvtest
   EXPECT_MATRIX_NEAR(const T a, const T b, double tolerance)
   {
     bool dims_match = (a.rows == b.rows) && (a.cols == b.cols);
-    EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
-    EXPECT_EQ(a.cols, b.cols) << "Matrix cols don't match.";
+    EXPECT_EQ((int)a.rows, (int)b.rows);
+    EXPECT_EQ((int)a.cols, (int)b.cols);
 
     if (dims_match)
     {
@@ -48,7 +48,7 @@ namespace cvtest
   EXPECT_VECTOR_NEAR(const T a, const T b, double tolerance)
   {
     bool dims_match = (a.rows == b.rows);
-    EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
+    EXPECT_EQ((int)a.rows,(int)b.rows) << "Matrix rows don't match.";
 
     if (dims_match)
     {
@@ -73,8 +73,8 @@ namespace cvtest
   EXPECT_MATRIX_PROP(const T a, const T b, double tolerance)
   {
     bool dims_match = (a.rows == b.rows) && (a.cols == b.cols);
-    EXPECT_EQ(a.rows, b.rows) << "Matrix rows don't match.";
-    EXPECT_EQ(a.cols, b.cols) << "Matrix cols don't match.";
+    EXPECT_EQ((int)a.rows, (int)b.rows);
+    EXPECT_EQ((int)a.cols, (int)b.cols);
 
     if (dims_match)
     {
