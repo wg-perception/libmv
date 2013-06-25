@@ -20,7 +20,7 @@ This is a collaborative effort to port libmv to OpenCV. [libmv](http://code.goog
 To compile CMake is used: http://www.cmake.org
 
 Prerequisite
-- OpenCV 2.4.2: http://opencv.org
+- OpenCV 2.4.9: http://opencv.org
 - Qt4 (optional): http://qt.nokia.com
 - Sphinx (optional): http://sphinx.pocoo.org
 
