@@ -6,6 +6,7 @@
 #define __OPENCV_TEST_PRECOMP_HPP__
 
 #include <opencv2/sfm/sfm.hpp>
+#include <opencv2/core/core_c.h>
 #include <opencv2/ts/ts.hpp>
 #include <opencv2/core/core.hpp>
 #include <iostream>
@@ -133,7 +134,7 @@ namespace cvtest
    *
    */
   void
-  parser_2D_tracks(const string &filename, libmv::Tracks &tracks);
+  parser_2D_tracks(const std::string &filename, libmv::Tracks &tracks);
 
 } // namespace cvtest
 
