@@ -6,6 +6,6 @@ includedir=${prefix}/include/libmv
 Name: libmv
 Description: libmv
 Version: @PROJECT_VERSION@
-Libs: -L${libdir} -lbase -lcamera -lcorrespondence -limage -lmultiview -lnumeric -lreconstruction
+Libs: -L${libdir} -lbase -lcamera -lcorrespondence -limage -lmultiview -lnumeric -lreconstruction -lopencv_sfm
 Requires: eigen3 opencv
 Cflags: -I${includedir}
