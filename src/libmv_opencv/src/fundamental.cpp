@@ -40,6 +40,7 @@
 
 #include "libmv/multiview/robust_fundamental.h"
 #include "libmv/multiview/fundamental.h"
+#include <opencv2/sfm/eigen.hpp>
 #include <opencv2/core/eigen.hpp>
 
 using namespace std;

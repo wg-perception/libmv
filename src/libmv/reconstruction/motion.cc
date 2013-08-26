@@ -13,8 +13,6 @@
 #include <string>
 #include <stdexcept>
 
-#include <opencv2/core/eigen.hpp>
-
 using namespace libmv;
 
 //TODO do a propper integration
@@ -22,7 +20,17 @@ cv::Matx33d
 MatToMatx(const Mat3 & mat3)
 {
     cv::Matx33d mat;
-    eigen2cv(mat3,mat);
+    //eigen2cv(mat3,mat);
+
+    if( !(mat3.Flags & Eigen::RowMajorBit) )
+    {
+        mat = cv::Matx33d(static_cast<const double*>(mat3.data())).t();
+    }
+    else
+    {
+        mat = cv::Matx33d(static_cast<const double*>(mat3.data()));
+    }
+
     return mat;
 }
 

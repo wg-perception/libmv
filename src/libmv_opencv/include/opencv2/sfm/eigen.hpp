@@ -1,7 +1,7 @@
 /*
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2009, Willow Garage, Inc.
+ *  Copyright (c) 2013, OpenCV Foundation
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,44 +33,37 @@
  *
  */
 
-#include "opencv2/sfm/eigen.hpp"
-#include "opencv2/sfm/robust.hpp"
-#include "opencv2/sfm/numeric.hpp"
+#ifndef __OPENCV_SFM_EIGEN_HPP__
+#define __OPENCV_SFM_EIGEN_HPP__
 
-#include "libmv/multiview/robust_fundamental.h"
-#include <opencv2/core/eigen.hpp>
+#ifdef __cplusplus
 
-using namespace std;
+#include <opencv2/core/core.hpp>
+
+#include <Eigen/Core>
 
 namespace cv
 {
-
-void
-fundamentalFromCorrespondences8PointRobust( const Mat_<double> &_x1,
-                                            const Mat_<double> &_x2,
-                                            double max_error,
-                                            Matx33d &_F,
-                                            vector<int> &_inliers,
-                                            double outliers_probability )
+#if CV_VERSION_EPOCH == 2
+template<typename _Tp, int _rows, int _cols, int _options, int _maxRows, int _maxCols> static inline
+void eigen2cv( const Eigen::Matrix<_Tp, _rows, _cols, _options, _maxRows, _maxCols>& src,
+               Matx<_Tp, _rows, _cols>& dst )
 {
-    libmv::Mat x1, x2;
-    libmv::Mat3 F;
-    libmv::vector<int> inliers;
-
-    cv2eigen( _x1, x1 );
-    cv2eigen( _x2, x2 );
-
-    libmv::FundamentalFromCorrespondences8PointRobust( x1, x2, max_error, &F, &inliers, outliers_probability );
-
-    eigen2cv( F, _F );
-
-    // transform from libmv::vector to std::vector
-    int n = inliers.size();
-    _inliers.resize(n);
-    for( int i=0; i < n; ++i )
+    if( !(src.Flags & Eigen::RowMajorBit) )
     {
-        _inliers[i] = inliers.at(i);
+        dst = Matx<_Tp, _cols, _rows>(static_cast<const _Tp*>(src.data())).t();
+    }
+    else
+    {
+        dst = Matx<_Tp, _rows, _cols>(static_cast<const _Tp*>(src.data()));
     }
 }
+#endif
 
 } /* namespace cv */
+
+#endif /* __cplusplus */
+
+#endif
+
+/* End of file. */
