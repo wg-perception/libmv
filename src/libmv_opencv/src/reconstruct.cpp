@@ -38,6 +38,7 @@
 
 // Open CV
 #include <opencv2/sfm/sfm.hpp>
+#include <opencv2/sfm/projection.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
@@ -123,5 +124,28 @@ namespace cv
     }
 
   }
+
+    void
+    reconstruct(InputArrayOfArrays points2d, OutputArrayOfArrays Rs, OutputArrayOfArrays Ts, OutputArray K,
+                OutputArray points3d, bool is_projective, bool has_outliers, bool is_sequence)
+    {
+        vector < Mat > Ps_estimated;
+        reconstruct(points2d, Ps_estimated, points3d, is_projective, has_outliers, is_sequence);
+
+        int nviews = points2d.total();
+        int depth = Ps_estimated[0].depth();
+        Rs.create(nviews, 1, depth);
+        Ts.create(nviews, 1, depth);
+        Matx33d Ka;
+        Matx33d R;
+        Vec3d t;
+        for(unsigned int i = 0; i < nviews; ++i)
+        {
+            KRt_From_P(Ps_estimated[i], Ka, R, t);
+            Mat(R).copyTo(Rs.getMatRef(i));
+            Mat(t).copyTo(Ts.getMatRef(i));
+        }
+        Mat(Ka).copyTo(K.getMatRef());
+    }
 
 } // namespace cv
