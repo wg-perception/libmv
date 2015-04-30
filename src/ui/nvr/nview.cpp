@@ -7,7 +7,9 @@
 #include <QLabel>
 
 #include <opencv2/highgui/highgui.hpp>
+#ifdef CV_VERSION_EPOCH
 #include <opencv2/nonfree/nonfree.hpp>
+#endif
 
 #include "libmv/correspondence/export_matches_txt.h"
 #include "libmv/correspondence/import_matches_txt.h"
@@ -238,6 +240,27 @@ void MainWindow::WarningNotFunctional() {
 
 bool MainWindow::SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> &pDetector,
                                          cv::Ptr<cv::DescriptorExtractor> &pDescriber) {
+#ifndef CV_VERSION_EPOCH
+  QStringList detector_list;
+  detector_list << tr("AKAZE") << tr("BRISK")
+                << tr("KAZE")  << tr("ORB");
+
+  bool ok;
+  QString item = QInputDialog::getItem(this, tr("Choose a detector..."),
+                                        tr("Detector:"), 
+                                        detector_list, 0, false, &ok);
+  if (ok && !item.isEmpty()) {
+    if (item.toStdString() == "AKAZE") {
+      pDetector = pDescriber = cv::AKAZE::create();
+    } else if (item.toStdString() == "BRISK") {
+      pDetector = pDescriber = cv::BRISK::create();
+    } else if (item.toStdString() == "KAZE") {
+      pDetector = pDescriber = cv::KAZE::create();
+    } else if (item.toStdString() == "ORB") {
+      pDetector = pDescriber = cv::ORB::create();
+    }
+  }
+#else
   QStringList detector_list;
   cv::initModule_nonfree();
   detector_list << tr("FAST") << tr("SURF") 
@@ -260,7 +283,7 @@ bool MainWindow::SelectDetectorDescriber(cv::Ptr<cv::FeatureDetector> &pDetector
                                         descriptor_list, 3, false, &ok);
   if (ok && !item.isEmpty())    
     pDescriber = cv::DescriptorExtractor::create(item.toStdString());
-  
+#endif
   return ok;
 }
 

@@ -301,8 +301,12 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
     }
   }
 
+#ifndef CV_VERSION_EPOCH
+  cv::Ptr<cv::FastFeatureDetector> detector = cv::FastFeatureDetector::create(30);
+#else
   cv::Ptr<cv::FeatureDetector> detector = cv::FeatureDetector::create("FAST");
   detector->set("threshold", 30);
+#endif
 
   vector<Feature *> features;
   std::vector<cv::KeyPoint> features_cv;
@@ -312,7 +316,11 @@ void TvrMainWindow::ComputeFeatures(int image_index) {
     features[i] = new libmv::PointFeature(features_cv[i]);
 
   cv::Mat descriptors;
+#ifndef CV_VERSION_EPOCH
+  cv::Ptr<cv::DescriptorExtractor> describer = cv::ORB::create();
+#else
   cv::Ptr<cv::DescriptorExtractor> describer = cv::DescriptorExtractor::create("ORB");
+#endif
   describer->compute(image, features_cv, descriptors);
 
   // Copy data.
