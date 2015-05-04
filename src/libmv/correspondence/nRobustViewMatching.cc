@@ -31,7 +31,9 @@ using namespace correspondence;
 using namespace std;
 
 nRobustViewMatching::nRobustViewMatching(){
+#ifdef CV_VERSION_EPOCH
   m_pDescriber = NULL;
+#endif
 }
 
 nRobustViewMatching::nRobustViewMatching(

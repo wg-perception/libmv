@@ -20,7 +20,9 @@
 
 #include "main.h"
 
+#ifdef CV_VERSION_EPOCH
 #include <opencv2/core/types_c.h> // CV_TERMCRIT_EPS
+#endif
 #include <opencv2/core/core.hpp> //cvFindCornerSubPix
 #include <opencv2/imgproc/imgproc.hpp> //cvFindCornerSubPix
 #include <opencv2/calib3d/calib3d.hpp> //cvFindChessboardCorners
